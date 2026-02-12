@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{{activityType.name}} — {{formattedDate}}</title>
+<style>
+  :root {
+    --brand: {{brandColor}};
+    --brand-light: {{brandColorLight}};
+    --text-dark: #1e293b;
+    --text-mid: #475569;
+    --text-light: #94a3b8;
+    --border: #e2e8f0;
+    --bg-row: #f8fafc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    color: var(--text-dark);
+    background: #fff;
+  }
+  @page {
+    size: letter;
+    margin: 15mm 15mm 20mm 15mm;
+  }
+
+  /* ── MARCA DE AGUA (solo plan FREE) ── */
+  {{#unless isPro}}
+  .watermark {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    font-size: 72px;
+    font-weight: 900;
+    color: rgba(0,0,0,0.04);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 0;
+    letter-spacing: 4px;
+  }
+  {{/unless}}
+
+  /* ── ENCABEZADO ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--brand);
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 0;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .church-logo {
+    width: 52px; height: 52px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.15);
+    padding: 4px;
+  }
+  .logo-placeholder {
+    width: 52px; height: 52px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: rgba(255,255,255,0.8);
+  }
+  .church-name { font-size: 18px; font-weight: 800; color: #fff; line-height: 1.1; }
+  .church-sub  { font-size: 10px; color: rgba(255,255,255,0.75); margin-top: 2px; }
+  .header-right { text-align: right; }
+  .program-title { font-size: 15px; font-weight: 700; color: #fff; }
+  .program-date  { font-size: 11px; color: rgba(255,255,255,0.85); margin-top: 3px; }
+  .program-time  { font-size: 10px; color: rgba(255,255,255,0.65); }
+
+  /* ── BARRA DECORATIVA ── */
+  .header-stripe { height: 4px; background: linear-gradient(90deg, var(--brand), var(--brand-light)); }
+
+  /* ── BODY ── */
+  .body { padding: 0 4px; }
+
+  /* ── SECCIÓN ── */
+  .section { margin-top: 16px; }
+  .section-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--brand);
+    border-bottom: 2px solid var(--brand);
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+  }
+
+  /* ── FILA DE ASIGNACIÓN ── */
+  .assignment-row {
+    display: flex;
+    align-items: center;
+    padding: 7px 10px;
+    border-radius: 5px;
+    margin-bottom: 3px;
+    background: #fff;
+    border: 1px solid var(--border);
+  }
+  .assignment-row:nth-child(even) { background: var(--bg-row); }
+  .role-label {
+    width: 45%;
+    font-weight: 600;
+    color: var(--text-mid);
+    font-size: 11px;
+  }
+  .person-name {
+    flex: 1;
+    font-weight: 700;
+    color: var(--text-dark);
+    font-size: 12px;
+  }
+  .backup-badge {
+    font-size: 9px;
+    color: var(--text-light);
+    background: var(--bg-row);
+    padding: 2px 6px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .unassigned { color: var(--text-light); font-style: italic; }
+
+  /* ── NOTAS ── */
+  .notes-box {
+    margin-top: 18px;
+    padding: 10px 14px;
+    background: #fffbeb;
+    border-left: 3px solid #f59e0b;
+    border-radius: 0 5px 5px 0;
+    font-size: 11px;
+    color: var(--text-mid);
+  }
+  .notes-label { font-weight: 700; font-size: 10px; color: #d97706; margin-bottom: 3px; }
+
+  /* ── STATS ── */
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 18px;
+    padding: 10px 14px;
+    background: var(--bg-row);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .stat-item { text-align: center; flex: 1; }
+  .stat-value { font-size: 18px; font-weight: 800; color: var(--brand); }
+  .stat-label { font-size: 9px; color: var(--text-light); text-transform: uppercase; margin-top: 1px; }
+
+  /* ── FIRMA ── */
+  .signature-area {
+    margin-top: 24px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .signature-box { text-align: center; }
+  .signature-img { height: 42px; object-fit: contain; margin-bottom: 4px; }
+  .signature-line { width: 160px; border-top: 1px solid var(--border); margin: 0 auto 4px; }
+  .signature-name { font-size: 10px; font-weight: 700; color: var(--text-mid); }
+  .signature-role { font-size: 9px; color: var(--text-light); }
+
+  /* ── PIE DE PÁGINA ── */
+  .footer {
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-left { font-size: 9px; color: var(--text-light); }
+  .footer-right { font-size: 9px; color: var(--text-light); text-align: right; }
+  .footer-brand { font-size: 9px; color: var(--text-light); opacity: 0.5; }
+
+  /* Evitar corte de secciones entre páginas */
+  .section { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+{{#unless isPro}}
+<div class="watermark">ChurchManager</div>
+{{/unless}}
+
+<!-- ENCABEZADO -->
+<div class="header">
+  <div class="header-left">
+    {{#if church.logoUrl}}
+      <img src="{{church.logoUrl}}" alt="Logo" class="church-logo" />
+    {{else}}
+      <div class="logo-placeholder">⛪</div>
+    {{/if}}
+    <div>
+      <div class="church-name">{{church.name}}</div>
+      <div class="church-sub">{{church.address.city}}, {{church.address.country}}</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="program-title">{{activityType.name}}</div>
+    <div class="program-date">{{formattedDate}}</div>
+    <div class="program-time">{{defaultTime}}</div>
+  </div>
+</div>
+<div class="header-stripe"></div>
+
+<!-- ESTADÍSTICAS RESUMEN -->
+<div class="stats-row">
+  <div class="stat-item">
+    <div class="stat-value">{{totalAssignments}}</div>
+    <div class="stat-label">Asignados</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-value">{{totalSections}}</div>
+    <div class="stat-label">Secciones</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-value">{{coveragePercent}}%</div>
+    <div class="stat-label">Cobertura</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-value">{{programStatus}}</div>
+    <div class="stat-label">Estado</div>
+  </div>
+</div>
+
+<!-- SECCIONES DE ASIGNACIONES -->
+<div class="body">
+  {{#each sections}}
+  <div class="section">
+    <div class="section-title">{{name}}</div>
+    {{#each assignments}}
+    <div class="assignment-row">
+      <div class="role-label">{{roleName}}</div>
+      {{#if person.name}}
+        <div class="person-name">{{person.name}}</div>
+        {{#if backup}}
+          <div class="backup-badge">Suplente: {{backup.name}}</div>
+        {{/if}}
+      {{else}}
+        <div class="person-name unassigned">Sin asignar</div>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/each}}
+</div>
+
+<!-- NOTAS -->
+{{#if notes}}
+<div class="notes-box">
+  <div class="notes-label">📋 NOTAS</div>
+  {{notes}}
+</div>
+{{/if}}
+
+<!-- FIRMA DIGITAL (solo plan PRO) -->
+{{#if church.signatureUrl}}
+<div class="signature-area">
+  <div class="signature-box">
+    <img src="{{church.signatureUrl}}" alt="Firma" class="signature-img" />
+    <div class="signature-line"></div>
+    <div class="signature-name">{{church.pastorName}}</div>
+    <div class="signature-role">Pastor</div>
+  </div>
+</div>
+{{/if}}
+
+<!-- PIE DE PÁGINA -->
+<div class="footer">
+  <div class="footer-left">
+    Generado el {{generatedAt}}<br/>
+    por {{generatedBy.name}}
+  </div>
+  <div class="footer-brand">Church Program Manager</div>
+  <div class="footer-right">
+    {{church.name}}<br/>
+    {{#if church.phone}}{{church.phone}}{{/if}}
+  </div>
+</div>
+
+</body>
+</html>
