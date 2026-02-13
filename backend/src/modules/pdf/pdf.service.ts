@@ -97,14 +97,21 @@ export class PdfService {
 
       // Formatear hora IGUAL que el frontend (formatTimeES con AM/PM)
       const timeStr = (program as any).programTime || (program as any).defaultTime || "";
-      const ampm = (program as any).ampm || "AM";
+      const ampm = (program as any).ampm || "";
       let formattedTime = "";
       if (timeStr) {
-        const parts = timeStr.split(":");
-        let h = parseInt(parts[0]);
-        const m = parts[1] || "00";
-        const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
-        formattedTime = `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
+        // Si ya viene con AM/PM (ej: "7:00 PM"), usarlo directo
+        if (timeStr.includes("AM") || timeStr.includes("PM")) {
+          formattedTime = timeStr;
+        } else {
+          // Formato 24h: convertir a 12h
+          const parts = timeStr.split(":");
+          const h = parseInt(parts[0]);
+          const m = parts[1] || "00";
+          const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+          const displayAmpm = ampm || (h >= 12 ? "PM" : "AM");
+          formattedTime = `${h12}:${String(m).padStart(2, "0")} ${displayAmpm}`;
+        }
       }
 
       // Datos de la iglesia

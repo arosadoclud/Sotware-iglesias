@@ -9,51 +9,60 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
+  @page {
+    size: Letter;
+    margin: 0;
+  }
+
   body {
     font-family: 'DM Sans', sans-serif;
-    background: #F9FAFB;
+    background: white;
     color: #111827;
-    min-height: 100vh;
+    width: 8.5in;
+    height: 11in;
+    margin: 0;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem 1rem;
   }
 
   .flyer-container {
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.14);
+    width: 7in;
+    min-height: 9.5in;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
     overflow: hidden;
-    width: 100%;
-    max-width: 540px;
-    margin: 0 auto;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
   }
 
   /* ── Header ── */
   .flyer-header {
     background: linear-gradient(135deg, #1B2D5B 0%, #2A4080 60%, #1B2D5B 100%);
-    padding: 2.6rem 2rem 1.5rem;
+    padding: 2.8rem 2.5rem 2rem;
     position: relative;
     overflow: hidden;
   }
 
   .flyer-header-circle1 {
     position: absolute;
-    top: -40px;
-    right: -40px;
-    width: 160px;
-    height: 160px;
+    top: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
     background: rgba(200,168,75,0.08);
     border-radius: 50%;
   }
 
   .flyer-header-circle2 {
     position: absolute;
-    bottom: -20px;
-    left: -30px;
-    width: 120px;
-    height: 120px;
+    bottom: -30px;
+    left: -40px;
+    width: 150px;
+    height: 150px;
     background: rgba(200,168,75,0.05);
     border-radius: 50%;
   }
@@ -61,7 +70,7 @@
   .header-inner {
     display: flex;
     align-items: center;
-    gap: 1.1rem;
+    gap: 1.5rem;
     position: relative;
     z-index: 1;
   }
@@ -71,65 +80,65 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 8px;
   }
 
   .flyer-church-name {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.35rem;
+    font-size: 1.85rem;
     font-weight: 700;
     color: white;
-    line-height: 1.1;
+    line-height: 1.15;
     letter-spacing: 0.02em;
     text-align: center;
     margin-bottom: 6px;
   }
 
   .flyer-church-sub {
-    font-size: 0.75rem;
+    font-size: 0.9rem;
     color: #E8C96A;
-    margin-top: 2px;
+    margin-top: 4px;
     letter-spacing: 0.05em;
     text-align: center;
   }
 
   .flyer-church-loc {
-    font-size: 0.68rem;
+    font-size: 0.8rem;
     color: rgba(255,255,255,0.5);
-    margin-top: 3px;
+    margin-top: 4px;
     text-align: center;
   }
 
   .logo-wrap {
     flex-shrink: 0;
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
   }
 
   .logo-wrap img {
-    width: 60px;
-    height: 60px;
-    border-radius: 10px;
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
     object-fit: contain;
     border: 2px solid rgba(200,168,75,0.4);
     background: rgba(255,255,255,0.1);
   }
 
   .logo-placeholder {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     background: rgba(255,255,255,0.1);
     border: 2px solid rgba(200,168,75,0.5);
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.6rem;
+    font-size: 2rem;
+    color: rgba(255,255,255,0.6);
   }
 
   /* ── Gold Band ── */
   .gold-band {
-    height: 4px;
+    height: 5px;
     background: linear-gradient(90deg, #C8A84B 0%, #E8C96A 50%, #C8A84B 100%);
   }
 
@@ -137,46 +146,46 @@
   .flyer-badge-row {
     display: flex;
     justify-content: center;
-    padding: 1.1rem 2rem 0.4rem;
+    padding: 1.5rem 2.5rem 0.6rem;
   }
 
   .flyer-badge {
     background: #C8A84B;
     color: #1B2D5B;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.1rem;
+    font-size: 1.35rem;
     font-weight: 700;
-    padding: 6px 24px;
+    padding: 8px 36px;
     border-radius: 30px;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
   /* ── Date & Time ── */
   .flyer-date-row {
     text-align: center;
-    padding: 0.4rem 2rem 0.2rem;
+    padding: 0.6rem 2.5rem 0.4rem;
   }
 
   .flyer-date {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.05rem;
+    font-size: 1.35rem;
     color: #1B2D5B;
     font-weight: 600;
   }
 
   .flyer-time {
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: #6B7280;
-    margin-top: 2px;
+    margin-top: 4px;
   }
 
   /* ── Ornament ── */
   .ornament {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 0.5rem 2rem;
+    gap: 10px;
+    padding: 0.8rem 2.5rem;
   }
 
   .ornament-line {
@@ -187,13 +196,13 @@
 
   .ornament-diamonds {
     display: flex;
-    gap: 4px;
+    gap: 6px;
   }
 
   .ornament-diamonds span {
     display: block;
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
     background: #C8A84B;
     transform: rotate(45deg);
     opacity: 0.7;
@@ -206,26 +215,27 @@
   /* ── Section Title ── */
   .flyer-section-title {
     text-align: center;
-    font-size: 0.65rem;
+    font-size: 0.8rem;
     font-weight: 700;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: #1B2D5B;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.8rem;
   }
 
   /* ── Table ── */
   .flyer-table {
-    padding: 0 1.5rem 1rem;
+    padding: 0 2rem 1.5rem;
+    flex: 1;
   }
 
   .flyer-row {
     display: flex;
     align-items: center;
-    padding: 10px 12px;
-    border-radius: 8px;
-    margin-bottom: 4px;
-    min-height: 44px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    min-height: 52px;
   }
 
   .flyer-row:nth-child(odd) {
@@ -239,23 +249,23 @@
 
   .flyer-row-num {
     flex-shrink: 0;
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
     background: #1B2D5B;
     color: #E8C96A;
-    border-radius: 5px;
-    font-size: 0.65rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 10px;
+    margin-right: 14px;
   }
 
   .flyer-row-role {
     flex: 0 0 auto;
-    width: 140px;
-    font-size: 0.82rem;
+    width: 180px;
+    font-size: 0.95rem;
     font-weight: 600;
     color: #1B2D5B;
   }
@@ -263,7 +273,7 @@
   .flyer-row-person {
     flex: 1;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1rem;
+    font-size: 1.15rem;
     font-weight: 600;
     color: #111827;
     font-style: italic;
@@ -273,7 +283,7 @@
     color: #D1D5DB;
     font-style: normal;
     font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
+    font-size: 0.85rem;
     font-weight: 400;
     letter-spacing: 0.03em;
   }
@@ -281,14 +291,14 @@
   /* ── Verse ── */
   .flyer-verse {
     text-align: center;
-    padding: 0.8rem 2rem 0.5rem;
+    padding: 1rem 2.5rem 0.8rem;
     border-top: 1px solid #F3F4F6;
-    margin: 0 1.5rem;
+    margin: 0 2rem;
   }
 
   .flyer-verse p {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 0.88rem;
+    font-size: 1.05rem;
     font-style: italic;
     color: #6B7280;
     line-height: 1.5;
@@ -298,12 +308,12 @@
   /* ── Summary ── */
   .flyer-summary {
     text-align: center;
-    padding: 0.5rem 2rem 0.5rem;
-    margin: 0 1.5rem;
+    padding: 0.5rem 2.5rem 0.5rem;
+    margin: 0 2rem;
   }
 
   .flyer-summary p {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     color: #6B7280;
     line-height: 1.4;
     margin: 0;
@@ -312,30 +322,19 @@
   /* ── Footer ── */
   .flyer-footer {
     background: #1B2D5B;
-    padding: 10px 2rem;
+    padding: 14px 2.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 0.8rem;
+    margin-top: auto;
   }
 
   .flyer-footer-text {
-    font-size: 0.72rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: rgba(255,255,255,0.7);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-  }
-
-  @media print {
-    body {
-      background: white;
-      padding: 0;
-    }
-    .flyer-container {
-      box-shadow: none;
-      max-width: 100%;
-    }
   }
 </style>
 </head>
