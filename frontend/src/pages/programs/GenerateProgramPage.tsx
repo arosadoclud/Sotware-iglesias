@@ -337,21 +337,15 @@ const GenerateProgramPage = () => {
         const res = await programsApi.generateBatch({ activityTypeId: selectedActivity, startDate, endDate })
         const batchData = res.data.data
         const gen = batchData.generated
-
-        // Cargar datos completos de cada programa generado exitosamente
-        const successResults = batchData.results?.filter((r: any) => r.success && r.programId) || []
-        const programDetails = await Promise.all(
-          successResults.map((r: any) =>
-            programsApi.get(r.programId).then(p => p.data.data).catch(() => null)
-          )
-        )
-
-        setResult({
-          type: 'batch',
-          data: batchData,
-          programs: programDetails.filter(Boolean), // Programas completos con asignaciones
-        })
         toast.success(`✅ ${gen} programa${gen !== 1 ? 's' : ''} generado${gen !== 1 ? 's' : ''}`)
+
+        // Redirigir a la vista de revision de lote con todos los IDs
+        const programIds = batchData.results
+          ?.filter((r: any) => r.success && r.programId)
+          .map((r: any) => r.programId) || []
+        if (programIds.length > 0) {
+          setTimeout(() => navigate(`/programs/batch-review?ids=${programIds.join(',')}`), 600)
+        }
       }
     } catch (e: any) {
       toast.error(e.response?.data?.message || 'Error al generar programa')
@@ -425,9 +419,9 @@ const GenerateProgramPage = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className={`grid gap-6 ${result?.type === 'batch' ? 'lg:grid-cols-1' : 'lg:grid-cols-3'}`}>
+          <div className="grid lg:grid-cols-3 gap-6">
             {/* Left Panel - Configuration */}
-            <div className={`space-y-6 ${result?.type === 'batch' ? '' : 'lg:col-span-2'}`}>
+            <div className="lg:col-span-2 space-y-6">
               {/* Mode Selection */}
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
                 <Card>
@@ -695,44 +689,9 @@ const GenerateProgramPage = () => {
                     )}
 
                     {result.type === 'batch' && (
-                      <div className="space-y-4">
-                        {/* Resumen con errores si hay */}
-                        {result.data?.results?.some((r: any) => !r.success) && (
-                          <Card>
-                            <CardContent className="pt-4">
-                              <div className="space-y-2">
-                                {result.data.results.filter((r: any) => !r.success).map((r: any, i: number) => (
-                                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-danger-50 text-danger-700">
-                                    <span className="text-sm font-medium">
-                                      ❌ {format(new Date(r.date), "d MMM yyyy", { locale: es })}
-                                    </span>
-                                    <span className="text-xs">{r.error}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        )}
-
-                        {/* Cards completas de cada programa generado */}
-                        <div className="grid md:grid-cols-2 gap-4">
-                          {result.programs?.map((prog: any, i: number) => (
-                            <ProgramPreviewCard
-                              key={prog._id || i}
-                              program={prog}
-                              meta={{
-                                stats: result.data?.results?.find(
-                                  (r: any) => r.programId === prog._id
-                                )?.stats || { coveragePercent: 0, totalAssigned: prog.assignments?.length || 0, totalNeeded: prog.assignments?.length || 0, personsUsed: 0 },
-                                warnings: result.data?.results?.find(
-                                  (r: any) => r.programId === prog._id
-                                )?.warnings || [],
-                              }}
-                              onDownloadPdf={handleDownloadPdf}
-                              onEditFlyer={(id) => navigate(`/programs/${id}/flyer`)}
-                            />
-                          ))}
-                        </div>
+                      <div className="text-center py-4">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary-600 mx-auto mb-2" />
+                        <p className="text-sm text-neutral-500">Redirigiendo a la vista de programas...</p>
                       </div>
                     )}
 

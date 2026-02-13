@@ -12,6 +12,7 @@ import ProgramsPage from './pages/programs/ProgramsPage'
 import GenerateProgramPage from './pages/programs/GenerateProgramPage'
 import ProgramEditPage from './pages/programs/ProgramEditPage'
 import FlyerPreviewPage from './pages/programs/FlyerPreviewPage'
+import BatchReviewPage from './pages/programs/BatchReviewPage'
 import CalendarPage from './pages/CalendarPage'
 import LetterTemplatesPage from './pages/letters/LetterTemplatesPage'
 import SettingsPage from './pages/SettingsPage'
@@ -39,6 +40,7 @@ function App() {
             <Route path="/programs/generate" element={<GenerateProgramPage />} />
             <Route path="/programs/:id/edit" element={<ProgramEditPage />} />
             <Route path="/programs/:id/flyer" element={<FlyerPreviewPage />} />
+            <Route path="/programs/batch-review" element={<BatchReviewPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/letters" element={<LetterTemplatesPage />} />
             <Route path="/settings" element={<SettingsPage />} />
