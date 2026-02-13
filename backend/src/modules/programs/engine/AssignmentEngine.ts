@@ -33,6 +33,7 @@ export interface GenerationParams {
   targetDate: Date;
   generatedBy: { id: string; name: string };
   notes?: string;
+  excludePersonIds?: Set<string>; // Para evitar repetir personas entre programas del lote
 }
 
 export interface GenerationResult {
@@ -137,6 +138,7 @@ export class AssignmentEngine {
     const assignments: AssignmentResult[] = [];
     const warnings: GenerationWarning[] = [];
     const assignedIds = new Set<string>(); // Evitar doble asignación en un mismo programa
+    const batchExcluded = params.excludePersonIds || new Set<string>(); // Personas ya asignadas en otros programas del lote
     const allBreakdowns: ScoringBreakdown[] = [];
 
     // Procesar roles requeridos primero, luego opcionales
@@ -155,6 +157,14 @@ export class AssignmentEngine {
           !assignedIds.has(p._id.toString()) &&
           p.isAvailableOn(targetDate)
       );
+
+      // Preferir personas que NO fueron asignadas en otros programas del lote
+      // Si no hay suficientes personas "frescas", usar también las ya usadas en el lote
+      const freshEligible = eligible.filter(p => !batchExcluded.has(p._id.toString()));
+      if (freshEligible.length >= roleConfig.peopleNeeded) {
+        eligible = freshEligible;
+      }
+      // Si no hay suficientes "frescas", mantener la lista completa como fallback
 
       // Si no hay suficientes, intentar sin restricción de consecutividad extrema (fallback)
       if (eligible.length < roleConfig.peopleNeeded && roleConfig.isRequired) {
@@ -269,6 +279,25 @@ export class AssignmentEngine {
       existing.map((p) => p.programDate.toISOString().split('T')[0])
     );
 
+    // Obtener la actividad UNA vez fuera del loop (incluye defaultTime)
+    const activity = await ActivityType.findOne({
+      _id: params.activityTypeId,
+      churchId: params.churchId,
+    }).select('name defaultTime');
+
+    // Convertir defaultTime (HH:mm 24h) a formato legible (ej: "7:00 PM")
+    const formatTime = (time24?: string): string | undefined => {
+      if (!time24) return undefined;
+      const [h, m] = time24.split(':').map(Number);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const h12 = h % 12 || 12;
+      return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+    };
+    const programTime = formatTime(activity?.defaultTime);
+
+    // Tracking global de personas asignadas en el lote para maximizar variedad
+    const batchAssignedIds = new Set<string>();
+
     for (const date of params.dates) {
       const dateKey = date.toISOString().split('T')[0];
 
@@ -288,13 +317,13 @@ export class AssignmentEngine {
           activityTypeId: params.activityTypeId,
           targetDate: date,
           generatedBy: params.generatedBy,
+          excludePersonIds: batchAssignedIds, // Evitar repetición entre programas del lote
         });
 
-        // Obtener el activityType para el snapshot
-        const activity = await ActivityType.findOne({
-          _id: params.activityTypeId,
-          churchId: params.churchId,
-        }).select('name');
+        // Agregar las personas asignadas al tracking global del lote
+        for (const a of generation.assignments) {
+          if (a.person?.id) batchAssignedIds.add(a.person.id.toString());
+        }
 
         const program = await Program.create({
           churchId: params.churchId,
@@ -303,6 +332,7 @@ export class AssignmentEngine {
             name: activity?.name || '',
           },
           programDate: date,
+          programTime, // Hora por defecto de la actividad
           status: 'DRAFT',
           assignments: generation.assignments,
           notes: `Generado en lote. Cobertura: ${generation.stats.coveragePercent}%`,
