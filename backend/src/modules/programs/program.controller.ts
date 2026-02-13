@@ -1,3 +1,64 @@
+import { generateFlyerPdf } from './generateFlyerPdf';
+export const downloadProgramFlyerPdf = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const program = await Program.findOne({ _id: req.params.id, churchId: req.churchId });
+    if (!program) throw new NotFoundError('Programa no encontrado');
+
+    // Preparar datos para la plantilla
+    // Obtener hora y AM/PM
+    let hour = '';
+    let ampm = 'AM';
+    if (program.defaultTime) {
+      hour = program.defaultTime;
+    }
+    if (program.ampm) {
+      ampm = program.ampm;
+    }
+    // Formatear hora igual que el frontend
+    function formatTimeES(timeStr: string, ampm?: string): string {
+      if (!timeStr) return '';
+      const parts = timeStr.split(':');
+      let h = parseInt(parts[0]);
+      let m = parts[1] || '00';
+      const displayAmpm = ampm || 'AM';
+      const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+      return `${h12}:${m.padStart(2, '0')} ${displayAmpm}`;
+    }
+    // Formatear fecha igual que el frontend
+    function formatDateES(dateObj: Date): string {
+      if (!dateObj) return '—';
+      const opts: Intl.DateTimeFormatOptions = {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+      };
+      const formatted = dateObj.toLocaleDateString('es-DO', opts);
+      return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    }
+    const flyerData = {
+      churchName: program.churchName,
+      logoUrl: program.logoUrl,
+      worshipType: program.activityType.name,
+      date: formatDateES(program.programDate),
+      time: formatTimeES(hour, ampm),
+      location: program.location || '',
+      verse: program.verse || '',
+      assignments: program.assignments.map(a => ({
+        id: a.sectionOrder || a.id,
+        name: a.roleName || a.sectionName || a.name,
+        person: a.person?.name || '',
+      })),
+      churchSub: program.churchSub || '',
+    };
+    // Generar PDF
+    const pdfBuffer = await generateFlyerPdf(flyerData);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="flyer-programa-${program._id}.pdf"`,
+    });
+    res.send(pdfBuffer);
+  } catch (error) {
+    next(error);
+  }
+};
 import { Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import { AuthRequest } from '../../middleware/auth.middleware';
@@ -40,7 +101,7 @@ export const getProgram = async (req: AuthRequest, res: Response, next: NextFunc
 
 export const generateProgram = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { activityTypeId, programDate, notes } = req.body;
+    const { activityTypeId, programDate, notes, defaultTime, ampm } = req.body;
     if (!activityTypeId || !programDate) throw new BadRequestError('activityTypeId y programDate son requeridos');
 
     const dateObj = new Date(programDate);
@@ -70,6 +131,8 @@ export const generateProgram = async (req: AuthRequest, res: Response, next: Nex
       logoUrl: '/logo-arca.png',
       activityType: { id: activity._id, name: activity.name },
       programDate: dateObj,
+      defaultTime: defaultTime || '',
+      ampm: ampm || 'AM',
       status: ProgramStatus.DRAFT,
       assignments: generation.assignments,
       notes: notes || '',
@@ -159,12 +222,33 @@ export const updateProgram = async (req: AuthRequest, res: Response, next: NextF
     delete req.body.churchId;
     const updateData = {
       ...req.body,
-      churchName: 'IGLESIA ARCA EVANGELICA DIOS FUERTE',
-      logoUrl: '/logo-arca.png',
+      churchName: req.body.church?.name || req.body.churchName || '',
+      churchSub: req.body.church?.subTitle || req.body.churchSub || '',
+      location: req.body.church?.location || req.body.location || '',
+      logoUrl: req.body.logoUrl || req.body.church?.logoUrl || '',
+      ampm: req.body.ampm || 'AM',
     };
     const program = await Program.findOneAndUpdate({ _id: req.params.id, churchId: req.churchId }, updateData, { new: true, runValidators: true });
     if (!program) throw new NotFoundError('Programa no encontrado');
-    res.json({ success: true, data: program });
+    // Devolver datos en formato esperado por el frontend
+    res.json({
+      success: true,
+      data: {
+        ...program.toObject(),
+        church: {
+          name: program.churchName,
+          subTitle: program.churchSub,
+          location: program.location,
+          logoUrl: program.logoUrl,
+        },
+        activityType: program.activityType,
+        programDate: program.programDate,
+        defaultTime: program.defaultTime,
+        ampm: program.ampm,
+        verse: program.verse,
+        assignments: program.assignments,
+      },
+    });
   } catch (error) { next(error); }
 };
 

@@ -18,6 +18,7 @@ import {
 const router = Router();
 router.use(authenticate, tenantGuard);
 
+router.get('/:id/flyer', rbac('programs', 'read'), require('./program.controller').downloadProgramFlyerPdf);
 router.get('/stats', rbac('programs', 'read'), getProgramStats);
 router.get('/preview-scoring', rbac('programs', 'read'), previewProgramScoring);
 router.get('/', rbac('programs', 'read'), getPrograms);

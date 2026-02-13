@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { programsApi } from '../../lib/api';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft, Save } from 'lucide-react';
+import { Loader2, ArrowLeft, Save, Download, Eye } from 'lucide-react';
 
 const ProgramEditPage = () => {
   const { id } = useParams();
@@ -10,7 +10,16 @@ const ProgramEditPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [program, setProgram] = useState<any>(null);
-  const [form, setForm] = useState<any>({});
+  const [assignments, setAssignments] = useState<any[]>([]);
+  const [showPreview, setShowPreview] = useState(true);
+
+  // Estados para datos editables - ESTOS SON LOS QUE SE GUARDAN
+  const [churchName, setChurchName] = useState('');
+  const [subtitle, setSubtitle] = useState('');
+  const [worshipType, setWorshipType] = useState('');
+  const [programDate, setProgramDate] = useState('');
+  const [programTime, setProgramTime] = useState('');
+  const [verse, setVerse] = useState('');
 
   useEffect(() => {
     async function fetchProgram() {
@@ -18,8 +27,28 @@ const ProgramEditPage = () => {
       setLoading(true);
       try {
         const res = await programsApi.get(id);
-        setProgram(res.data.data);
-        setForm(res.data.data);
+        const prog = res.data.data;
+        setProgram(prog);
+        setAssignments(prog.assignments || []);
+        
+        // Cargar datos editables desde el programa O valores por defecto
+        setChurchName(prog.churchName || 'IGLESIA ARCA EVANGELICA DIOS FUERTE');
+        setSubtitle(prog.subtitle || '');
+        setWorshipType(prog.activityType?.name || 'CULTO DE JÓVENES');
+        setProgramDate(prog.programDate || '');
+        
+        // Si programTime existe, usarlo, sino extraer de programDate
+        if (prog.programTime) {
+          setProgramTime(prog.programTime);
+        } else {
+          // Extraer hora de programDate
+          const date = new Date(prog.programDate);
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          setProgramTime(`${hours}:${minutes}`);
+        }
+        
+        setVerse(prog.verse || '');
       } catch {
         toast.error('No se pudo cargar el programa');
         navigate('/programs');
@@ -29,62 +58,380 @@ const ProgramEditPage = () => {
     fetchProgram();
   }, [id, navigate]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleAssignmentChange = (index: number, field: string, value: string) => {
+    const updated = [...assignments];
+    if (field === 'personName') {
+      updated[index] = { 
+        ...updated[index], 
+        person: { ...updated[index].person, fullName: value } 
+      };
+    } else {
+      updated[index] = { ...updated[index], [field]: value };
+    }
+    setAssignments(updated);
   };
 
   const handleSave = async () => {
     if (!id) return;
     setSaving(true);
     try {
-      await programsApi.update(id, form);
-      toast.success('Programa actualizado');
-      navigate('/programs');
-    } catch {
-      toast.error('Error al guardar');
+      // Convertir hora de 24h a 12h con AM/PM
+      let formattedTime = programTime;
+      if (programTime && programTime.includes(':')) {
+        const [hours, minutes] = programTime.split(':');
+        const hour = parseInt(hours);
+        const isPM = hour >= 12;
+        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+        formattedTime = `${displayHour}:${minutes} ${isPM ? 'PM' : 'AM'}`;
+      }
+
+      // Guardar con TODOS los datos exactos del preview
+      await programsApi.update(id, {
+        ...program,
+        churchName,      // ✅ Guardar nombre de iglesia
+        subtitle,        // ✅ Guardar subtítulo
+        verse,           // ✅ Guardar versículo completo
+        programTime: formattedTime,     // ✅ Guardar hora en formato "7:00 PM"
+        programDate,     // ✅ Guardar fecha
+        activityType: {
+          ...program.activityType,
+          name: worshipType  // ✅ Guardar tipo de culto
+        },
+        assignments: assignments.map((a, idx) => ({
+          ...a,
+          id: idx + 1,
+          sectionOrder: idx + 1,
+          person: a.person?._id || null,
+          roleName: a.roleName,
+        }))
+      });
+      toast.success('✅ Programa guardado exitosamente');
+    } catch (error) {
+      toast.error('❌ Error al guardar el programa');
+      console.error(error);
     }
     setSaving(false);
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="w-6 h-6 animate-spin" /></div>;
+  const handleDownloadPDF = () => {
+    if (id) {
+      window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/v1/programs/${id}/flyer`, '_blank');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    );
+  }
+
   if (!program) return null;
 
+  // Formatear fecha como en el preview
+  const formattedDate = new Date(programDate).toLocaleDateString('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+
+  // Formatear hora para el preview - convertir de 24h a 12h
+  let displayTime = '';
+  if (programTime && programTime.includes(':')) {
+    const [hours, minutes] = programTime.split(':');
+    const hour = parseInt(hours);
+    const isPM = hour >= 12;
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    displayTime = `${displayHour}:${minutes} ${isPM ? 'PM' : 'AM'}`;
+  } else {
+    displayTime = new Date(programDate).toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+
   return (
-    <div className="max-w-xl mx-auto mt-8 bg-white p-6 rounded-xl shadow">
-      <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-2 text-gray-500 hover:text-primary-600">
-        <ArrowLeft className="w-4 h-4" /> Volver
-      </button>
-      <h2 className="text-xl font-bold mb-4">Editar Programa</h2>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Nombre de la actividad</label>
-          <input
-            type="text"
-            name="activityType.name"
-            value={form.activityType?.name || ''}
-            onChange={e => setForm({ ...form, activityType: { ...form.activityType, name: e.target.value } })}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
-          />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate('/programs')}
+                className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="font-medium">Volver a Programas</span>
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowPreview(!showPreview)}
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+              >
+                <Eye className="w-4 h-4" />
+                {showPreview ? 'Ocultar' : 'Mostrar'} Preview
+              </button>
+              <button
+                onClick={handleDownloadPDF}
+                className="flex items-center gap-2 px-4 py-2 text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition"
+              >
+                <Download className="w-4 h-4" />
+                Descargar PDF
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-2 px-4 py-2 text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition disabled:opacity-50"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Guardar Cambios
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Fecha</label>
-          <input
-            type="date"
-            name="programDate"
-            value={form.programDate ? form.programDate.slice(0,10) : ''}
-            onChange={handleChange}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
-          />
-        </div>
-        {/* Puedes agregar más campos aquí según tu modelo */}
       </div>
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="mt-6 btn btn-primary flex items-center gap-2"
-      >
-        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar
-      </button>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Editor */}
+          <div className="space-y-6">
+            {/* Información General */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Información General</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nombre de la Iglesia
+                  </label>
+                  <input
+                    type="text"
+                    value={churchName}
+                    onChange={(e) => setChurchName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Subtítulo
+                    </label>
+                    <input
+                      type="text"
+                      value={subtitle}
+                      onChange={(e) => setSubtitle(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tipo de Culto
+                    </label>
+                    <input
+                      type="text"
+                      value={worshipType}
+                      onChange={(e) => setWorshipType(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Fecha
+                    </label>
+                    <input
+                      type="date"
+                      value={programDate ? programDate.split('T')[0] : ''}
+                      onChange={(e) => setProgramDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Hora
+                    </label>
+                    <input
+                      type="time"
+                      value={programTime}
+                      onChange={(e) => setProgramTime(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Versículo (Footer)
+                  </label>
+                  <input
+                    type="text"
+                    value={verse}
+                    onChange={(e) => setVerse(e.target.value)}
+                    placeholder="Ej: 1 Timoteo 4:12 Ninguno tenga en poco tu juventud..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Asignaciones */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Editar Asignaciones</h2>
+              <div className="space-y-3">
+                {assignments.map((assignment, index) => (
+                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-shrink-0 w-10 h-10 bg-primary-600 text-white rounded-lg flex items-center justify-center font-bold">
+                      {String(index + 1).padStart(2, '0')}
+                    </div>
+                    <div className="flex-1 grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Rol</label>
+                        <input
+                          type="text"
+                          value={assignment.roleName || ''}
+                          onChange={(e) => handleAssignmentChange(index, 'roleName', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          placeholder="Nombre del rol"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Persona</label>
+                        <input
+                          type="text"
+                          value={assignment.person?.fullName || ''}
+                          onChange={(e) => handleAssignmentChange(index, 'personName', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          placeholder="Nombre de la persona"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Preview - EXACTO al diseño original */}
+          {showPreview && (
+            <div className="sticky top-24">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                  Vista Previa del Flyer
+                </h3>
+                <span className="flex items-center gap-2 text-xs text-green-600 font-medium">
+                  <span className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                  Se actualiza en tiempo real
+                </span>
+              </div>
+              
+              {/* Flyer Preview - DISEÑO EXACTO */}
+              <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                
+                {/* Header */}
+                <div className="bg-gradient-to-r from-[#2c4875] to-[#3d5a80] px-8 py-6 flex items-center justify-between">
+                  <div className="flex-1">
+                    <h1 className="text-white text-2xl font-bold uppercase tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
+                      {churchName}
+                    </h1>
+                    {subtitle && (
+                      <p className="text-white/80 text-sm mt-1">{subtitle}</p>
+                    )}
+                  </div>
+                  <div className="w-20 h-20 bg-white/15 border-2 border-white/30 rounded-xl flex items-center justify-center text-4xl">
+                    🕊
+                  </div>
+                </div>
+
+                {/* Gold Band */}
+                <div className="h-1.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent"></div>
+
+                {/* Badge */}
+                <div className="flex justify-center py-6">
+                  <div className="bg-gradient-to-r from-amber-500 to-amber-400 text-[#1B2D5B] px-8 py-2 rounded-full font-bold text-sm uppercase tracking-wider shadow-lg" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    {worshipType}
+                  </div>
+                </div>
+
+                {/* Date & Time */}
+                <div className="text-center px-8 pb-2">
+                  <div className="text-[#1B2D5B] text-lg font-semibold capitalize" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    {formattedDate}
+                  </div>
+                  <div className="text-gray-600 text-base mt-1">{displayTime}</div>
+                </div>
+
+                {/* Ornament */}
+                <div className="flex items-center gap-3 px-8 py-4">
+                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+                  <div className="flex gap-1.5">
+                    <span className="w-1.5 h-1.5 bg-amber-500 rotate-45 opacity-60"></span>
+                    <span className="w-1.5 h-1.5 bg-amber-500 rotate-45"></span>
+                    <span className="w-1.5 h-1.5 bg-amber-500 rotate-45 opacity-60"></span>
+                  </div>
+                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
+                </div>
+
+                <div className="text-center text-xs font-bold uppercase tracking-widest text-[#2c4875] pb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  Orden del Culto
+                </div>
+
+                {/* Assignments */}
+                <div className="px-6 pb-6 space-y-2">
+                  {assignments.map((assignment, index) => (
+                    <div
+                      key={index}
+                      className={`flex items-center px-4 py-3 rounded-lg ${
+                        index % 2 === 0 ? 'bg-gray-100' : 'bg-white'
+                      }`}
+                    >
+                      <div className="flex-shrink-0 w-8 h-8 bg-[#2c4875] text-amber-400 rounded-lg flex items-center justify-center text-xs font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>
+                        {String(index + 1).padStart(2, '0')}
+                      </div>
+                      <div className="ml-4 flex-1 grid grid-cols-2 gap-4">
+                        <div className="text-sm font-semibold text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>
+                          {assignment.roleName || 'Sin rol'}
+                        </div>
+                        <div className="text-sm font-semibold text-gray-800 italic text-right" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                          {assignment.person?.fullName || <span className="text-gray-400 not-italic text-xs">Sin asignar</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Verse */}
+                {verse && (
+                  <div className="text-center px-8 pb-4 text-xs italic text-gray-500" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                    {verse}
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div className="bg-[#2c4875] py-4 text-center">
+                  <div className="text-white/85 text-sm font-semibold uppercase tracking-wider" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    {churchName}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

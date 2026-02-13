@@ -5,26 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>{{churchName}} - {{worshipType}}</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
-
-  :root {
-    --navy:       #1B2D5B;
-    --navy-mid:   #2A4080;
-    --gold:       #C8A84B;
-    --gold-light: #E8C96A;
-    --gray-900:   #111827;
-    --gray-500:   #6B7280;
-    --gray-300:   #D1D5DB;
-    --gray-100:   #F3F4F6;
-    --white:      #FFFFFF;
-  }
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:wght@600;700&display=swap');
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'DM Sans', sans-serif;
-    background: #F7F8FC;
-    color: var(--gray-900);
+    font-family: 'Playfair Display', serif;
+    background: #F9FAFB;
+    color: #1F2937;
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -33,255 +21,240 @@
   }
 
   .flyer-container {
-    background: var(--white);
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.14);
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.12);
     overflow: hidden;
     width: 100%;
-    max-width: 540px;
+    max-width: 650px;
     margin: 0 auto;
   }
 
-  /* HEADER */
   .flyer-header {
-    background: linear-gradient(135deg, #1B2D5B 0%, #2A4080 60%, #1B2D5B 100%);
-    padding: 1.8rem 2rem 1.5rem;
-    position: relative;
-    overflow: hidden;
-  }
-  .flyer-header::before {
-    content: '';
-    position: absolute;
-    top: -40px; right: -40px;
-    width: 160px; height: 160px;
-    background: rgba(200,168,75,0.08);
-    border-radius: 50%;
-  }
-  .flyer-header::after {
-    content: '';
-    position: absolute;
-    bottom: -20px; left: -30px;
-    width: 120px; height: 120px;
-    background: rgba(200,168,75,0.05);
-    border-radius: 50%;
-  }
-  .header-inner {
+    background: linear-gradient(135deg, #2c4875 0%, #3d5a80 100%);
+    padding: 2.5rem 3rem;
     display: flex;
     align-items: center;
-    gap: 1.1rem;
-    position: relative;
-    z-index: 1;
+    justify-content: space-between;
   }
+
+  .header-text {
+    flex: 1;
+  }
+
+  .flyer-church-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .flyer-church-sub {
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.8);
+    margin-top: 0.25rem;
+    font-weight: 400;
+  }
+
   .logo-circle {
-    width: 60px;
-    height: 60px;
-    background: rgba(255,255,255,0.1);
-    border: 2px solid rgba(200,168,75,0.5);
+    width: 80px;
+    height: 80px;
+    background: rgba(255,255,255,0.15);
+    border: 3px solid rgba(255,255,255,0.3);
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.6rem;
     flex-shrink: 0;
-    backdrop-filter: blur(4px);
-    color: rgba(200,168,75,0.8);
+    margin-left: 2rem;
   }
+
   .logo-circle img {
-    width: 60px;
-    height: 60px;
-    border-radius: 10px;
+    width: 70px;
+    height: 70px;
     object-fit: contain;
   }
-  .header-text { flex: 1; }
-  .flyer-church-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: white;
-    line-height: 1.1;
-    letter-spacing: 0.02em;
-  }
-  .flyer-church-sub {
-    font-size: 0.75rem;
-    color: var(--gold-light);
-    margin-top: 2px;
-    letter-spacing: 0.05em;
-  }
-  .flyer-church-loc {
-    font-size: 0.68rem;
-    color: rgba(255,255,255,0.5);
-    margin-top: 3px;
+
+  .logo-placeholder {
+    font-size: 2.5rem;
+    filter: grayscale(1) opacity(0.6);
   }
 
-  /* Banda dorada */
   .gold-band {
-    height: 4px;
-    background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+    height: 5px;
+    background: linear-gradient(90deg, transparent 0%, #C8A84B 20%, #E8C96A 50%, #C8A84B 80%, transparent 100%);
   }
 
-  /* BADGE */
   .flyer-badge-row {
     display: flex;
     justify-content: center;
-    padding: 1.1rem 2rem 0.4rem;
-  }
-  .flyer-badge {
-    background: var(--gold);
-    color: var(--navy);
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    padding: 6px 24px;
-    border-radius: 30px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    padding: 2rem 3rem 1rem;
   }
 
-  /* Fecha y hora */
+  .flyer-badge {
+    background: linear-gradient(135deg, #C8A84B 0%, #E8C96A 100%);
+    color: #1B2D5B;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    padding: 0.75rem 3rem;
+    border-radius: 50px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    box-shadow: 0 4px 12px rgba(200,168,75,0.3);
+  }
+
   .flyer-date-row {
     text-align: center;
-    padding: 0.4rem 2rem 0.2rem;
-  }
-  .flyer-date {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.05rem;
-    color: var(--navy);
-    font-weight: 600;
-  }
-  .flyer-time {
-    font-size: 0.8rem;
-    color: var(--gray-500);
-    margin-top: 2px;
+    padding: 1.25rem 3rem 0.75rem;
   }
 
-  /* Ornamento */
+  .flyer-date {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    color: #1B2D5B;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    text-transform: capitalize;
+  }
+
+  .flyer-time {
+    font-size: 1.1rem;
+    color: #6B7280;
+    font-weight: 400;
+  }
+
   .ornament {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 0.5rem 2rem;
+    gap: 1rem;
+    padding: 1.5rem 3rem;
   }
+
   .ornament-line {
     flex: 1;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gray-300), transparent);
+    background: linear-gradient(90deg, transparent, #D1D5DB, transparent);
   }
+
   .ornament-diamonds {
     display: flex;
-    gap: 4px;
+    gap: 6px;
   }
+
   .ornament-diamonds span {
     display: block;
-    width: 5px;
-    height: 5px;
-    background: var(--gold);
+    width: 7px;
+    height: 7px;
+    background: #C8A84B;
     transform: rotate(45deg);
-    opacity: 0.7;
+    opacity: 0.6;
   }
-  .ornament-diamonds span:nth-child(2) { opacity: 1; }
 
-  /* Título */
+  .ornament-diamonds span:nth-child(2) {
+    opacity: 1;
+    transform: rotate(45deg) scale(1.2);
+  }
+
   .flyer-section-title {
     text-align: center;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 700;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--navy);
-    padding-bottom: 0.5rem;
+    color: #2c4875;
+    padding-bottom: 1.25rem;
+    font-family: 'Playfair Display', serif;
   }
 
-  /* Tabla */
   .flyer-table {
-    padding: 0 1.5rem 1rem;
+    padding: 0 2.5rem 2rem;
   }
+
   .flyer-row {
     display: flex;
     align-items: center;
-    padding: 10px 12px;
-    border-radius: 8px;
-    margin-bottom: 4px;
-    min-height: 44px;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    min-height: 56px;
   }
-  .flyer-row:nth-child(odd) { background: var(--gray-100); }
-  .flyer-row:nth-child(even) { background: var(--white); border: 1px solid var(--gray-100); }
+
+  .flyer-row:nth-child(odd) {
+    background: #F3F4F6;
+  }
+
+  .flyer-row:nth-child(even) {
+    background: white;
+  }
+
   .flyer-row-num {
     flex-shrink: 0;
-    width: 22px;
-    height: 22px;
-    background: var(--navy);
-    color: var(--gold-light);
-    border-radius: 5px;
-    font-size: 0.65rem;
+    width: 34px;
+    height: 34px;
+    background: #2c4875;
+    color: #E8C96A;
+    border-radius: 8px;
+    font-size: 0.875rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 10px;
+    margin-right: 1.25rem;
+    font-family: 'Playfair Display', serif;
   }
+
   .flyer-row-role {
-    flex-shrink: 0;
-    width: 140px;
-    font-size: 0.82rem;
+    flex: 0 0 auto;
+    width: 180px;
+    font-size: 0.95rem;
     font-weight: 600;
-    color: var(--navy);
+    color: #1F2937;
+    font-family: 'Playfair Display', serif;
   }
+
   .flyer-row-person {
     flex: 1;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    color: var(--gray-900);
+    color: #111827;
     font-style: italic;
-  }
-  .flyer-row-person.empty {
-    color: var(--gray-300);
-    font-style: normal;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
-    font-weight: 400;
-    letter-spacing: 0.03em;
+    text-align: right;
   }
 
-  /* Versículo */
+  .flyer-row-person.empty {
+    color: #D1D5DB;
+    font-style: normal;
+    font-size: 0.875rem;
+  }
+
   .flyer-verse {
     text-align: center;
-    padding: 0.8rem 2rem 0.5rem;
-    border-top: 1px solid var(--gray-100);
-    margin: 0 1.5rem;
-  }
-  .flyer-verse p {
+    padding: 0 3rem 1rem;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 0.88rem;
+    font-size: 0.75rem;
     font-style: italic;
-    color: var(--gray-500);
+    color: #6B7280;
     line-height: 1.5;
   }
-  .flyer-verse cite {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--gold);
-    font-style: normal;
-    letter-spacing: 0.05em;
-    display: block;
-    margin-top: 3px;
+
+  .flyer-footer {
+    background: #2c4875;
+    padding: 1.25rem 3rem;
+    text-align: center;
   }
 
-  /* Footer */
-  .flyer-footer {
-    background: var(--navy);
-    padding: 10px 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 0.8rem;
-  }
   .flyer-footer-text {
-    font-size: 0.72rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    color: rgba(255,255,255,0.7);
-    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.85);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
+    font-family: 'Playfair Display', serif;
   }
 
   @media print {
@@ -299,42 +272,33 @@
 <body>
 <div class="flyer-container">
 
-  <!-- Header -->
   <div class="flyer-header">
-    <div class="header-inner">
-      <div class="logo-circle">
-        {{#if logoUrl}}
-        <img src="{{logoUrl}}" alt="Logo">
-        {{else}}
-        ✝
-        {{/if}}
-      </div>
-      <div class="header-text">
-        <div class="flyer-church-name">{{churchName}}</div>
-        {{#if subtitle}}
-        <div class="flyer-church-sub">{{subtitle}}</div>
-        {{/if}}
-        {{#if location}}
-        <div class="flyer-church-loc">{{location}}</div>
-        {{/if}}
-      </div>
+    <div class="header-text">
+      <div class="flyer-church-name">{{churchName}}</div>
+      {{#if subtitle}}
+      <div class="flyer-church-sub">{{subtitle}}</div>
+      {{/if}}
+    </div>
+    <div class="logo-circle">
+      {{#if logoUrl}}
+      <img src="{{logoUrl}}" alt="Logo">
+      {{else}}
+      <div class="logo-placeholder">🕊</div>
+      {{/if}}
     </div>
   </div>
 
   <div class="gold-band"></div>
 
-  <!-- Badge -->
   <div class="flyer-badge-row">
     <div class="flyer-badge">{{worshipType}}</div>
   </div>
 
-  <!-- Fecha y hora -->
   <div class="flyer-date-row">
     <div class="flyer-date">{{formattedDate}}</div>
     <div class="flyer-time">{{programTime}}</div>
   </div>
 
-  <!-- Ornamento -->
   <div class="ornament">
     <div class="ornament-line"></div>
     <div class="ornament-diamonds">
@@ -345,30 +309,24 @@
 
   <div class="flyer-section-title">Orden del Culto</div>
 
-  <!-- Tabla -->
   <div class="flyer-table">
     {{#each assignments}}
     <div class="flyer-row">
       <div class="flyer-row-num">{{padId id}}</div>
       <div class="flyer-row-role">{{roleName}}</div>
       <div class="flyer-row-person{{#unless personName}} empty{{/unless}}">
-        {{#if personName}}{{personName}}{{else}}— — — — — — —{{/if}}
+        {{#if personName}}{{personName}}{{else}}Sin asignar{{/if}}
       </div>
     </div>
     {{/each}}
   </div>
 
-  <!-- Versículo -->
-  {{#if verseText}}
+  {{#if verse}}
   <div class="flyer-verse">
-    <p>"{{verseText}}"</p>
-    {{#if verseRef}}
-    <cite>{{verseRef}}</cite>
-    {{/if}}
+    {{verse}}
   </div>
   {{/if}}
 
-  <!-- Footer -->
   <div class="flyer-footer">
     <span class="flyer-footer-text">{{churchName}}</span>
   </div>

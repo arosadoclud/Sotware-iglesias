@@ -38,16 +38,30 @@ interface DataTableProps<TData, TValue> {
   pageSize?: number
 }
 
+interface DataTableServerProps<TData, TValue> extends DataTableProps<TData, TValue> {
+  serverPagination?: boolean
+  page?: number
+  total?: number
+  onPageChange?: (page: number) => void
+  onPageSizeChange?: (size: number) => void
+}
+
 export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
   searchPlaceholder = "Buscar...",
   pageSize = 10,
-}: DataTableProps<TData, TValue>) {
+  serverPagination = false,
+  page = 1,
+  total = 0,
+  onPageChange,
+  onPageSizeChange,
+}: DataTableServerProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
+  // For server-side pagination, control pageIndex/pageSize externally
   const table = useReactTable({
     data,
     columns,
@@ -60,13 +74,42 @@ export function DataTable<TData, TValue>({
     state: {
       sorting,
       columnFilters,
+      ...(serverPagination
+        ? {
+            pagination: {
+              pageIndex: page - 1,
+              pageSize,
+            },
+          }
+        : {}),
     },
+    manualPagination: serverPagination,
+    pageCount: serverPagination ? Math.ceil(total / pageSize) : undefined,
     initialState: {
       pagination: {
         pageSize,
       },
     },
+    ...(serverPagination
+      ? {
+          onPaginationChange: (updater) => {
+            // updater puede ser un objeto o una función
+            let next = typeof updater === 'function'
+              ? updater({ pageIndex: page - 1, pageSize })
+              : updater
+            if (next.pageIndex !== undefined && onPageChange) {
+              const newPage = next.pageIndex + 1
+              if (newPage !== page) onPageChange(newPage)
+            }
+            if (next.pageSize !== undefined && onPageSizeChange) {
+              if (next.pageSize !== pageSize) onPageSizeChange(next.pageSize)
+            }
+          },
+        }
+      : {}),
   })
+
+  // Ya no es necesario el useEffect para sincronizar paginación, lo hace onPaginationChange
 
   return (
     <div className="space-y-4">
@@ -149,12 +192,15 @@ export function DataTable<TData, TValue>({
       {/* Pagination */}
       <div className="flex items-center justify-between px-2">
         <div className="flex-1 text-sm text-neutral-600">
-          Mostrando {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} a{" "}
-          {Math.min(
-            (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-            table.getFilteredRowModel().rows.length
-          )}{" "}
-          de {table.getFilteredRowModel().rows.length} resultados
+          {serverPagination ? (
+            <>
+              Mostrando {(page - 1) * pageSize + 1} a {Math.min(page * pageSize, total)} de {total} resultados
+            </>
+          ) : (
+            <>
+              Mostrando {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} a {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} de {table.getFilteredRowModel().rows.length} resultados
+            </>
+          )}
         </div>
         <div className="flex items-center space-x-6 lg:space-x-8">
           <div className="flex items-center space-x-2">
@@ -178,8 +224,11 @@ export function DataTable<TData, TValue>({
             </Select>
           </div>
           <div className="flex w-[100px] items-center justify-center text-sm font-medium text-neutral-700">
-            Página {table.getState().pagination.pageIndex + 1} de{" "}
-            {table.getPageCount()}
+            {serverPagination ? (
+              <>Página {page} de {Math.max(1, Math.ceil(total / pageSize))}</>
+            ) : (
+              <>Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}</>
+            )}
           </div>
           <div className="flex items-center space-x-2">
             <Button

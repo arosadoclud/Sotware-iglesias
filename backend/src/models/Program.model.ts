@@ -43,7 +43,13 @@ export interface IProgram extends Document {
   generatedAt: Date;
   createdAt: Date;
   updatedAt: Date;
-  
+
+  // ✅ NUEVOS CAMPOS PARA PREVIEW = PDF
+  churchName?: string;      // Nombre de iglesia editable
+  subtitle?: string;        // Subtítulo editable
+  programTime?: string;     // Hora en formato "7:00 PM"
+  verse?: string;           // Versículo completo
+
   // Métodos
   getAssignmentsBySection(sectionName: string): IAssignment[];
   getAssignmentsByPerson(personId: string | mongoose.Types.ObjectId): IAssignment[];
@@ -98,6 +104,11 @@ const AssignmentSchema = new Schema<IAssignment>(
 // Schema principal de Program
 const ProgramSchema = new Schema<IProgram>(
   {
+    ampm: {
+      type: String,
+      enum: ['AM', 'PM'],
+      default: 'AM',
+    },
     churchId: {
       type: Schema.Types.ObjectId,
       ref: 'Church',
@@ -154,6 +165,29 @@ const ProgramSchema = new Schema<IProgram>(
     generatedAt: {
       type: Date,
       default: Date.now,
+    },
+    
+    // ✅ NUEVOS CAMPOS AGREGADOS - ESTOS FALTABAN
+    churchName: {
+      type: String,
+      trim: true,
+      required: false,
+    },
+    subtitle: {
+      type: String,
+      trim: true,
+      required: false,
+    },
+    programTime: {
+      type: String,
+      trim: true,
+      required: false,
+    },
+    verse: {
+      type: String,
+      trim: true,
+      required: false,
+      maxlength: [500, 'El versículo no puede exceder 500 caracteres'],
     },
   },
   {

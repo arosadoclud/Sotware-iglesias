@@ -58,6 +58,10 @@ const PersonsPageImproved = () => {
   const [showModal, setShowModal] = useState(false)
   const [editingPerson, setEditingPerson] = useState<Person | null>(null)
   const [saving, setSaving] = useState(false)
+  // Pagination state
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [total, setTotal] = useState(0)
   const [form, setForm] = useState({
     fullName: '',
     phone: '',
@@ -165,15 +169,16 @@ const PersonsPageImproved = () => {
     },
   ]
 
-  const load = async () => {
+  const load = async (pageArg = page, pageSizeArg = pageSize) => {
     setLoading(true)
     try {
       const [pRes, rRes, mRes] = await Promise.all([
-        personsApi.getAll({}),
+        personsApi.getAll({ page: pageArg, limit: pageSizeArg }),
         rolesApi.getAll(),
         ministriesApi.getAll(),
       ])
       setPersons(pRes.data.data)
+      setTotal(pRes.data.total || 0)
       setRoles(rRes.data.data)
       setMinistries(mRes.data.data.map((m: any) => m.name))
     } catch {
@@ -182,9 +187,16 @@ const PersonsPageImproved = () => {
     setLoading(false)
   }
 
+  // Only load on mount if not already loaded by page/pageSize effect
   useEffect(() => {
-    load()
+    // Do nothing, handled by page/pageSize effect
   }, [])
+
+  // Refetch when page or pageSize changes
+  useEffect(() => {
+    load(page, pageSize)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize])
 
   const openNew = () => {
     setEditingPerson(null)
@@ -237,7 +249,7 @@ const PersonsPageImproved = () => {
         toast.success('Persona creada correctamente')
       }
       setShowModal(false)
-      load()
+      load(page, pageSize)
     } catch (e: any) {
       toast.error(e.response?.data?.message || 'Error al guardar')
     }
@@ -249,7 +261,7 @@ const PersonsPageImproved = () => {
     try {
       await personsApi.delete(id)
       toast.success('Persona eliminada')
-      load()
+      load(page, pageSize)
     } catch {
       toast.error('Error al eliminar')
     }
@@ -294,7 +306,12 @@ const PersonsPageImproved = () => {
           data={persons}
           searchKey="fullName"
           searchPlaceholder="Buscar por nombre..."
-          pageSize={10}
+          pageSize={pageSize}
+          serverPagination
+          page={page}
+          total={total}
+          onPageChange={(newPage) => { if (newPage !== page) setPage(newPage) }}
+          onPageSizeChange={(newSize) => { if (newSize !== pageSize) { setPageSize(newSize); setPage(1); } }}
         />
       )}
 
