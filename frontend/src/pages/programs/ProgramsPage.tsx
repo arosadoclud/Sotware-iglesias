@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Wand2, Loader2, FileText, Trash2, Download, Send, Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Wand2, Loader2, FileText, Trash2, Download, Send, Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Edit } from 'lucide-react'
 import { programsApi } from '../../lib/api'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
@@ -28,6 +28,7 @@ const ProgramsPage = () => {
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [updatingStatus, setUpdatingStatus] = useState<string|null>(null)
+  const [downloadingPdf, setDownloadingPdf] = useState<string|null>(null)
   const LIMIT = 20
 
   const load = async () => {
@@ -61,6 +62,24 @@ const ProgramsPage = () => {
     if (!confirm('¿Eliminar este programa? Esta acción no se puede deshacer.')) return
     try { await programsApi.delete(id); toast.success('Programa eliminado'); load() }
     catch { toast.error('Error al eliminar') }
+  }
+
+  const handleDownloadPdf = async (prog: any) => {
+    setDownloadingPdf(prog._id)
+    try {
+      const res = await programsApi.downloadPdf(prog._id)
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const a = document.createElement('a')
+      a.href = url
+      const dateStr = format(new Date(prog.programDate), 'yyyy-MM-dd')
+      a.download = `${prog.activityType?.name?.replace(/\s+/g, '-') || 'programa'}-${dateStr}.pdf`
+      a.click()
+      window.URL.revokeObjectURL(url)
+      toast.success('PDF descargado')
+    } catch {
+      toast.error('Error al generar PDF')
+    }
+    setDownloadingPdf(null)
   }
 
   const totalPages = Math.ceil(total / LIMIT)
@@ -160,15 +179,32 @@ const ProgramsPage = () => {
                               <span className="hidden md:inline">{nextSt.label}</span>
                             </button>
                           )}
-                          {/* Editar / Flyer / Descargar PDF */}
-                          <button
-                            onClick={() => navigate(`/programs/${prog._id}/flyer`)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors border border-transparent hover:border-amber-200"
-                            title="Editar y Descargar PDF"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span className="hidden md:inline">Flyer / PDF</span>
-                          </button>
+                          {/* Editar (solo DRAFT) */}
+                          {prog.status === 'DRAFT' && (
+                            <button
+                              onClick={() => navigate(`/programs/${prog._id}/flyer`)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-200"
+                              title="Editar programa"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                              <span className="hidden md:inline">Editar</span>
+                            </button>
+                          )}
+                          {/* Descargar PDF (programas publicados/completados) */}
+                          {(prog.status === 'PUBLISHED' || prog.status === 'COMPLETED') && (
+                            <button
+                              onClick={() => handleDownloadPdf(prog)}
+                              disabled={downloadingPdf === prog._id}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors border border-transparent hover:border-amber-200"
+                              title="Descargar PDF"
+                            >
+                              {downloadingPdf === prog._id
+                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                : <Download className="w-3.5 h-3.5" />
+                              }
+                              <span className="hidden md:inline">Descargar PDF</span>
+                            </button>
+                          )}
                           {/* Eliminar */}
                           <button
                             onClick={() => handleDelete(prog._id)}
