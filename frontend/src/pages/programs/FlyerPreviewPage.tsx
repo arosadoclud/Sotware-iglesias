@@ -536,8 +536,8 @@ const FlyerPreviewPage = () => {
   // Usar logo real de la iglesia si existe
   const logoSrc = useMemo(
     () => {
-      // Si hay logoUrl en el form, úsalo
-      if (form.logoUrl) return `/uploads/${form.logoUrl}`
+      // Si hay logoUrl en el form, úsalo (puede venir como "/uploads/file.png" o solo "file.png")
+      if (form.logoUrl) return form.logoUrl.startsWith('/') ? form.logoUrl : `/uploads/${form.logoUrl}`
       // Si existe logo.png en uploads, úsalo
       return '/uploads/logo.png'
     },

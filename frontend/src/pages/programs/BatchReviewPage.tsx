@@ -93,8 +93,11 @@ const FlyerMiniPreview = ({ prog, churchInfo }: { prog: ProgramData; churchInfo?
   const location = typeof rawLocation === 'object' && rawLocation !== null
     ? [rawLocation.city, rawLocation.state, rawLocation.country].filter(Boolean).join(', ')
     : String(rawLocation)
-  const logoUrl = prog.logoUrl || prog.church?.logoUrl || churchInfo?.logoUrl
-  const logoSrc = logoUrl ? `/uploads/${logoUrl}` : '/uploads/logo.png'
+  const logoUrl = prog.logoUrl || prog.church?.logoUrl || churchInfo?.logoUrl || ''
+  // logoUrl puede venir como "/uploads/file.png" o solo "file.png"
+  const logoSrc = logoUrl
+    ? (logoUrl.startsWith('/') ? logoUrl : `/uploads/${logoUrl}`)
+    : '/uploads/logo.png'
 
   return (
     <div style={{
