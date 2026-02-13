@@ -8,7 +8,7 @@ import {
   AlertTriangle, Download, Eye, Info, Users, BarChart2,
   ChevronDown, ChevronUp, Sparkles, Clock, MapPin, FileText
 } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, eachDayOfInterval, getDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
@@ -283,6 +283,18 @@ const GenerateProgramPage = () => {
 
   const selectedAct = activities.find(a => a._id === selectedActivity)
 
+  // Compute matching dates for batch mode preview
+  const batchDates = (() => {
+    if (mode !== 'batch' || !startDate || !endDate || !selectedAct) return []
+    try {
+      const start = new Date(startDate + 'T00:00:00')
+      const end = new Date(endDate + 'T00:00:00')
+      if (end < start) return []
+      const allDays = eachDayOfInterval({ start, end })
+      return allDays.filter(d => getDay(d) === selectedAct.dayOfWeek)
+    } catch { return [] }
+  })()
+
   const handlePreview = async () => {
     if (!selectedActivity || !singleDate) return toast.error('Selecciona actividad y fecha')
     setPreviewing(true)
@@ -506,6 +518,38 @@ const GenerateProgramPage = () => {
                         </div>
                       </div>
                     )}
+
+                    {/* Batch date preview */}
+                    {mode === 'batch' && startDate && endDate && selectedAct && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="mt-4"
+                      >
+                        <div className="p-4 rounded-xl bg-primary-50 border border-primary-200">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Calendar className="w-4 h-4 text-primary-600" />
+                            <p className="text-sm font-semibold text-primary-900">
+                              {batchDates.length > 0
+                                ? `Se generarán ${batchDates.length} programa${batchDates.length !== 1 ? 's' : ''} (${DAYS[selectedAct.dayOfWeek]})`
+                                : `No hay ${DAYS[selectedAct.dayOfWeek].toLowerCase()}s en el rango seleccionado`}
+                            </p>
+                          </div>
+                          {batchDates.length > 0 && (
+                            <div className="grid grid-cols-2 gap-2">
+                              {batchDates.map((d, i) => (
+                                <div key={i} className="flex items-center gap-2 text-sm text-primary-700 bg-white/60 rounded-lg px-3 py-2">
+                                  <div className="w-5 h-5 rounded-full bg-primary-200 text-primary-800 flex items-center justify-center text-xs font-bold">
+                                    {i + 1}
+                                  </div>
+                                  <span>{format(d, "EEE d 'de' MMM", { locale: es })}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -530,7 +574,7 @@ const GenerateProgramPage = () => {
                 )}
                 <Button
                   onClick={handleGenerate}
-                  disabled={generating}
+                  disabled={generating || (mode === 'batch' && batchDates.length === 0)}
                   className="flex-1 gap-2 h-11"
                 >
                   {generating ? (
@@ -541,7 +585,9 @@ const GenerateProgramPage = () => {
                   ) : (
                     <>
                       <Wand2 className="w-5 h-5" />
-                      Generar {mode === 'batch' ? 'Programas' : 'Programa'}
+                      {mode === 'batch'
+                        ? `Generar ${batchDates.length > 0 ? batchDates.length + ' ' : ''}Programa${batchDates.length !== 1 ? 's' : ''}`
+                        : 'Generar Programa'}
                     </>
                   )}
                 </Button>
