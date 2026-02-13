@@ -100,6 +100,8 @@ export const programsApi = {
   // PASO 5: PDF
     downloadPdf: (id: string, summary?: string) =>
       api.get(`/programs/${id}/pdf${summary ? `?summary=${encodeURIComponent(summary)}` : ''}`, { responseType: 'blob' }),
+    downloadFlyer: (id: string) =>
+      api.get(`/programs/${id}/flyer`, { responseType: 'blob' }),
   previewPdf: (id: string) =>
     `${API_URL}/programs/${id}/pdf/preview`,
     getFlyerHtml: (id: string, summary?: string) =>

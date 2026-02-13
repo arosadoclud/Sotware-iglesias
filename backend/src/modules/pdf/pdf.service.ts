@@ -112,7 +112,12 @@ export class PdfService {
         (program as any).churchName || church.name || "Iglesia";
       const subtitle =
         (program as any).subtitle || (program as any).churchSub || (church as any).subTitle || "";
-      const location = (program as any).location || "";
+      // location puede estar en el programa o construirse desde church.address
+      let location = (program as any).location || "";
+      if (!location && church.address) {
+        const addr = church.address as any;
+        location = typeof addr === 'string' ? addr : [addr.city, addr.state, addr.country].filter(Boolean).join(', ');
+      }
       const worshipType = (program as any).activityType?.name || "Culto";
 
       // Logo: embeber como base64 data URI para máxima compatibilidad con Puppeteer
