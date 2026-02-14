@@ -30,6 +30,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
+import LogoutSplash from '../ui/LogoutSplash'
 
 interface NavItemProps {
   item: {
@@ -94,11 +95,15 @@ const DashboardLayoutImproved = () => {
   const { user, logout, isAdmin } = useAuthStore()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showLogoutSplash, setShowLogoutSplash] = useState(false)
 
   const handleLogout = () => {
-    logout()
-    toast.success('Sesión cerrada correctamente')
-    navigate('/login')
+    setShowLogoutSplash(true)
+  }
+
+  const handleLogoutComplete = () => {
+    setShowLogoutSplash(false)
+    navigate('/login', { replace: true })
   }
 
   const nav = [
@@ -120,6 +125,11 @@ const DashboardLayoutImproved = () => {
 
   const isActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
+
+  // Mostrar splash de logout
+  if (showLogoutSplash) {
+    return <LogoutSplash userName={user?.fullName} onComplete={handleLogoutComplete} />
+  }
 
   return (
     <div className="min-h-screen bg-neutral-50">
