@@ -1,7 +1,7 @@
 // Exportar todos los modelos desde un solo archivo
 export { default as Church, IChurch } from './Church.model';
 export { default as User, IUser, UserRole } from './User.model';
-export { default as Person, IPerson, PersonStatus, IPersonRole, IUnavailability } from './Person.model';
+export { default as Person, IPerson, IPersonRole, IUnavailability } from './Person.model';
 export { default as PersonStatusModel, IPersonStatus } from './PersonStatus.model';
 export { default as Role, IRole } from './Role.model';
 export { default as ActivityType, IActivityType, IActivityRoleConfig } from './ActivityType.model';
