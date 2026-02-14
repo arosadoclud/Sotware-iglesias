@@ -11,6 +11,7 @@ import {
   updateProgramStatus,
   updateAssignment,
   deleteProgram,
+  deleteAllPrograms,
   getProgramStats,
   previewProgramScoring,
 } from './program.controller';
@@ -28,6 +29,7 @@ router.post('/generate-batch', rbac('programs', 'create'), generateBatchPrograms
 router.put('/:id', rbac('programs', 'update'), updateProgram);
 router.patch('/:id/status', rbac('programs', 'update'), updateProgramStatus);
 router.patch('/:id/assignments', rbac('programs', 'update'), updateAssignment);
+router.delete('/all', rbac('programs', 'delete'), deleteAllPrograms);
 router.delete('/:id', rbac('programs', 'delete'), deleteProgram);
 
 export default router;

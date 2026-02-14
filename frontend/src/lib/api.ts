@@ -94,6 +94,7 @@ export const programsApi = {
   updateAssignment: (id: string, data: any) =>
     api.patch(`/programs/${id}/assignments`, data),
   delete: (id: string) => api.delete(`/programs/${id}`),
+  deleteAll: () => api.delete('/programs/all'),
   getStats: () => api.get('/programs/stats'),
   previewScoring: (params: { activityTypeId: string; programDate: string }) =>
     api.get('/programs/preview-scoring', { params }),

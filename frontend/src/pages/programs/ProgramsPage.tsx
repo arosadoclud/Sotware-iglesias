@@ -29,6 +29,7 @@ const ProgramsPage = () => {
   const [total, setTotal] = useState(0)
   const [updatingStatus, setUpdatingStatus] = useState<string|null>(null)
   const [downloadingPdf, setDownloadingPdf] = useState<string|null>(null)
+  const [deletingAll, setDeletingAll] = useState(false)
   const LIMIT = 20
 
   const load = async () => {
@@ -64,6 +65,20 @@ const ProgramsPage = () => {
     catch { toast.error('Error al eliminar') }
   }
 
+  const handleDeleteAll = async () => {
+    if (!confirm(`⚠️ ¿Estás seguro de eliminar TODOS los programas?\n\nSe eliminarán ${total} programa${total !== 1 ? 's' : ''}.\n\nEsta acción NO se puede deshacer.`)) return
+    
+    setDeletingAll(true)
+    try {
+      const res = await programsApi.deleteAll()
+      toast.success(res.data.message || 'Todos los programas eliminados')
+      load()
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Error al eliminar programas')
+    }
+    setDeletingAll(false)
+  }
+
   const handleDownloadPdf = async (prog: any) => {
     setDownloadingPdf(prog._id)
     try {
@@ -92,9 +107,30 @@ const ProgramsPage = () => {
           <h1 className="text-2xl font-bold text-gray-900">Programas</h1>
           <p className="text-gray-500 text-sm mt-0.5">{total} programa{total !== 1 ? 's' : ''} en total</p>
         </div>
-        <Link to="/programs/generate" className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm">
-          <Wand2 className="w-4 h-4" /> Generar Programa
-        </Link>
+        <div className="flex items-center gap-2">
+          {total > 0 && (
+            <button
+              onClick={handleDeleteAll}
+              disabled={deletingAll}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {deletingAll ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Eliminando...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4" />
+                  Eliminar Todos
+                </>
+              )}
+            </button>
+          )}
+          <Link to="/programs/generate" className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm">
+            <Wand2 className="w-4 h-4" /> Generar Programa
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}

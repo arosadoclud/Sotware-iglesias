@@ -315,6 +315,18 @@ export const deleteProgram = async (req: AuthRequest, res: Response, next: NextF
   } catch (error) { next(error); }
 };
 
+export const deleteAllPrograms = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const result = await Program.deleteMany({ churchId: req.churchId });
+    await cache.del(CacheKeys.dashboardStats(req.churchId!));
+    res.json({ 
+      success: true, 
+      message: `${result.deletedCount} programa${result.deletedCount !== 1 ? 's' : ''} eliminado${result.deletedCount !== 1 ? 's' : ''}`,
+      data: { deletedCount: result.deletedCount }
+    });
+  } catch (error) { next(error); }
+};
+
 export const getProgramStats = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const cacheKey = CacheKeys.dashboardStats(req.churchId!);
