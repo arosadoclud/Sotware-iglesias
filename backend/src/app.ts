@@ -101,6 +101,7 @@ app.get('/health', (_req: Request, res: Response) => {
 // ── RUTAS API ─────────────────────────────────────────────────────────────────
 const API = `/api/${envConfig.apiVersion}`;
 
+import healthRoutes   from './routes/health.routes';
 import authRoutes     from './modules/auth/auth.routes';
 import churchRoutes   from './modules/churches/church.routes';
 import logoRoutes     from './modules/churches/logo.routes';
@@ -115,6 +116,7 @@ import letterRoutes   from './modules/letters/letter.routes';
 import adminRoutes    from './modules/admin/admin.routes';   // Admin & Auditoría
 import financesRoutes from './modules/finances/finances.routes'; // Módulo de Finanzas
 
+app.use(`${API}/health`,    healthRoutes);  // Health check
 app.use(`${API}/auth`,      authRoutes);
 app.use(`${API}/churches`,  churchRoutes);
 app.use(`${API}/churches`,  logoRoutes);
