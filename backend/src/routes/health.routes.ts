@@ -63,4 +63,36 @@ router.get('/check-admin', async (req: Request, res: Response) => {
   }
 });
 
+// Check database configuration (without exposing credentials)
+router.get('/db-info', async (req: Request, res: Response) => {
+  try {
+    const users = await User.find({}).select('email fullName role').limit(10);
+    const churches = await Church.find({}).select('name').limit(10);
+    
+    // Get MongoDB connection info
+    const mongoose = require('mongoose');
+    const connection = mongoose.connection;
+    
+    // Extract database name from URI without exposing credentials
+    const dbName = connection.db?.databaseName || 'unknown';
+    const host = connection.host || 'unknown';
+    
+    res.json({
+      success: true,
+      database: {
+        name: dbName,
+        host: host.includes('mongodb.net') ? host.split('@')[1] : 'local',
+        status: connection.readyState === 1 ? 'connected' : 'disconnected',
+      },
+      users: users.map(u => ({ email: u.email, name: u.fullName, role: u.role })),
+      churches: churches.map(c => ({ name: c.name })),
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
 export default router;

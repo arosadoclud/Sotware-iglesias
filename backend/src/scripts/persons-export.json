@@ -1,0 +1,1118 @@
+{
+  "persons": [
+    {
+      "fullName": "Andy Rosado",
+      "ministry": "Ministerio de adoracion y alabanza",
+      "status": "LIDER_ADORACION",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.681Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Mayelin Suarez",
+      "ministry": "Jóvenes",
+      "status": "LEADER",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.684Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Alba Luz",
+      "ministry": "Jovenes",
+      "status": "ACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.685Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Ashanty",
+      "ministry": "Secretaria General",
+      "status": "SECRETARIA_GENERAL",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.686Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Cristopher",
+      "ministry": "Jóvenes",
+      "status": "ACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.687Z"
+        }
+      ],
+      "unavailability": []
+    },
+    {
+      "fullName": "Orbits",
+      "ministry": "Jóvenes",
+      "status": "ACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.687Z"
+        }
+      ],
+      "unavailability": []
+    },
+    {
+      "fullName": "Noria",
+      "ministry": "Jovenes",
+      "status": "ACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.688Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Debora",
+      "ministry": "Jóvenes",
+      "status": "INACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Emilis",
+      "ministry": "Jóvenes",
+      "status": "VISITANTES",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.689Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Genesis Fajardo",
+      "ministry": "Jóvenes",
+      "status": "INACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        }
+      ],
+      "unavailability": []
+    },
+    {
+      "fullName": "Genesis Esther",
+      "ministry": "Jovenes",
+      "status": "ACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.690Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Yoyner Fajardo",
+      "ministry": "Jóvenes",
+      "status": "ACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.691Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Hairo Tejeda",
+      "ministry": "Predica en las calles y eventos",
+      "status": "LIDER_EVANGELISMO",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.692Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Holly",
+      "ministry": "Jóvenes",
+      "status": "ACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.692Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Jeison Ferreras",
+      "ministry": "Lider Ujieres",
+      "status": "LIDER_UJIERES",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.693Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Luciana",
+      "ministry": "Jovenes",
+      "status": "ACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.693Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Elizabeth Mendez",
+      "ministry": "Jovenes",
+      "status": "ACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.694Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Steven Felix",
+      "ministry": "Jovenes",
+      "status": "ACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.695Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Victor Manuel",
+      "ministry": "Jóvenes",
+      "status": "INACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        }
+      ],
+      "unavailability": []
+    },
+    {
+      "fullName": "Virginia",
+      "ministry": "Jóvenes",
+      "status": "ACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.695Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Marialis",
+      "ministry": "Jóvenes",
+      "status": "INACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Rafael",
+      "ministry": "Jóvenes",
+      "status": "INACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Nehemias",
+      "ministry": "Jóvenes",
+      "status": "ACTIVE",
+      "priority": 1,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.696Z"
+        }
+      ],
+      "unavailability": [],
+      "email": "",
+      "phone": ""
+    },
+    {
+      "fullName": "Pastora Meri",
+      "phone": "",
+      "email": "",
+      "ministry": "Pastorado",
+      "status": "PASTOR",
+      "priority": 9,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.697Z"
+        }
+      ],
+      "unavailability": []
+    },
+    {
+      "fullName": "Pastor Josual",
+      "phone": "",
+      "email": "",
+      "ministry": "Pastorado",
+      "status": "PASTOR",
+      "priority": 5,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.697Z"
+        }
+      ],
+      "unavailability": []
+    },
+    {
+      "fullName": "Williams Leonardo",
+      "phone": "",
+      "email": "",
+      "ministry": "Jovenes",
+      "status": "ACTIVE",
+      "priority": 5,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.698Z"
+        }
+      ],
+      "unavailability": []
+    },
+    {
+      "fullName": "Nidia Suero",
+      "phone": "",
+      "email": "",
+      "ministry": "Lider de Damas",
+      "status": "LIDER_DAMAS",
+      "priority": 5,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.698Z"
+        }
+      ],
+      "unavailability": []
+    },
+    {
+      "fullName": "Bernardo",
+      "phone": "",
+      "email": "",
+      "ministry": "Lider de Caballeros",
+      "status": "LIDER_CABALLEROS",
+      "priority": 5,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0075",
+          "roleName": "Mensaje"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0078",
+          "roleName": "Oración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0062",
+          "roleName": "Dirección"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007b",
+          "roleName": "Lectura Bíblica"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd007e",
+          "roleName": "Maestro de Estudio"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.699Z"
+        }
+      ],
+      "unavailability": []
+    },
+    {
+      "fullName": "Yulissa Suero",
+      "phone": "",
+      "email": "",
+      "ministry": "Damas",
+      "status": "ACTIVE",
+      "priority": 5,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd0072",
+          "roleName": "Coro de las Ofrendas"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.699Z"
+        }
+      ],
+      "unavailability": []
+    },
+    {
+      "fullName": "Elisaida",
+      "phone": "",
+      "email": "",
+      "ministry": "Damas",
+      "status": "ACTIVE",
+      "priority": 5,
+      "roles": [
+        {
+          "roleId": "698d2a205209cc1262fd006a",
+          "roleName": "Adoración"
+        },
+        {
+          "roleId": "698d2a205209cc1262fd006f",
+          "roleName": "Devocional"
+        },
+        {
+          "id": "699012aaeaea2d5b79ac463b",
+          "name": "Limpieza Iglesia",
+          "assignedAt": "2026-02-14T07:16:07.700Z"
+        }
+      ],
+      "unavailability": []
+    }
+  ],
+  "exportedAt": "2026-02-14T23:04:18.442Z",
+  "sourceChurch": "IGLESIA DIOS FUERTE ARCA EVANGELICA",
+  "count": 30
+}

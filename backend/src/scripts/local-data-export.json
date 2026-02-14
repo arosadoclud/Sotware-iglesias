@@ -1,0 +1,969 @@
+{
+  "activityTypes": [
+    {
+      "name": "Estudio Bíblico",
+      "description": "Estudio bíblico semanal de los martes",
+      "dayOfWeek": 2,
+      "defaultTime": "19:00",
+      "roleConfig": [
+        {
+          "sectionName": "Oración de Apertura",
+          "sectionOrder": 1,
+          "role": {
+            "id": "698d2a205209cc1262fd0078",
+            "name": "Oración"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00ab"
+        },
+        {
+          "sectionName": "Lectura Bíblica",
+          "sectionOrder": 2,
+          "role": {
+            "id": "698d2a205209cc1262fd007b",
+            "name": "Lectura Bíblica"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00ac"
+        },
+        {
+          "sectionName": "Maestro de Estudio",
+          "sectionOrder": 3,
+          "role": {
+            "id": "698d2a205209cc1262fd007e",
+            "name": "Maestro de Estudio"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00ad"
+        },
+        {
+          "sectionName": "Oración de Cierre",
+          "sectionOrder": 4,
+          "role": {
+            "id": "698d2a205209cc1262fd0078",
+            "name": "Oración"
+          },
+          "peopleNeeded": 1,
+          "isRequired": false,
+          "_id": "698d2a205209cc1262fd00ae"
+        }
+      ],
+      "isActive": true,
+      "color": "#8b5cf6",
+      "daysOfWeek": [
+        2
+      ],
+      "schedule": [
+        {
+          "day": 2,
+          "time": "19:00",
+          "_id": "69900099d85c8d29242df44c"
+        }
+      ]
+    },
+    {
+      "name": "Culto de Damas",
+      "description": "Servicio de las damas y cabaelleros",
+      "dayOfWeek": 3,
+      "defaultTime": "19:00",
+      "roleConfig": [
+        {
+          "sectionName": "Dirección",
+          "sectionOrder": 1,
+          "role": {
+            "id": "698d2a205209cc1262fd0062",
+            "name": "Dirección"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00b2"
+        },
+        {
+          "sectionName": "Adoración",
+          "sectionOrder": 2,
+          "role": {
+            "id": "698d2a205209cc1262fd006a",
+            "name": "Adoración"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00b3"
+        },
+        {
+          "sectionName": "Devocional",
+          "sectionOrder": 3,
+          "role": {
+            "id": "698d2a205209cc1262fd006f",
+            "name": "Devocional"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00b4"
+        },
+        {
+          "sectionName": "Coro de las Ofrendas",
+          "sectionOrder": 4,
+          "role": {
+            "id": "698d2a205209cc1262fd0072",
+            "name": "Coro de las Ofrendas"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00b5"
+        },
+        {
+          "sectionName": "Mensaje",
+          "sectionOrder": 5,
+          "role": {
+            "id": "698d2a205209cc1262fd0075",
+            "name": "Mensaje"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00b6"
+        }
+      ],
+      "isActive": true,
+      "color": "#ec4899",
+      "daysOfWeek": [
+        3
+      ],
+      "schedule": [
+        {
+          "day": 3,
+          "time": "19:00",
+          "_id": "69900083d85c8d29242df420"
+        }
+      ]
+    },
+    {
+      "name": "Culto de Jovenes",
+      "description": "Servicio de Jovenes",
+      "dayOfWeek": 6,
+      "defaultTime": "19:00",
+      "roleConfig": [
+        {
+          "sectionName": "Dirección",
+          "sectionOrder": 1,
+          "role": {
+            "id": "698d2a205209cc1262fd0062",
+            "name": "Dirección"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00ba"
+        },
+        {
+          "sectionName": "Adoración",
+          "sectionOrder": 2,
+          "role": {
+            "id": "698d2a205209cc1262fd006a",
+            "name": "Adoración"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00bb"
+        },
+        {
+          "sectionName": "Devocional",
+          "sectionOrder": 3,
+          "role": {
+            "id": "698d2a205209cc1262fd006f",
+            "name": "Devocional"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00bc"
+        },
+        {
+          "sectionName": "Coro de las Ofrendas",
+          "sectionOrder": 4,
+          "role": {
+            "id": "698d2a205209cc1262fd0072",
+            "name": "Coro de las Ofrendas"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00bd"
+        },
+        {
+          "sectionName": "Mensaje",
+          "sectionOrder": 5,
+          "role": {
+            "id": "698d2a205209cc1262fd0075",
+            "name": "Mensaje"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00be"
+        }
+      ],
+      "isActive": true,
+      "color": "#14b8a6",
+      "daysOfWeek": [
+        6
+      ],
+      "schedule": [
+        {
+          "day": 6,
+          "time": "19:00",
+          "_id": "6990006cd85c8d29242df3c8"
+        }
+      ]
+    },
+    {
+      "name": "Culto Evangelistico General",
+      "description": "Servicio principal del domingo",
+      "dayOfWeek": 0,
+      "defaultTime": "10:00",
+      "roleConfig": [
+        {
+          "sectionName": "Dirección",
+          "sectionOrder": 1,
+          "role": {
+            "id": "698d2a205209cc1262fd0062",
+            "name": "Dirección"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00c2"
+        },
+        {
+          "sectionName": "Adoración",
+          "sectionOrder": 2,
+          "role": {
+            "id": "698d2a205209cc1262fd006a",
+            "name": "Adoración"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00c3"
+        },
+        {
+          "sectionName": "Devocional",
+          "sectionOrder": 3,
+          "role": {
+            "id": "698d2a205209cc1262fd006f",
+            "name": "Devocional"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00c4"
+        },
+        {
+          "sectionName": "Coro de las Ofrendas",
+          "sectionOrder": 4,
+          "role": {
+            "id": "698d2a205209cc1262fd0072",
+            "name": "Coro de las Ofrendas"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00c5"
+        },
+        {
+          "sectionName": "Mensaje",
+          "sectionOrder": 5,
+          "role": {
+            "id": "698d2a205209cc1262fd0075",
+            "name": "Mensaje"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00c6"
+        },
+        {
+          "sectionName": "Oración Final",
+          "sectionOrder": 6,
+          "role": {
+            "id": "698d2a205209cc1262fd0078",
+            "name": "Oración"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698d2a205209cc1262fd00c7"
+        }
+      ],
+      "isActive": true,
+      "color": "#f97316",
+      "daysOfWeek": [
+        0
+      ],
+      "schedule": []
+    },
+    {
+      "name": "Ministerio de Adoracion y Alabanza",
+      "description": "Para crear el programa de las partes de la adoracion",
+      "dayOfWeek": 0,
+      "defaultTime": "19:00",
+      "roleConfig": [
+        {
+          "sectionName": "Adoracion",
+          "sectionOrder": 1,
+          "role": {
+            "id": "698d2a205209cc1262fd006a",
+            "name": "Adoración"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "698e840304d1b322d9b9843d"
+        }
+      ],
+      "isActive": true,
+      "daysOfWeek": [
+        0,
+        3,
+        6
+      ],
+      "schedule": [
+        {
+          "day": 0,
+          "time": "09:00",
+          "_id": "698fdf02a572167af171da1a"
+        },
+        {
+          "day": 3,
+          "time": "19:00",
+          "_id": "698fdf02a572167af171da1b"
+        },
+        {
+          "day": 6,
+          "time": "07:00",
+          "_id": "698fdf02a572167af171da1c"
+        }
+      ],
+      "color": "#f59e0b"
+    },
+    {
+      "name": "Grupo Limpieza de la iglesia en GENERAL",
+      "description": "",
+      "color": "#f59e0b",
+      "daysOfWeek": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "defaultTime": "10:00",
+      "schedule": [
+        {
+          "day": 0,
+          "time": "14:00",
+          "_id": "6990127beaea2d5b79ac4601"
+        },
+        {
+          "day": 1,
+          "time": "19:00",
+          "_id": "6990127beaea2d5b79ac4602"
+        },
+        {
+          "day": 2,
+          "time": "18:00",
+          "_id": "6990127beaea2d5b79ac4603"
+        },
+        {
+          "day": 3,
+          "time": "17:00",
+          "_id": "6990127beaea2d5b79ac4604"
+        },
+        {
+          "day": 4,
+          "time": "18:00",
+          "_id": "6990127beaea2d5b79ac4605"
+        },
+        {
+          "day": 5,
+          "time": "20:00",
+          "_id": "6990127beaea2d5b79ac4606"
+        },
+        {
+          "day": 6,
+          "time": "16:00",
+          "_id": "6990127beaea2d5b79ac4607"
+        }
+      ],
+      "roleConfig": [
+        {
+          "sectionName": "Limpieza",
+          "sectionOrder": 1,
+          "role": {
+            "id": "699012aaeaea2d5b79ac463b",
+            "name": "Limpieza Iglesia"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "6990127beaea2d5b79ac4608"
+        },
+        {
+          "sectionName": "Liempieza",
+          "sectionOrder": 2,
+          "role": {
+            "id": "699012aaeaea2d5b79ac463b",
+            "name": "Limpieza Iglesia"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "69901330a4d2d02efa80b713"
+        },
+        {
+          "sectionName": "Limpieza",
+          "sectionOrder": 3,
+          "role": {
+            "id": "699012aaeaea2d5b79ac463b",
+            "name": "Limpieza Iglesia"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "69901330a4d2d02efa80b714"
+        },
+        {
+          "sectionName": "Limpieza",
+          "sectionOrder": 4,
+          "role": {
+            "id": "699012aaeaea2d5b79ac463b",
+            "name": "Limpieza Iglesia"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "69901330a4d2d02efa80b715"
+        },
+        {
+          "sectionName": "Liempieza",
+          "sectionOrder": 5,
+          "role": {
+            "id": "699012aaeaea2d5b79ac463b",
+            "name": "Limpieza Iglesia"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "699020c7aaec07db8c6ba85d"
+        },
+        {
+          "sectionName": "Limpieza",
+          "sectionOrder": 6,
+          "role": {
+            "id": "699012aaeaea2d5b79ac463b",
+            "name": "Limpieza Iglesia"
+          },
+          "peopleNeeded": 1,
+          "isRequired": true,
+          "_id": "699020c7aaec07db8c6ba85e"
+        }
+      ],
+      "isActive": true,
+      "generationType": "cleaning_groups"
+    },
+    {
+      "name": "Alabanza",
+      "description": "Cántico de alabanza congregacional",
+      "color": "#3b82f6",
+      "generationType": "standard",
+      "daysOfWeek": [
+        0
+      ],
+      "defaultTime": "10:00",
+      "isActive": true,
+      "schedule": [],
+      "roleConfig": []
+    },
+    {
+      "name": "Adoración",
+      "description": "Momento de adoración profunda",
+      "color": "#3b82f6",
+      "generationType": "standard",
+      "daysOfWeek": [
+        0
+      ],
+      "defaultTime": "10:00",
+      "isActive": true,
+      "schedule": [],
+      "roleConfig": []
+    },
+    {
+      "name": "Oración",
+      "description": "Tiempo de oración",
+      "color": "#3b82f6",
+      "generationType": "standard",
+      "daysOfWeek": [
+        0
+      ],
+      "defaultTime": "10:00",
+      "isActive": true,
+      "schedule": [],
+      "roleConfig": []
+    },
+    {
+      "name": "Bienvenida",
+      "description": "Saludo y bienvenida a los asistentes",
+      "color": "#3b82f6",
+      "generationType": "standard",
+      "daysOfWeek": [
+        0
+      ],
+      "defaultTime": "10:00",
+      "isActive": true,
+      "schedule": [],
+      "roleConfig": []
+    },
+    {
+      "name": "Predicación",
+      "description": "Mensaje principal del servicio",
+      "color": "#3b82f6",
+      "generationType": "standard",
+      "daysOfWeek": [
+        0
+      ],
+      "defaultTime": "10:00",
+      "isActive": true,
+      "schedule": [],
+      "roleConfig": []
+    },
+    {
+      "name": "Ofrendas",
+      "description": "Momento de ofrendas y diezmos",
+      "color": "#3b82f6",
+      "generationType": "standard",
+      "daysOfWeek": [
+        0
+      ],
+      "defaultTime": "10:00",
+      "isActive": true,
+      "schedule": [],
+      "roleConfig": []
+    },
+    {
+      "name": "Testimonios",
+      "description": "Testimonios de los hermanos",
+      "color": "#3b82f6",
+      "generationType": "standard",
+      "daysOfWeek": [
+        0
+      ],
+      "defaultTime": "10:00",
+      "isActive": true,
+      "schedule": [],
+      "roleConfig": []
+    },
+    {
+      "name": "Lectura Bíblica",
+      "description": "Lectura de pasaje bíblico",
+      "color": "#3b82f6",
+      "generationType": "standard",
+      "daysOfWeek": [
+        0
+      ],
+      "defaultTime": "10:00",
+      "isActive": true,
+      "schedule": [],
+      "roleConfig": []
+    },
+    {
+      "name": "Santa Cena",
+      "description": "Celebración de la Santa Cena",
+      "color": "#3b82f6",
+      "generationType": "standard",
+      "daysOfWeek": [
+        0
+      ],
+      "defaultTime": "10:00",
+      "isActive": true,
+      "schedule": [],
+      "roleConfig": []
+    },
+    {
+      "name": "Ministerio Infantil",
+      "description": "Actividades para niños",
+      "color": "#3b82f6",
+      "generationType": "standard",
+      "daysOfWeek": [
+        0
+      ],
+      "defaultTime": "10:00",
+      "isActive": true,
+      "schedule": [],
+      "roleConfig": []
+    },
+    {
+      "name": "Ministerio Juvenil",
+      "description": "Actividades para jóvenes",
+      "color": "#3b82f6",
+      "generationType": "standard",
+      "daysOfWeek": [
+        0
+      ],
+      "defaultTime": "10:00",
+      "isActive": true,
+      "schedule": [],
+      "roleConfig": []
+    },
+    {
+      "name": "Anuncios",
+      "description": "Anuncios e información general",
+      "color": "#3b82f6",
+      "generationType": "standard",
+      "daysOfWeek": [
+        0
+      ],
+      "defaultTime": "10:00",
+      "isActive": true,
+      "schedule": [],
+      "roleConfig": []
+    },
+    {
+      "name": "Bendición Final",
+      "description": "Oración de bendición y despedida",
+      "color": "#3b82f6",
+      "generationType": "standard",
+      "daysOfWeek": [
+        0
+      ],
+      "defaultTime": "10:00",
+      "isActive": true,
+      "schedule": [],
+      "roleConfig": []
+    }
+  ],
+  "roles": [
+    {
+      "name": "Dirección",
+      "description": "Dirige el servicio/programa",
+      "requiresSkill": true,
+      "color": "#EF4444",
+      "icon": "megaphone"
+    },
+    {
+      "name": "Adoración",
+      "description": "Dirige la adoración y alabanza",
+      "requiresSkill": true,
+      "color": "#8B5CF6",
+      "icon": "music"
+    },
+    {
+      "name": "Devocional",
+      "description": "Cantar Coros Pentecostales",
+      "requiresSkill": true,
+      "color": "#fb287c",
+      "icon": "book-open"
+    },
+    {
+      "name": "Coro de las Ofrendas",
+      "description": "Ministra durante la ofrenda",
+      "requiresSkill": true,
+      "color": "#10B981",
+      "icon": "heart"
+    },
+    {
+      "name": "Mensaje",
+      "description": "Predicación del mensaje principal",
+      "requiresSkill": true,
+      "color": "#F59E0B",
+      "icon": "message-circle"
+    },
+    {
+      "name": "Oración",
+      "description": "Oración de apertura o cierre",
+      "requiresSkill": false,
+      "color": "#EC4899",
+      "icon": "hands"
+    },
+    {
+      "name": "Lectura Bíblica",
+      "description": "Lee el pasaje bíblico del día",
+      "requiresSkill": false,
+      "color": "#06B6D4",
+      "icon": "book"
+    },
+    {
+      "name": "Maestro de Estudio",
+      "description": "Enseña el estudio bíblico",
+      "requiresSkill": true,
+      "color": "#84CC16",
+      "icon": "graduation-cap"
+    },
+    {
+      "name": "Limpieza Iglesia",
+      "description": "",
+      "requiresSkill": true,
+      "color": "#11d44c",
+      "icon": "user"
+    },
+    {
+      "name": "Pastor",
+      "description": "Pastor principal",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Co-Pastor",
+      "description": "Pastor asociado",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Anciano",
+      "description": "Líder de la iglesia",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Diácono",
+      "description": "Servidor de la iglesia",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Maestro",
+      "description": "Maestro de escuela dominical",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Líder de Alabanza",
+      "description": "Dirige la alabanza",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Músico",
+      "description": "Instrumentista",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Vocalista",
+      "description": "Cantante del grupo de alabanza",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Ujier",
+      "description": "Recepcionista y organizador",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Tesorero",
+      "description": "Encargado de finanzas",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Secretario",
+      "description": "Registro y documentación",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Líder de Jóvenes",
+      "description": "Ministerio juvenil",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Líder de Niños",
+      "description": "Ministerio infantil",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Intercesión",
+      "description": "Equipo de oración",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Evangelismo",
+      "description": "Equipo evangelístico",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Sonido",
+      "description": "Encargado de audio",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Multimedia",
+      "description": "Proyección y video",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Limpieza",
+      "description": "Mantenimiento del templo",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Seguridad",
+      "description": "Seguridad del templo",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    },
+    {
+      "name": "Parqueo",
+      "description": "Organización de estacionamiento",
+      "requiresSkill": false,
+      "color": "#3B82F6",
+      "icon": "user"
+    }
+  ],
+  "personStatuses": [
+    {
+      "code": "ACTIVE",
+      "color": "green",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Activo",
+      "order": 1
+    },
+    {
+      "code": "INACTIVE",
+      "color": "gray",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Inactivo",
+      "order": 2
+    },
+    {
+      "code": "NEW",
+      "color": "blue",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Nuevo",
+      "order": 3
+    },
+    {
+      "code": "LEADER",
+      "color": "purple",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Líder",
+      "order": 4
+    },
+    {
+      "code": "LIDER_ADORACION",
+      "color": "pink",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Líder Adoración",
+      "order": 5
+    },
+    {
+      "code": "LIDER_EVANGELISMO",
+      "color": "orange",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Líder de Evangelismo",
+      "order": 6
+    },
+    {
+      "code": "PASTOR",
+      "color": "indigo",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Pastor/a",
+      "order": 7
+    },
+    {
+      "code": "DIACONOS",
+      "color": "teal",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Diáconos",
+      "order": 8
+    },
+    {
+      "code": "LIDER_UJIERES",
+      "color": "yellow",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Líder de Ujieres",
+      "order": 9
+    },
+    {
+      "code": "LIDER_LIMPIEZA",
+      "color": "green",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Líder de Limpieza",
+      "order": 10
+    },
+    {
+      "code": "LIDER_JOVENES",
+      "color": "blue",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Líder de Jóvenes",
+      "order": 11
+    },
+    {
+      "code": "LIDER_DAMAS",
+      "color": "pink",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Líder de Damas",
+      "order": 12
+    },
+    {
+      "code": "LIDER_CABALLEROS",
+      "color": "gray",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Líder de Caballeros",
+      "order": 13
+    },
+    {
+      "code": "LIDER_ESCUELA_BIBLICA",
+      "color": "purple",
+      "isActive": true,
+      "isDefault": true,
+      "name": "Líder de Escuela Bíblica",
+      "order": 14
+    },
+    {
+      "name": "Secretaria General",
+      "code": "SECRETARIA_GENERAL",
+      "color": "pink",
+      "isDefault": false,
+      "isActive": true,
+      "order": 15
+    },
+    {
+      "name": "Visitantes",
+      "code": "VISITANTES",
+      "color": "yellow",
+      "isDefault": false,
+      "isActive": true,
+      "order": 16
+    }
+  ],
+  "exportedAt": "2026-02-14T23:03:17.213Z",
+  "sourceChurch": "IGLESIA DIOS FUERTE ARCA EVANGELICA"
+}
