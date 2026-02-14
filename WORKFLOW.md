@@ -1,14 +1,14 @@
 # 🚀 Workflow de Desarrollo
 
-## Push Automático Configurado
+## Branch por Defecto: main
 
-Este proyecto está configurado para subir automáticamente los cambios al branch `main` en GitHub.
+Este proyecto usa **`main`** como branch por defecto en GitHub.
 
 ### Configuración Actual
 
-- **Branch local**: `claude/zen-moser` (worktree)
-- **Branch remoto**: `origin/main`
-- **Push default**: Configurado para ir automáticamente a `main`
+- **Branch local**: `claude/zen-moser` (worktree de Claude)
+- **Branch remoto principal**: `origin/main` ✅ (por defecto)
+- **Push automático**: Todos los cambios van directo a `main`
 
 ### Comandos Rápidos
 
