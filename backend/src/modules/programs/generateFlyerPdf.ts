@@ -1,8 +1,13 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import * as Handlebars from 'handlebars';
+import * as puppeteer from 'puppeteer';
+
 export async function generateFlyerPdf(data: any): Promise<Buffer> {
   // Helpers para plantilla
-  handlebars.registerHelper('padId', (id: number) => String(id).padStart(2, '0'));
-  handlebars.registerHelper('churchNameUpper', () => (data.churchName || '').toUpperCase());
-  handlebars.registerHelper('verseText', () => {
+  Handlebars.registerHelper('padId', (id: number) => String(id).padStart(2, '0'));
+  Handlebars.registerHelper('churchNameUpper', () => (data.churchName || '').toUpperCase());
+  Handlebars.registerHelper('verseText', () => {
     // Separar texto y cita
     const verseInput = data.verse || '';
     let verseText = verseInput;
@@ -21,7 +26,7 @@ export async function generateFlyerPdf(data: any): Promise<Buffer> {
     }
     return verseText || '"Por tanto, id, y haced discípulos a todas las naciones"';
   });
-  handlebars.registerHelper('verseRef', () => {
+  Handlebars.registerHelper('verseRef', () => {
     const verseInput = data.verse || '';
     let verseRef = verseInput;
     if (verseInput.includes('—') || verseInput.includes('-') || verseInput.includes(':')) {
@@ -41,7 +46,7 @@ export async function generateFlyerPdf(data: any): Promise<Buffer> {
   const htmlRaw = fs.readFileSync(templatePath, 'utf8');
 
   // 2. Compilar con Handlebars
-  const template = handlebars.compile(htmlRaw);
+  const template = Handlebars.compile(htmlRaw);
   const html = template(data);
 
   // 3. Lanzar Puppeteer y generar PDF

@@ -11,9 +11,11 @@ export enum ProgramStatus {
 // Sub-documento para asignaciones
 export interface IAssignment {
   _id?: mongoose.Types.ObjectId;
+  id?: number;              // ID numérico para orden
   sectionName: string;
   sectionOrder: number;
   roleName: string;
+  name?: string;            // Nombre alternativo
   person: {
     id: mongoose.Types.ObjectId;
     name: string;
@@ -46,8 +48,13 @@ export interface IProgram extends Document {
 
   // ✅ NUEVOS CAMPOS PARA PREVIEW = PDF
   churchName?: string;      // Nombre de iglesia editable
+  churchSub?: string;       // Subtítulo de iglesia
+  logoUrl?: string;         // URL del logo
+  location?: string;        // Ubicación
   subtitle?: string;        // Subtítulo editable
   programTime?: string;     // Hora en formato "7:00 PM"
+  defaultTime?: string;     // Hora por defecto
+  ampm?: 'AM' | 'PM';       // AM/PM
   verse?: string;           // Versículo completo
 
   // ── CAMPOS PARA GRUPOS DE LIMPIEZA ──
@@ -198,6 +205,26 @@ const ProgramSchema = new Schema<IProgram>(
       trim: true,
       required: false,
       maxlength: [500, 'El versículo no puede exceder 500 caracteres'],
+    },
+    churchSub: {
+      type: String,
+      trim: true,
+      required: false,
+    },
+    logoUrl: {
+      type: String,
+      trim: true,
+      required: false,
+    },
+    location: {
+      type: String,
+      trim: true,
+      required: false,
+    },
+    defaultTime: {
+      type: String,
+      trim: true,
+      required: false,
     },
 
     // ── CAMPOS PARA GRUPOS DE LIMPIEZA ──

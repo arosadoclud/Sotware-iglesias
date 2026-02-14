@@ -29,7 +29,7 @@ export async function paginateResults<T extends Document>(
   // Apply cursor if provided
   if (cursor) {
     const operator = sortOrder === 'asc' ? '$gt' : '$lt';
-    query[sortField] = { [operator]: cursor };
+    (query as any)[sortField] = { [operator]: cursor };
   }
 
   // Fetch one extra to check if there are more results

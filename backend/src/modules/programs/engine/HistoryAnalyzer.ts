@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { IProgram } from '../../models/Program.model';
+import { IProgram } from '../../../models/Program.model';
 
 /**
  * HISTORY ANALYZER — Paso 3: Motor de Asignación v2

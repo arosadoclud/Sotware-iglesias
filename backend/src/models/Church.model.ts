@@ -4,7 +4,9 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 export interface IChurch extends Document {
   _id: mongoose.Types.ObjectId;
   name: string;
+  subTitle?: string;  // Agregado para compatibilidad
   logoUrl?: string;
+  location?: string;  // Agregado para compatibilidad
   address: {
     street?: string;
     city: string;

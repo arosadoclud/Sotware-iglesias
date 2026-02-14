@@ -22,6 +22,8 @@ export interface IPerson extends Document {
   _id: mongoose.Types.ObjectId;
   churchId: mongoose.Types.ObjectId;
   fullName: string;
+  firstName?: string;  // Agregado para compatibilidad
+  lastName?: string;   // Agregado para compatibilidad
   phone?: string;
   email?: string;
   ministry?: string;

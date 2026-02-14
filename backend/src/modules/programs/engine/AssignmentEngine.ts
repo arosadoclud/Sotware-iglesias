@@ -109,10 +109,10 @@ export class AssignmentEngine {
         churchId,
         programDate: { $gte: lookbackDate, $lt: targetDate },
         status: { $in: ['DRAFT', 'PUBLISHED', 'COMPLETED'] },
-      }).lean() as Promise<IProgram[]>,
+      }).lean() as unknown as Promise<IProgram[]>,
 
       // Configuración de la actividad
-      ActivityType.findOne({ _id: activityTypeId, churchId }).lean() as Promise<IActivityType | null>,
+      ActivityType.findOne({ _id: activityTypeId, churchId }).lean() as unknown as Promise<IActivityType | null>,
     ]);
 
     if (!activity) {
