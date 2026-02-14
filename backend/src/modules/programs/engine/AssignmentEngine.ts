@@ -279,11 +279,11 @@ export class AssignmentEngine {
       existing.map((p) => p.programDate.toISOString().split('T')[0])
     );
 
-    // Obtener la actividad UNA vez fuera del loop (incluye defaultTime)
+    // Obtener la actividad UNA vez fuera del loop (incluye defaultTime y schedule)
     const activity = await ActivityType.findOne({
       _id: params.activityTypeId,
       churchId: params.churchId,
-    }).select('name defaultTime');
+    }).select('name defaultTime schedule');
 
     // Convertir defaultTime (HH:mm 24h) a formato legible (ej: "7:00 PM")
     const formatTime = (time24?: string): string | undefined => {
@@ -293,7 +293,14 @@ export class AssignmentEngine {
       const h12 = h % 12 || 12;
       return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
     };
-    const programTime = formatTime(activity?.defaultTime);
+
+    // Función para obtener la hora correcta según el día de la semana
+    const getTimeForDay = (date: Date): string | undefined => {
+      const dayOfWeek = date.getDay();
+      const scheduleEntry = activity?.schedule?.find((s: any) => s.day === dayOfWeek);
+      const time24 = scheduleEntry?.time || activity?.defaultTime;
+      return formatTime(time24);
+    };
 
     // Tracking global de personas asignadas en el lote para maximizar variedad
     const batchAssignedIds = new Set<string>();
@@ -332,7 +339,7 @@ export class AssignmentEngine {
             name: activity?.name || '',
           },
           programDate: date,
-          programTime, // Hora por defecto de la actividad
+          programTime: getTimeForDay(date), // Hora según el día de la semana
           status: 'DRAFT',
           assignments: generation.assignments,
           notes: `Generado en lote. Cobertura: ${generation.stats.coveragePercent}%`,

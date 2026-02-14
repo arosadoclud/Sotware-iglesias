@@ -177,15 +177,16 @@ export const generateBatchPrograms = async (req: AuthRequest, res: Response, nex
     if (!activity) throw new NotFoundError('Actividad no encontrada');
 
     // Usar T12:00:00 para evitar problemas de zona horaria (UTC vs local)
-    // Sin la hora explícita, new Date('2026-02-21') se interpreta como UTC midnight,
-    // lo que puede cambiar el getDay() en zonas horarias negativas (ej: UTC-4)
     const start = new Date(startDate + 'T12:00:00');
     const end = new Date(endDate + 'T12:00:00');
     const dates: Date[] = [];
     const cursor = new Date(start);
 
+    // Soportar multi-día: daysOfWeek es array, dayOfWeek (virtual) es compat
+    const daysSet = new Set<number>(activity.daysOfWeek || [activity.dayOfWeek]);
+
     while (cursor <= end) {
-      if (cursor.getDay() === activity.dayOfWeek) {
+      if (daysSet.has(cursor.getDay())) {
         const d = new Date(cursor);
         d.setHours(0, 0, 0, 0);
         dates.push(d);

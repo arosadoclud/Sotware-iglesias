@@ -47,8 +47,9 @@ const ActivityTypesPage = () => {
   const [form, setForm] = useState({
     name: '',
     description: '',
-    dayOfWeek: 0,
+    daysOfWeek: [] as number[],
     defaultTime: '10:00',
+    schedule: [] as { day: number; time: string }[],
     roleConfig: [] as any[],
   })
 
@@ -70,17 +71,22 @@ const ActivityTypesPage = () => {
 
   const openNew = () => {
     setEditing(null)
-    setForm({ name: '', description: '', dayOfWeek: 0, defaultTime: '10:00', roleConfig: [] })
+    setForm({ name: '', description: '', daysOfWeek: [], defaultTime: '10:00', schedule: [], roleConfig: [] })
     setShowModal(true)
   }
 
   const openEdit = (a: any) => {
     setEditing(a)
+    // Compatibilidad: si viene dayOfWeek (legacy) convertir a daysOfWeek
+    const days = a.daysOfWeek && a.daysOfWeek.length > 0
+      ? [...a.daysOfWeek]
+      : (a.dayOfWeek !== undefined ? [a.dayOfWeek] : [])
     setForm({
       name: a.name,
       description: a.description || '',
-      dayOfWeek: a.dayOfWeek,
+      daysOfWeek: days,
       defaultTime: a.defaultTime,
+      schedule: a.schedule || [],
       roleConfig: a.roleConfig.map((rc: any) => ({ ...rc })),
     })
     setShowModal(true)
@@ -124,8 +130,29 @@ const ActivityTypesPage = () => {
     })
   }
 
+  const toggleDay = (day: number) => {
+    setForm((f) => {
+      const has = f.daysOfWeek.includes(day)
+      const newDays = has ? f.daysOfWeek.filter((d) => d !== day) : [...f.daysOfWeek, day].sort((a, b) => a - b)
+      // Actualizar schedule: agregar entrada para días nuevos, quitar las de días eliminados
+      const newSchedule = newDays.map((d) => {
+        const existing = f.schedule.find((s) => s.day === d)
+        return existing || { day: d, time: f.defaultTime }
+      })
+      return { ...f, daysOfWeek: newDays, schedule: newSchedule }
+    })
+  }
+
+  const updateScheduleTime = (day: number, time: string) => {
+    setForm((f) => ({
+      ...f,
+      schedule: f.schedule.map((s) => s.day === day ? { ...s, time } : s),
+    }))
+  }
+
   const handleSave = async () => {
     if (!form.name.trim()) return toast.error('El nombre es requerido')
+    if (form.daysOfWeek.length === 0) return toast.error('Selecciona al menos un día')
     if (form.roleConfig.length === 0) return toast.error('Agrega al menos una sección')
     if (form.roleConfig.some((rc) => !rc.sectionName.trim()))
       return toast.error('Cada sección necesita un nombre')
@@ -206,7 +233,8 @@ const ActivityTypesPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <AnimatePresence>
             {activities.map((a, index) => {
-              const colors = DAY_COLORS[a.dayOfWeek] || DAY_COLORS[1]
+              const days: number[] = a.daysOfWeek?.length > 0 ? a.daysOfWeek : (a.dayOfWeek !== undefined ? [a.dayOfWeek] : [])
+              const primaryColor = DAY_COLORS[days[0]] || DAY_COLORS[1]
               const totalPeople = a.roleConfig.reduce((sum: number, rc: any) => sum + (rc.peopleNeeded || 1), 0)
 
               return (
@@ -216,15 +244,19 @@ const ActivityTypesPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className={`border-2 ${colors.border} ${colors.bg} hover:shadow-md transition-shadow`}>
+                  <Card className={`border-2 ${primaryColor.border} ${primaryColor.bg} hover:shadow-md transition-shadow`}>
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="space-y-1 flex-1">
                           <CardTitle className="text-lg">{a.name}</CardTitle>
-                          <div className="flex items-center gap-3 text-sm text-neutral-600">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${colors.badge}`}>
-                              {DAYS[a.dayOfWeek]}
-                            </span>
+                          <div className="flex items-center gap-3 text-sm text-neutral-600 flex-wrap">
+                            <div className="flex items-center gap-1 flex-wrap">
+                              {days.map((d: number) => (
+                                <span key={d} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${DAY_COLORS[d]?.badge || ''}`}>
+                                  {DAYS[d]}
+                                </span>
+                              ))}
+                            </div>
                             <span className="flex items-center gap-1">
                               <Clock className="w-3.5 h-3.5" />
                               {a.defaultTime}
@@ -324,35 +356,65 @@ const ActivityTypesPage = () => {
               />
             </div>
 
-            {/* Día y Hora */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Día de la Semana *</Label>
-                <Select
-                  value={String(form.dayOfWeek)}
-                  onValueChange={(value) => setForm({ ...form, dayOfWeek: Number(value) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DAYS.map((d, i) => (
-                      <SelectItem key={i} value={String(i)}>
-                        {d}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {/* Días de la Semana */}
+            <div className="space-y-3">
+              <Label>Días de la Semana *</Label>
+              <div className="flex flex-wrap gap-2">
+                {DAYS.map((d, i) => {
+                  const selected = form.daysOfWeek.includes(i)
+                  const colors = DAY_COLORS[i]
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => toggleDay(i)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
+                        selected
+                          ? `${colors.badge} border-current shadow-sm`
+                          : 'bg-neutral-50 text-neutral-400 border-neutral-200 hover:border-neutral-300'
+                      }`}
+                    >
+                      {d.slice(0, 3)}
+                    </button>
+                  )
+                })}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="actTime">Hora</Label>
-                <Input
-                  id="actTime"
-                  type="time"
-                  value={form.defaultTime}
-                  onChange={(e) => setForm({ ...form, defaultTime: e.target.value })}
-                />
-              </div>
+
+              {/* Hora por día */}
+              {form.daysOfWeek.length > 0 && (
+                <div className="space-y-2 mt-2">
+                  <Label className="text-xs text-neutral-500">Hora por día</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {form.schedule
+                      .sort((a, b) => a.day - b.day)
+                      .map((s) => (
+                        <div key={s.day} className="flex items-center gap-2 p-2 bg-neutral-50 rounded-lg border border-neutral-200">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${DAY_COLORS[s.day]?.badge || ''}`}>
+                            {DAYS[s.day]?.slice(0, 3)}
+                          </span>
+                          <Input
+                            type="time"
+                            value={s.time}
+                            onChange={(e) => updateScheduleTime(s.day, e.target.value)}
+                            className="h-8 text-sm flex-1"
+                          />
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Hora por defecto (fallback) */}
+            <div className="space-y-2">
+              <Label htmlFor="actTime">Hora por defecto</Label>
+              <Input
+                id="actTime"
+                type="time"
+                value={form.defaultTime}
+                onChange={(e) => setForm({ ...form, defaultTime: e.target.value })}
+              />
+              <p className="text-xs text-neutral-400">Se usa si no hay horario específico por día</p>
             </div>
 
             {/* Secciones del Programa */}

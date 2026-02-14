@@ -295,7 +295,7 @@ const GenerateProgramPage = () => {
 
   const selectedAct = activities.find(a => a._id === selectedActivity)
 
-  // Compute matching dates for batch mode preview
+  // Compute matching dates for batch mode preview (multi-day support)
   const batchDates = (() => {
     if (mode !== 'batch' || !startDate || !endDate || !selectedAct) return []
     try {
@@ -303,7 +303,12 @@ const GenerateProgramPage = () => {
       const end = new Date(endDate + 'T12:00:00')
       if (end < start) return []
       const allDays = eachDayOfInterval({ start, end })
-      return allDays.filter(d => getDay(d) === selectedAct.dayOfWeek)
+      const daysSet = new Set<number>(
+        selectedAct.daysOfWeek?.length > 0
+          ? selectedAct.daysOfWeek
+          : [selectedAct.dayOfWeek ?? 0]
+      )
+      return allDays.filter(d => daysSet.has(getDay(d)))
     } catch { return [] }
   })()
 
@@ -478,9 +483,13 @@ const GenerateProgramPage = () => {
                           }`}
                         >
                           <p className="font-semibold text-neutral-900 truncate mb-1">{a.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-neutral-500">
+                          <div className="flex items-center gap-2 text-xs text-neutral-500 flex-wrap">
                             <Clock className="w-3 h-3" />
-                            <span>{DAYS[a.dayOfWeek]} · {a.defaultTime}</span>
+                            <span>
+                              {(a.daysOfWeek?.length > 0 ? a.daysOfWeek : [a.dayOfWeek ?? 0])
+                                .map((d: number) => DAYS[d]?.slice(0, 3))
+                                .join(', ')} · {a.defaultTime}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2 text-xs text-neutral-400 mt-1">
                             <Users className="w-3 h-3" />
@@ -547,9 +556,14 @@ const GenerateProgramPage = () => {
                           <div className="flex items-center gap-2 mb-3">
                             <Calendar className="w-4 h-4 text-primary-600" />
                             <p className="text-sm font-semibold text-primary-900">
-                              {batchDates.length > 0
-                                ? `Se generarán ${batchDates.length} programa${batchDates.length !== 1 ? 's' : ''} (${DAYS[selectedAct.dayOfWeek]})`
-                                : `No hay ${DAYS[selectedAct.dayOfWeek].toLowerCase()}s en el rango seleccionado`}
+                              {(() => {
+                                const dayNames = (selectedAct.daysOfWeek?.length > 0 ? selectedAct.daysOfWeek : [selectedAct.dayOfWeek ?? 0])
+                                  .map((d: number) => DAYS[d])
+                                  .join(', ')
+                                return batchDates.length > 0
+                                  ? `Se generarán ${batchDates.length} programa${batchDates.length !== 1 ? 's' : ''} (${dayNames})`
+                                  : `No hay fechas que coincidan con ${dayNames} en el rango seleccionado`
+                              })()}
                             </p>
                           </div>
                           {batchDates.length > 0 && (

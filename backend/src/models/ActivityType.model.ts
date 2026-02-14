@@ -13,22 +13,31 @@ export interface IActivityRoleConfig {
   isRequired: boolean;
 }
 
+// Sub-documento para horario por día
+export interface IScheduleEntry {
+  day: number; // 0=Domingo, 6=Sábado
+  time: string; // HH:mm formato
+}
+
 // Interface para el documento principal
 export interface IActivityType extends Document {
   _id: mongoose.Types.ObjectId;
   churchId: mongoose.Types.ObjectId;
   name: string;
   description?: string;
-  dayOfWeek: number; // 0=Domingo, 6=Sábado
-  defaultTime: string; // HH:mm formato
+  daysOfWeek: number[]; // Array de días: 0=Domingo, 6=Sábado
+  dayOfWeek: number; // COMPAT: retorna daysOfWeek[0] o 0
+  defaultTime: string; // HH:mm formato (fallback)
+  schedule: IScheduleEntry[]; // Horarios por día
   roleConfig: IActivityRoleConfig[];
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Métodos
   getTotalPeopleNeeded(): number;
   getRoleConfigById(id: string | mongoose.Types.ObjectId): IActivityRoleConfig | undefined;
+  getTimeForDay(day: number): string;
 }
 
 // Schema para configuración de roles
@@ -91,18 +100,27 @@ const ActivityTypeSchema = new Schema<IActivityType>(
       trim: true,
       maxlength: [500, 'La descripción no puede exceder 500 caracteres'],
     },
-    dayOfWeek: {
-      type: Number,
-      required: [true, 'El día de la semana es requerido'],
-      min: [0, 'El día debe estar entre 0 (Domingo) y 6 (Sábado)'],
-      max: [6, 'El día debe estar entre 0 (Domingo) y 6 (Sábado)'],
-      default: 0, // Domingo
+    daysOfWeek: {
+      type: [Number],
+      required: [true, 'Al menos un día de la semana es requerido'],
+      validate: {
+        validator: (v: number[]) => v.length > 0 && v.every(d => d >= 0 && d <= 6),
+        message: 'Cada día debe estar entre 0 (Domingo) y 6 (Sábado)',
+      },
+      default: [0], // Domingo
     },
     defaultTime: {
       type: String,
       required: [true, 'La hora predeterminada es requerida'],
       match: [/^([01]\d|2[0-3]):([0-5]\d)$/, 'Formato de hora inválido (HH:mm)'],
       default: '10:00',
+    },
+    schedule: {
+      type: [{
+        day: { type: Number, required: true, min: 0, max: 6 },
+        time: { type: String, required: true, match: /^([01]\d|2[0-3]):([0-5]\d)$/ },
+      }],
+      default: [],
     },
     roleConfig: {
       type: [ActivityRoleConfigSchema],
@@ -119,10 +137,19 @@ const ActivityTypeSchema = new Schema<IActivityType>(
   }
 );
 
+// Virtual: dayOfWeek para compatibilidad (retorna el primer día)
+ActivityTypeSchema.virtual('dayOfWeek').get(function () {
+  return this.daysOfWeek?.[0] ?? 0;
+});
+
+// Asegurar que los virtuals se incluyan en JSON y Object
+ActivityTypeSchema.set('toJSON', { virtuals: true });
+ActivityTypeSchema.set('toObject', { virtuals: true });
+
 // Índices
 ActivityTypeSchema.index({ churchId: 1, name: 1 });
 ActivityTypeSchema.index({ churchId: 1, isActive: 1 });
-ActivityTypeSchema.index({ churchId: 1, dayOfWeek: 1 });
+ActivityTypeSchema.index({ churchId: 1, daysOfWeek: 1 });
 
 // Método: obtener total de personas necesarias
 ActivityTypeSchema.methods.getTotalPeopleNeeded = function (): number {
@@ -141,6 +168,23 @@ ActivityTypeSchema.methods.getRoleConfigById = function (
     (config: IActivityRoleConfig) => config._id?.toString() === idStr
   );
 };
+
+// Método: obtener hora para un día específico (busca en schedule, fallback a defaultTime)
+ActivityTypeSchema.methods.getTimeForDay = function (day: number): string {
+  const entry = this.schedule?.find((s: IScheduleEntry) => s.day === day);
+  return entry?.time || this.defaultTime || '10:00';
+};
+
+// Compatibilidad: si llega dayOfWeek como número (legacy), convertir a daysOfWeek
+ActivityTypeSchema.pre('save', function (next) {
+  const raw = (this as any)._doc;
+  // Si alguien envió dayOfWeek como número y no daysOfWeek, convertir
+  if (raw.dayOfWeek !== undefined && typeof raw.dayOfWeek === 'number' && (!raw.daysOfWeek || raw.daysOfWeek.length === 0)) {
+    this.daysOfWeek = [raw.dayOfWeek];
+    delete raw.dayOfWeek;
+  }
+  next();
+});
 
 // Validación: no permitir duplicados de nombre en la misma iglesia
 ActivityTypeSchema.pre('save', async function (next) {
