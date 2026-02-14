@@ -20,6 +20,8 @@
     "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": true,
     "allowJs": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "baseUrl": "./src",
     "paths": {
       "@config/*": ["config/*"],
