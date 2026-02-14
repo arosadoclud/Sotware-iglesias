@@ -78,7 +78,7 @@ export const deletePerson = async (req: AuthRequest, res: Response, next: NextFu
 // GET /persons/ministries - obtener ministerios únicos
 export const getMinistries = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const ministries = await Person.distinct('ministry', { churchId: req.churchId, ministry: { $ne: null, $ne: '' } });
+    const ministries = await Person.distinct('ministry', { churchId: req.churchId, ministry: { $nin: [null, ''] } });
     res.json({ success: true, data: ministries.filter(Boolean).sort() });
   } catch (error) { next(error); }
 };
