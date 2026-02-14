@@ -16,6 +16,13 @@ export interface AuthRequest extends Request {
   params: any;
   query: any;
   file?: any;
+  ip: string;
+  socket: any;
+  headers: any;
+  originalUrl: string;
+  method: string;
+  protocol: string;
+  get(name: string): string | undefined;
 }
 
 export const authenticate = async (
