@@ -1,103 +1,281 @@
-# Church Program Manager — v2
+# 🎯 Church Manager v4
 
-Sistema de gestión de programas de oportunidades para iglesias.
-Backend Node.js/TypeScript + MongoDB · Frontend React/Vite/TypeScript
+<div align="center">
 
----
+![Church Manager](https://img.shields.io/badge/Version-4.0.0-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+![Node](https://img.shields.io/badge/Node-18+-brightgreen.svg)
+![MongoDB](https://img.shields.io/badge/MongoDB-6.0+-green.svg)
+![React](https://img.shields.io/badge/React-18+-blue.svg)
 
-## ✅ Mejoras Implementadas (v1 → v2)
+**Sistema completo de gestión integral para iglesias**
 
-### Paso 1 — Tenant Guard (Seguridad Crítica)
-Archivo: `backend/src/middleware/tenant.middleware.ts`
-- El churchId SIEMPRE viene del token JWT, nunca del body
-- Verifica iglesia activa en DB (con cache Redis 5 min)
-- Sobreescribe cualquier churchId en el body
-- planLimit() para enforcement de límites por plan
+[Características](#-características) •
+[Instalación](#-instalación-rápida) •
+[Documentación](#-documentación) •
+[Demo](#-demo)
 
-### Paso 2 — RBAC 6 Roles
-Archivo: `backend/src/middleware/rbac.middleware.ts`
-Roles: SUPER_ADMIN > PASTOR > ADMIN > MINISTRY_LEADER > EDITOR > VIEWER
-Uso: router.get('/', rbac('programs', 'read'), handler)
-
-### Paso 3 — AssignmentEngine v2 (Bug Crítico Corregido)
-Directorio: `backend/src/modules/programs/engine/`
-- FairnessCalculator: algoritmo normalizado en 3 componentes
-- HistoryAnalyzer: pre-carga historial en memoria (elimina N+1 queries)
-- AssignmentEngine: orquestador, elimina el antipatrón fakeReq/fakeRes
-- Nuevo score: menor participación = mayor prioridad (comportamiento correcto)
-
-### Paso 4 — Índices MongoDB
-Indices criticos añadidos:
-- Program: { churchId, programDate, status } — lookback del motor
-- Person: { churchId, roles.roleId, status } — carga de candidatos
-Script: npm run ensure-indexes
-
-### Paso 5 — Módulo PDF
-Directorio: `backend/src/modules/pdf/`
-- Puppeteer + Handlebars templates
-- Logo dinámico, colores de marca, firma del pastor
-- Marca de agua en plan FREE
-- GET /api/v1/programs/:id/pdf — descarga
-- GET /api/v1/programs/:id/pdf/preview — previsualización HTML
-
-### Paso 6 — Notificaciones
-Directorio: `backend/src/modules/notifications/` + `backend/src/infrastructure/`
-- Bull queues + Redis para procesamiento asíncrono
-- Email HTML (Nodemailer / SendGrid / SMTP)
-- WhatsApp (Twilio o Meta Cloud API)
-- Recordatorios automáticos 48h antes del culto
-- Se dispara al publicar un programa
-
-### Paso 7 — Church Model Expandido
-Nuevos campos: plan (FREE/PRO/ENTERPRISE), brandColor, pastorName,
-signatureUrl, settings.whatsappEnabled, settings.defaultTime
-
-### Paso 8 — Cache Redis
-Archivo: `backend/src/infrastructure/cache/CacheAdapter.ts`
-- Fallback automático a Map en memoria si Redis no está disponible
-- Tenant validation: 5 min TTL
-- Dashboard stats: 5 min TTL
-- Invalidación automática al mutar datos
-
-### Pasos 9-10 — Frontend + DevEx
-- DashboardPage rediseñada con métricas, download PDF directo
-- GenerateProgramPage con vista previa de scoring y warnings
-- ProgramsPage con paginación, cambio de estado progresivo
-- api.ts completo con todos los endpoints
-- .env.example completo
-- server.ts con graceful shutdown
-- README técnico
+</div>
 
 ---
 
-## Instalación
+## 📋 Descripción
+
+Church Manager v4 es un sistema completo de gestión para iglesias que permite administrar miembros, programas de culto, ministerios, actividades, cartas personalizadas, notificaciones automatizadas y mucho más. Diseñado con arquitectura multi-tenant, seguridad robusta y escalabilidad empresarial.
+
+## ✨ Características
+
+### 🏢 Multi-Tenant
+- ✅ Completo aislamiento de datos entre iglesias
+- ✅ Sistema de planes (FREE, PRO, ENTERPRISE)
+- ✅ Límites personalizables por plan
+- ✅ Seguridad a nivel de middleware con JWT
+
+### 👥 Gestión de Miembros
+- ✅ Registro completo de personas
+- ✅ Roles y ministerios flexibles
+- ✅ Historial de participación
+- ✅ Sistema de disponibilidad
+- ✅ Fotos y datos de contacto
+
+### 📅 Programas de Culto
+- ✅ Generación automática inteligente
+- ✅ Algoritmo de asignación justa (FairnessCalculator)
+- ✅ Balance de carga de trabajo
+- ✅ Historial y estadísticas de participación
+- ✅ Estados: borrador, publicado, completado
+
+### 📄 Generación de Cartas y PDFs
+- ✅ Plantillas personalizables con Handlebars
+- ✅ Cartas individuales y masivas
+- ✅ PDFs profesionales con Puppeteer
+- ✅ Branding personalizado por iglesia
+- ✅ Firma digital del pastor
+
+### 📧 Notificaciones Automatizadas
+- ✅ Email con plantillas HTML
+- ✅ WhatsApp (integración Twilio/Meta)
+- ✅ Recordatorios automáticos (48h antes)
+- ✅ Sistema de colas con Bull/Redis
+- ✅ Procesamiento asíncrono
+
+### 🔐 Seguridad y Control
+- ✅ Autenticación JWT con refresh tokens
+- ✅ RBAC con 6 niveles de roles
+- ✅ Rate limiting
+- ✅ Validación de datos con class-validator
+- ✅ Protección CSRF y XSS
+
+### 📊 Dashboard e Informes
+- ✅ Métricas en tiempo real
+- ✅ Estadísticas de participación
+- ✅ Gráficos interactivos
+- ✅ Exportación de datos
+- ✅ Vista de calendario
+
+## 🏗️ Arquitectura
+
+```
+┌─────────────────────────────────────┐
+│   REACT FRONTEND (Puerto 5173)      │
+│   · React 18 + TypeScript           │
+│   · TailwindCSS + Radix UI          │
+│   · React Query + Zustand           │
+│   · React Router v6                 │
+└──────────────┬──────────────────────┘
+               │ REST API + JWT
+┌──────────────▼──────────────────────┐
+│   EXPRESS BACKEND (Puerto 5000)     │
+│   · Node.js + TypeScript            │
+│   · Express + Middleware Stack      │
+│   · JWT Auth + RBAC                 │
+│   · Bull Queues + Redis Cache       │
+└──────────────┬──────────────────────┘
+               │ Mongoose ODM
+┌──────────────▼──────────────────────┐
+│        MONGODB DATABASE             │
+│   · Churches (Multi-tenant)         │
+│   · Users + Persons                 │
+│   · Programs + Assignments          │
+│   · Templates + Letters             │
+└─────────────────────────────────────┘
+```
+
+## 🚀 Instalación Rápida
+
+### Prerrequisitos
+
+- Node.js 18+ 
+- MongoDB 6.0+
+- Redis (opcional, para cache y colas)
+- npm o yarn
+
+### Paso 1: Clonar el repositorio
 
 ```bash
-# Backend
+git clone https://github.com/arosadoclud/Sotware-iglesias.git
+cd Sotware-iglesias
+```
+
+### Paso 2: Backend
+
+```bash
 cd backend
 cp .env.example .env
-# Editar .env con tus valores
+# Edita .env con tus credenciales
 npm install
-npm run ensure-indexes   # Crear índices en MongoDB
-npm run create-admin     # Crear usuario admin inicial
-npm run dev              # Puerto 5000
-
-# Frontend
-cd ../frontend
-npm install
-npm run dev              # Puerto 5173
+npm run ensure-indexes
+npm run create-admin
+npm run dev
 ```
 
-## Variables mínimas requeridas (.env)
-```
-MONGODB_URI=mongodb://localhost:27017/church_program_manager
-JWT_SECRET=secreto_seguro_minimo_32_caracteres
-JWT_REFRESH_SECRET=otro_secreto_diferente
-```
+### Paso 3: Frontend
 
-## Dependencias opcionales
 ```bash
-npm install ioredis bull          # Cache + Colas (Redis requerido)
+cd frontend
+npm install
+npm run dev
+```
+
+### Paso 4: Acceder
+
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:5000
+- Usuario admin: admin@church.com / Admin123!
+
+## 🔧 Configuración
+
+### Variables de Entorno Backend (.env)
+
+```env
+# Base
+NODE_ENV=development
+PORT=5000
+
+# MongoDB
+MONGODB_URI=mongodb://localhost:27017/church_manager
+
+# JWT
+JWT_SECRET=tu_secreto_super_seguro_minimo_32_caracteres
+JWT_REFRESH_SECRET=otro_secreto_diferente_para_refresh
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+# Redis (opcional)
+REDIS_URL=redis://localhost:6379
+
+# Email
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=tu_email@gmail.com
+SMTP_PASS=tu_password
+EMAIL_FROM=noreply@church.com
+
+# WhatsApp (opcional)
+TWILIO_ACCOUNT_SID=tu_account_sid
+TWILIO_AUTH_TOKEN=tu_auth_token
+TWILIO_WHATSAPP_NUMBER=+14155238886
+
+# Cloudinary (opcional)
+CLOUDINARY_CLOUD_NAME=tu_cloud_name
+CLOUDINARY_API_KEY=tu_api_key
+CLOUDINARY_API_SECRET=tu_api_secret
+```
+
+### Variables de Entorno Frontend (.env)
+
+```env
+VITE_API_URL=http://localhost:5000/api/v1
+```
+
+## 📚 Documentación
+
+- 📖 [Guía de Instalación Completa](docs/INSTALLATION.md)
+- 🔌 [Documentación de API](docs/API_DOCUMENTATION.md)
+- 🏗️ [Arquitectura del Sistema](docs/ARCHITECTURE.md)
+- 🚀 [Guía de Despliegue](docs/DEPLOYMENT.md)
+- 👨‍💻 [Guía de Contribución](docs/CONTRIBUTING.md)
+- 📘 [Manual de Usuario](docs/USER_GUIDE.md)
+
+## 🎯 Stack Tecnológico
+
+### Backend
+- **Runtime:** Node.js 18+
+- **Framework:** Express 4
+- **Lenguaje:** TypeScript
+- **Base de Datos:** MongoDB + Mongoose
+- **Cache:** Redis + ioredis
+- **Autenticación:** JWT + bcryptjs
+- **Validación:** class-validator
+- **Colas:** Bull
+- **PDF:** Puppeteer + Handlebars
+- **Email:** Nodemailer
+- **Testing:** Jest + Supertest
+
+### Frontend
+- **Framework:** React 18
+- **Lenguaje:** TypeScript
+- **Build Tool:** Vite
+- **Routing:** React Router v6
+- **Estado:** Zustand + React Query
+- **Estilos:** TailwindCSS
+- **UI:** Radix UI + shadcn/ui
+- **Formularios:** React Hook Form + Zod
+- **Gráficos:** Recharts
+- **Notificaciones:** Sonner
+
+## 📦 Scripts Disponibles
+
+### Backend
+
+```bash
+npm run dev              # Modo desarrollo
+npm run build            # Compilar TypeScript
+npm start                # Producción
+npm run ensure-indexes   # Crear índices MongoDB
+npm run create-admin     # Crear usuario admin
+npm run seed             # Datos de prueba
+npm test                 # Tests
+npm run lint             # Linter
+```
+
+### Frontend
+
+```bash
+npm run dev              # Modo desarrollo
+npm run build            # Build producción
+npm run preview          # Preview build
+npm run lint             # Linter
+```
+
+## 🌟 Demo
+
+Visita nuestra demo en línea: **[Demo disponible próximamente]**
+
+## 🤝 Contribuir
+
+Las contribuciones son bienvenidas. Por favor lee [CONTRIBUTING.md](docs/CONTRIBUTING.md) para detalles.
+
+## 📝 Licencia
+
+Este proyecto está bajo la Licencia MIT - ver [LICENSE](LICENSE) para más detalles.
+
+## 👨‍💻 Autor
+
+**Andy Rodriguez** - Systems Engineer
+
+## 📞 Soporte
+
+- 📧 Email: arosadoclud@gmail.com
+- 🐛 Issues: [GitHub Issues](https://github.com/arosadoclud/Sotware-iglesias/issues)
+
+---
+
+<div align="center">
+
+Hecho con ❤️ para la comunidad cristiana
+
+</div>
 npm install nodemailer             # Email
 npm install twilio                 # WhatsApp via Twilio
 ```
