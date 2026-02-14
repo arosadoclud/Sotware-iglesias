@@ -11,6 +11,11 @@ export interface AuthRequest extends Request {
   churchId?: string;
   // Añadido por tenantGuard (Paso 1) — plan de suscripción de la iglesia
   churchPlan?: 'FREE' | 'PRO' | 'ENTERPRISE';
+  // Express properties - declaradas explícitamente para TypeScript
+  body: any;
+  params: any;
+  query: any;
+  file?: any;
 }
 
 export const authenticate = async (
