@@ -7,10 +7,13 @@ async function testLogin() {
     await mongoose.connect(envConfig.mongoUri);
     console.log('✅ Conectado a MongoDB');
 
-    const user = await User.findOne({ email: 'superadmin@iglesia.com' }).select('+passwordHash');
+    const email = 'admin@software.com';
+    const password = 'Pass1234';
+
+    const user = await User.findOne({ email }).select('+passwordHash');
     
     if (!user) {
-      console.log('❌ Usuario no encontrado');
+      console.log(`❌ Usuario ${email} no encontrado`);
       process.exit(1);
     }
 
@@ -21,8 +24,8 @@ async function testLogin() {
     console.log('✓ Activo:', user.isActive);
 
     // Probar contraseña
-    const isMatch = await user.comparePassword('Admin123456');
-    console.log('\n🔑 Contraseña "Admin123456" coincide:', isMatch);
+    const isMatch = await user.comparePassword(password);
+    console.log(`\n🔑 Contraseña "${password}" coincide:`, isMatch);
 
     process.exit(0);
   } catch (error: any) {

@@ -11,17 +11,20 @@ async function createSuperAdmin() {
     console.log('✅ Conectado a MongoDB');
 
     // Verificar si ya existe el admin
-    const existingAdmin = await User.findOne({ email: 'superadmin@iglesia.com' });
+    const email = 'admin@software.com';
+    const password = 'Pass1234';
+    
+    const existingAdmin = await User.findOne({ email });
     if (existingAdmin) {
-      console.log('⚠️  El usuario superadmin@iglesia.com ya existe');
+      console.log(`⚠️  El usuario ${email} ya existe, actualizando contraseña...`);
       
       // Actualizar contraseña (el pre-save hook la hasheará automáticamente)
-      existingAdmin.passwordHash = 'Admin123456';
+      existingAdmin.passwordHash = password;
       existingAdmin.isActive = true;
       await existingAdmin.save();
       console.log('✅ Contraseña actualizada');
-      console.log('📧 Email: superadmin@iglesia.com');
-      console.log('🔑 Password: Admin123456');
+      console.log(`📧 Email: ${email}`);
+      console.log(`🔑 Password: ${password}`);
       process.exit(0);
     }
 
@@ -50,9 +53,9 @@ async function createSuperAdmin() {
 
     // Crear usuario SUPER_ADMIN (el pre-save hook hasheará la contraseña)
     const admin = new User({
-      email: 'superadmin@iglesia.com',
-      passwordHash: 'Admin123456', // Se hasheará automáticamente
-      fullName: 'Super Administrador',
+      email,
+      passwordHash: password, // Se hasheará automáticamente
+      fullName: 'Administrador Principal',
       role: 'SUPER_ADMIN',
       churchId: church._id,
       isActive: true,
@@ -60,8 +63,8 @@ async function createSuperAdmin() {
 
     await admin.save();
     console.log('✅ Usuario SUPER_ADMIN creado exitosamente');
-    console.log('📧 Email: superadmin@iglesia.com');
-    console.log('🔑 Password: Admin123456');
+    console.log(`📧 Email: ${email}`);
+    console.log(`🔑 Password: ${password}`);
     console.log('🏛️  ChurchId:', church._id);
 
     process.exit(0);
