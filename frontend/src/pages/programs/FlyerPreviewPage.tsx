@@ -508,7 +508,36 @@ const FlyerPreviewPage = () => {
     }
   }, [id, form, assignments, validateRequired])
 
-  // ─── Download PDF ────────────────────────────────────────────────────────
+  // ─── Download PDF (Descarga directa sin guardar cambios) ────────────────
+
+  const handleDirectDownloadPdf = useCallback(async () => {
+    setDownloadingPdf(true)
+    try {
+      const res = await programsApi.downloadPdf(id as string, footerSummary)
+      const blob = new Blob([res.data], { type: 'application/pdf' })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `programa-${id}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      toast.success('PDF descargado', {
+        style: { background: '#22C55E', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
+        duration: 2500,
+      })
+    } catch {
+      toast.error('Error al generar el PDF', {
+        style: { background: '#EF4444', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
+        duration: 3500,
+      })
+    } finally {
+      setDownloadingPdf(false)
+    }
+  }, [id, footerSummary])
+
+  // ─── Download PDF (Guardar cambios y descargar desde configuración) ──────
 
   const handleDownloadPdf = useCallback(async () => {
     if (!validateRequired()) return
@@ -525,9 +554,15 @@ const FlyerPreviewPage = () => {
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
-      toast.success('PDF descargado')
+      toast.success('Cambios guardados y PDF descargado', {
+        style: { background: '#22C55E', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
+        duration: 3500,
+      })
     } catch {
-      toast.error('Error al guardar o generar el PDF')
+      toast.error('Error al guardar o generar el PDF', {
+        style: { background: '#EF4444', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
+        duration: 3500,
+      })
     } finally {
       setDownloadingPdf(false)
     }
@@ -596,6 +631,19 @@ const FlyerPreviewPage = () => {
               }}
             >
               📱 WhatsApp
+            </button>
+            <button 
+              onClick={handleDirectDownloadPdf} 
+              disabled={downloadingPdf} 
+              className="fe-btn-gold" 
+              style={{
+                ...styles.topbarSaveBtn,
+                background: downloadingPdf ? '#999' : 'linear-gradient(135deg, #D4AF37, #B8941E)',
+                opacity: downloadingPdf ? 0.6 : 1,
+              }}
+              title="Descargar PDF del programa guardado"
+            >
+              {downloadingPdf ? '⏳' : '⬇️'} Descargar PDF
             </button>
             <button onClick={handleSave} disabled={saving} className="fe-btn-primary" style={{
               ...styles.topbarSaveBtn, opacity: saving ? 0.6 : 1,
@@ -729,10 +777,10 @@ const FlyerPreviewPage = () => {
 
               {/* Actions */}
               <div style={styles.actions}>
-                <button className="fe-btn-gold" onClick={handleDownloadPdf} disabled={downloadingPdf} style={{
-                  ...styles.btn, ...styles.btnGold, opacity: downloadingPdf ? 0.6 : 1,
-                }}>
-                  {downloadingPdf ? '⏳' : '⬇️'} Descargar PDF
+                <button className="fe-btn-gold" onClick={handleDownloadPdf} disabled={downloadingPdf || saving} style={{
+                  ...styles.btn, ...styles.btnGold, opacity: (downloadingPdf || saving) ? 0.6 : 1,
+                }} title="Guardar cambios y descargar PDF">
+                  {downloadingPdf ? '⏳' : '💾⬇️'} Guardar y Descargar PDF
                 </button>
                 <button className="fe-btn-outline" onClick={randomizeAll} style={{ ...styles.btn, ...styles.btnOutline }}>
                   🔀 Reasignar personas
