@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { programsApi } from '../../lib/api';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft, Save, Download, Eye } from 'lucide-react';
+import { Loader2, ArrowLeft, Save, Download, Eye, MessageCircle } from 'lucide-react';
 
 const ProgramEditPage = () => {
   const { id } = useParams();
@@ -182,6 +182,13 @@ const ProgramEditPage = () => {
               >
                 <Download className="w-4 h-4" />
                 Descargar PDF
+              </button>
+              <button
+                onClick={() => navigate(`/programs/share-whatsapp?ids=${id}`)}
+                className="flex items-center gap-2 px-4 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg transition"
+              >
+                <MessageCircle className="w-4 h-4" />
+                WhatsApp
               </button>
               <button
                 onClick={handleSave}

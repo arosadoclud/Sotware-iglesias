@@ -126,6 +126,7 @@ export class AssignmentEngine {
     const personsByRole = new Map<string, IPerson[]>();
     for (const person of allPersons) {
       for (const role of person.roles) {
+        if (!role || !role.roleId) continue; // Skip roles inválidos
         const key = role.roleId.toString();
         if (!personsByRole.has(key)) {
           personsByRole.set(key, []);
@@ -142,10 +143,17 @@ export class AssignmentEngine {
     const allBreakdowns: ScoringBreakdown[] = [];
 
     // Procesar roles requeridos primero, luego opcionales
-    const sortedRoleConfigs = [...activity.roleConfig].sort((a, b) => {
+    // Filtrar roleConfig inválidos (con role undefined)
+    const validRoleConfigs = activity.roleConfig.filter(rc => rc.role && rc.role.id);
+    
+    const sortedRoleConfigs = [...validRoleConfigs].sort((a, b) => {
       if (a.isRequired !== b.isRequired) return a.isRequired ? -1 : 1;
       return a.sectionOrder - b.sectionOrder;
     });
+
+    if (validRoleConfigs.length < activity.roleConfig.length) {
+      console.warn(`[AssignmentEngine] ${activity.roleConfig.length - validRoleConfigs.length} roleConfig inválidos filtrados en actividad ${activity.name}`);
+    }
 
     for (const roleConfig of sortedRoleConfigs) {
       const roleId = roleConfig.role.id.toString();

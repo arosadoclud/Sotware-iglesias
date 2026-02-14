@@ -1,12 +1,7 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-// Enum para status
-export enum PersonStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  NEW = 'NEW',
-  LEADER = 'LEADER',
-}
+// Status por defecto (para compatibilidad)
+export const DEFAULT_PERSON_STATUS = 'ACTIVO';
 
 // Sub-documento para roles permitidos
 export interface IPersonRole {
@@ -30,7 +25,7 @@ export interface IPerson extends Document {
   phone?: string;
   email?: string;
   ministry?: string;
-  status: PersonStatus;
+  status: string;
   priority: number;
   roles: IPersonRole[];
   unavailability: IUnavailability[];
@@ -125,9 +120,9 @@ const PersonSchema = new Schema<IPerson>(
     },
     status: {
       type: String,
-      enum: Object.values(PersonStatus),
-      default: PersonStatus.ACTIVE,
+      default: DEFAULT_PERSON_STATUS,
       required: true,
+      trim: true,
     },
     priority: {
       type: Number,
@@ -174,7 +169,8 @@ PersonSchema.index({ churchId: 1, status: 1, priority: -1 });
 
 // Método: verificar disponibilidad en una fecha
 PersonSchema.methods.isAvailableOn = function (date: Date): boolean {
-  if (this.status === PersonStatus.INACTIVE) {
+  // Check if person is inactive (INACTIVO is the Spanish code for inactive)
+  if (this.status === 'INACTIVO' || this.status === 'INACTIVE') {
     return false;
   }
 

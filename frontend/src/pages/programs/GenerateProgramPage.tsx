@@ -283,6 +283,7 @@ const GenerateProgramPage = () => {
   const [result, setResult] = useState<any>(null)
   const [preview, setPreview] = useState<any>(null)
   const [downloadingPdf, setDownloadingPdf] = useState<string | null>(null)
+  const [numberOfGroups, setNumberOfGroups] = useState(4) // For cleaning groups
 
   useEffect(() => {
     activitiesApi.getAll()
@@ -332,27 +333,66 @@ const GenerateProgramPage = () => {
     setResult(null)
     try {
       if (mode === 'single') {
-        if (!singleDate) return toast.error('Selecciona una fecha')
+        if (!singleDate) {
+          setGenerating(false)
+          return toast.error('Selecciona una fecha')
+        }
         const res = await programsApi.generate({ activityTypeId: selectedActivity, programDate: singleDate })
         setResult({ type: 'single', program: res.data.data, meta: res.data.meta })
         toast.success('✅ Programa generado exitosamente')
         setTimeout(() => navigate(`/programs/${res.data.data._id}/flyer`), 600)
       } else {
-        if (!startDate || !endDate) return toast.error('Selecciona las fechas')
-        const res = await programsApi.generateBatch({ activityTypeId: selectedActivity, startDate, endDate })
+        if (!startDate || !endDate) {
+          setGenerating(false)
+          return toast.error('Selecciona las fechas')
+        }
+        const isCleaningActivity = selectedAct?.generationType === 'cleaning_groups'
+        console.log('📤 Enviando petición batch:', { activityTypeId: selectedActivity, startDate, endDate })
+        const res = await programsApi.generateBatch({ 
+          activityTypeId: selectedActivity, 
+          startDate, 
+          endDate,
+          ...(isCleaningActivity && { numberOfGroups })
+        })
+        console.log('📥 Respuesta batch:', res.data)
+        console.log('📥 Respuesta batch data completa:', JSON.stringify(res.data.data, null, 2))
         const batchData = res.data.data
         const gen = batchData.generated
-        toast.success(`✅ ${gen} programa${gen !== 1 ? 's' : ''} generado${gen !== 1 ? 's' : ''}`)
+        const errors = batchData.errors || 0
+        console.log('📊 Generated:', gen, 'Errors:', errors, 'Results:', batchData.results)
+        
+        if (gen > 0) {
+          toast.success(`✅ ${gen} programa${gen !== 1 ? 's' : ''} generado${gen !== 1 ? 's' : ''}`)
+        }
+        
+        // Mostrar errores si hubo fallos
+        if (errors > 0) {
+          const errorMessages = batchData.results
+            ?.filter((r: any) => !r.success && r.error)
+            .map((r: any) => r.error)
+            .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i) // Unique
+            .slice(0, 3) || []
+          
+          if (errorMessages.length > 0) {
+            toast.error(`❌ ${errors} error${errors !== 1 ? 'es' : ''}: ${errorMessages.join(', ')}`)
+          } else {
+            toast.error(`❌ ${errors} programa${errors !== 1 ? 's' : ''} no se pudieron generar`)
+          }
+        }
 
         // Redirigir a la vista de revision de lote con todos los IDs
         const programIds = batchData.results
           ?.filter((r: any) => r.success && r.programId)
           .map((r: any) => r.programId) || []
+        console.log('🔗 Program IDs para redirección:', programIds)
         if (programIds.length > 0) {
           setTimeout(() => navigate(`/programs/batch-review?ids=${programIds.join(',')}`), 600)
+        } else if (gen === 0 && errors > 0) {
+          toast.info('No se generaron programas. Revisa la configuración de la actividad.')
         }
       }
     } catch (e: any) {
+      console.error('❌ Error en generación:', e)
       toast.error(e.response?.data?.message || 'Error al generar programa')
     }
     setGenerating(false)
@@ -584,6 +624,42 @@ const GenerateProgramPage = () => {
                   </CardContent>
                 </Card>
               </motion.div>
+
+              {/* Cleaning Groups Configuration - only shown for cleaning activities */}
+              {selectedAct?.generationType === 'cleaning_groups' && mode === 'batch' && (
+                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}>
+                  <Card className="border-amber-200 bg-amber-50/50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-amber-800">
+                        <Users className="w-5 h-5 text-amber-600" />
+                        Configuración de Grupos de Limpieza
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <p className="text-sm text-amber-700">
+                          Esta actividad divide a todos los miembros activos de la iglesia en grupos para rotación de limpieza.
+                        </p>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-amber-800">Número de Grupos</label>
+                          <input
+                            type="number"
+                            min={2}
+                            max={20}
+                            value={numberOfGroups}
+                            onChange={(e) => setNumberOfGroups(Math.max(2, Math.min(20, parseInt(e.target.value) || 4)))}
+                            className="w-full px-4 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
+                          />
+                          <p className="text-xs text-amber-600">
+                            Los miembros activos se dividirán equitativamente en {numberOfGroups} grupos.
+                            Cada fecha recibirá un grupo diferente en rotación.
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
 
               {/* Actions */}
               <motion.div

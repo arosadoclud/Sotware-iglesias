@@ -22,10 +22,31 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   envConfig.frontendUrl,
+  // Permitir cualquier subdominio de vercel.app para previews
 ].filter(Boolean);
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    // Permitir requests sin origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Verificar si el origen está en la lista permitida
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Permitir cualquier subdominio de vercel.app
+    if (origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Permitir onrender.com (para testing)
+    if (origin.endsWith('.onrender.com')) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -85,21 +106,27 @@ import churchRoutes   from './modules/churches/church.routes';
 import logoRoutes     from './modules/churches/logo.routes';
 import roleRoutes     from './modules/roles/role.routes';
 import personsModule  from './modules/persons';
+import personStatusRoutes from './modules/person-statuses/personStatus.routes';
 import activityRoutes from './modules/activities/activity.routes';
 import programRoutes  from './modules/programs/program.routes';
 import pdfRoutes      from './modules/pdf/pdf.routes';       // PASO 5: PDF
 // PASO 7: Letras (ya existían, se mantienen)
 import letterRoutes   from './modules/letters/letter.routes';
+import adminRoutes    from './modules/admin/admin.routes';   // Admin & Auditoría
+import financesRoutes from './modules/finances/finances.routes'; // Módulo de Finanzas
 
 app.use(`${API}/auth`,      authRoutes);
 app.use(`${API}/churches`,  churchRoutes);
 app.use(`${API}/churches`,  logoRoutes);
 app.use(`${API}/roles`,     roleRoutes);
 app.use(`${API}/persons`,   personsModule);
+app.use(`${API}/person-statuses`, personStatusRoutes);
 app.use(`${API}/activities`,activityRoutes);
 app.use(`${API}/programs`,  programRoutes);
 app.use(`${API}/programs`,  pdfRoutes);     // PDF: GET /programs/:id/pdf
 app.use(`${API}/letters`,   letterRoutes);
+app.use(`${API}/admin`,     adminRoutes);   // Admin: usuarios y auditoría
+app.use(`${API}/finances`,  financesRoutes); // Finanzas
 
 app.get('/api', (_req: Request, res: Response) => {
   res.json({
@@ -111,9 +138,11 @@ app.get('/api', (_req: Request, res: Response) => {
       `${API}/churches`,
       `${API}/roles`,
       `${API}/persons`,
+      `${API}/person-statuses`,
       `${API}/activities`,
       `${API}/programs`,
       `${API}/letters`,
+      `${API}/finances`,
     ],
   });
 });

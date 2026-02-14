@@ -9,6 +9,7 @@ import { NotFoundError } from '../../utils/errors';
  * PDF CONTROLLER — Paso 5
  * GET /programs/:id/pdf  →  descarga el PDF del programa
  * GET /programs/:id/pdf/preview  →  retorna el HTML para previsualizar en browser
+ * GET /programs/:id/pdf/url  →  genera PDF y devuelve URL pública para compartir
  */
 
 export const downloadProgramPdf = async (
@@ -78,6 +79,48 @@ export const previewProgramPdf = async (
 
     res.set('Content-Type', 'text/html');
     res.send(html);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /programs/:id/pdf/url  →  genera PDF y devuelve URL pública para compartir por WhatsApp
+ */
+export const getProgramPdfUrl = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const program = await Program.findOne({
+      _id: req.params.id,
+      churchId: req.churchId,
+    });
+    if (!program) throw new NotFoundError('Programa no encontrado');
+
+    const church = await Church.findById(req.churchId);
+    if (!church) throw new NotFoundError('Iglesia no encontrada');
+
+    const isPro = (church as any).plan === 'PRO' || (church as any).plan === 'ENTERPRISE';
+
+    // Generar PDF y guardarlo en carpeta pública
+    const result = await pdfService.generatePublicUrl({ program, church, isPro, flyerStyle: true });
+
+    // Construir URL completa usando el host del request o variable de entorno
+    const protocol = req.protocol || 'http';
+    const host = req.get('host') || `localhost:${process.env.PORT || 5000}`;
+    const baseUrl = process.env.API_BASE_URL || `${protocol}://${host}`;
+    const fullUrl = `${baseUrl}${result.url}`;
+
+    res.json({
+      success: true,
+      data: {
+        url: fullUrl,
+        filename: result.filename,
+        programId: program._id
+      }
+    });
   } catch (error) {
     next(error);
   }

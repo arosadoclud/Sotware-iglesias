@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { Permission, DEFAULT_ROLE_PERMISSIONS } from '../config/permissions';
 
 // Enum para roles — expandido de 3 a 6 roles (Paso 2: RBAC)
 // Jerarquía: SUPER_ADMIN > PASTOR > ADMIN > MINISTRY_LEADER > EDITOR > VIEWER
@@ -20,15 +21,19 @@ export interface IUser extends Document {
   passwordHash: string;
   fullName: string;
   role: UserRole;
+  permissions: string[];           // Permisos personalizados
+  useCustomPermissions: boolean;   // Si true, usa permissions; si false, usa los del rol
   isActive: boolean;
   lastLogin?: Date;
   refreshToken?: string;
+  createdBy?: mongoose.Types.ObjectId; // Usuario que lo creó
   createdAt: Date;
   updatedAt: Date;
   
   // Métodos
   comparePassword(candidatePassword: string): Promise<boolean>;
   getPublicProfile(): object;
+  getEffectivePermissions(): string[];
 }
 
 // Schema
@@ -69,6 +74,14 @@ const UserSchema = new Schema<IUser>(
       default: UserRole.VIEWER,
       required: true,
     },
+    permissions: {
+      type: [String],
+      default: [],
+    },
+    useCustomPermissions: {
+      type: Boolean,
+      default: false,
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -80,6 +93,10 @@ const UserSchema = new Schema<IUser>(
       type: String,
       select: false,
     },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
   },
   {
     timestamps: true,
@@ -87,8 +104,7 @@ const UserSchema = new Schema<IUser>(
   }
 );
 
-// Índices
-UserSchema.index({ email: 1 }, { unique: true });
+// Índices (email ya tiene unique: true en la definición del campo)
 UserSchema.index({ churchId: 1, role: 1 });
 UserSchema.index({ churchId: 1, isActive: 1 });
 
@@ -129,8 +145,20 @@ UserSchema.methods.getPublicProfile = function () {
     churchId: this.churchId,
     isActive: this.isActive,
     lastLogin: this.lastLogin,
+    permissions: this.getEffectivePermissions(),
+    useCustomPermissions: this.useCustomPermissions,
     createdAt: this.createdAt,
   };
+};
+
+// Método para obtener los permisos efectivos del usuario
+UserSchema.methods.getEffectivePermissions = function (): string[] {
+  // Si usa permisos personalizados, retornar esos
+  if (this.useCustomPermissions && this.permissions && this.permissions.length > 0) {
+    return this.permissions;
+  }
+  // Si no, retornar los permisos por defecto del rol
+  return DEFAULT_ROLE_PERMISSIONS[this.role] || [];
 };
 
 // Método estático para buscar por email

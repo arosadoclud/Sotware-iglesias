@@ -31,6 +31,8 @@ export const authApi = {
   logout: () => api.post('/auth/logout'),
   refresh: () => api.post('/auth/refresh'),
   me: () => api.get('/auth/me'),
+  updateProfile: (data: { fullName: string }) => api.put('/auth/profile', data),
+  changePassword: (data: { currentPassword: string; newPassword: string }) => api.put('/auth/change-password', data),
 }
 
 // ── CHURCHES ──────────────────────────────────────────────────────────────────
@@ -71,6 +73,21 @@ export const ministriesApi = {
   getAll: () => api.get('/persons/ministries'),
   create: (data: { name: string; description?: string; color?: string }) =>
     api.post('/persons/ministries', data),
+  update: (id: string, data: { name?: string; description?: string; color?: string }) =>
+    api.put(`/persons/ministries/${id}`, data),
+  delete: (id: string) => api.delete(`/persons/ministries/${id}`),
+  seed: () => api.post('/persons/ministries/seed'),
+}
+
+// ── PERSON STATUSES ───────────────────────────────────────────────────────────
+export const personStatusesApi = {
+  getAll: () => api.get('/person-statuses'),
+  getAllIncludingInactive: () => api.get('/person-statuses/all'),
+  create: (data: { name: string; color?: string; description?: string }) =>
+    api.post('/person-statuses', data),
+  update: (id: string, data: any) => api.put(`/person-statuses/${id}`, data),
+  delete: (id: string) => api.delete(`/person-statuses/${id}`),
+  seed: () => api.post('/person-statuses/seed'),
 }
 
 // ── ACTIVITIES ────────────────────────────────────────────────────────────────
@@ -95,6 +112,7 @@ export const programsApi = {
     api.patch(`/programs/${id}/assignments`, data),
   delete: (id: string) => api.delete(`/programs/${id}`),
   deleteAll: () => api.delete('/programs/all'),
+  publishAll: () => api.patch('/programs/publish-all'),
   getStats: () => api.get('/programs/stats'),
   previewScoring: (params: { activityTypeId: string; programDate: string }) =>
     api.get('/programs/preview-scoring', { params }),
@@ -107,6 +125,9 @@ export const programsApi = {
     `${API_URL}/programs/${id}/pdf/preview`,
     getFlyerHtml: (id: string, summary?: string) =>
       api.get(`/programs/${id}/pdf/preview${summary ? `?summary=${encodeURIComponent(summary)}` : ''}`, { responseType: 'text' }),
+  // Obtener URL pública del PDF para compartir
+  getPdfUrl: (id: string) =>
+    api.get<{ success: boolean; data: { url: string; filename: string; programId: string } }>(`/programs/${id}/pdf/url`),
 }
 
 // ── LETTERS ───────────────────────────────────────────────────────────────────
@@ -119,6 +140,153 @@ export const lettersApi = {
   deleteTemplate: (id: string) => api.delete(`/letters/templates/${id}`),
   getGenerated: () => api.get('/letters/generated'),
   generate: (data: any) => api.post('/letters/generate', data),
+  deleteGenerated: (id: string) => api.delete(`/letters/generated/${id}`),
+  downloadPdf: (data: { 
+    content: string; 
+    title: string; 
+    recipientName?: string;
+    churchData?: {
+      nombre?: string;
+      direccion?: string;
+      telefono?: string;
+      pastor?: string;
+      tituloPastor?: string;
+    };
+    eventData?: {
+      fecha?: string;
+      tema?: string;
+      hora?: string;
+      iglesiaDestinatario?: string;
+      pastorDestinatario?: string;
+    };
+  }) => api.post('/letters/download-pdf', data, { responseType: 'blob' }),
+}
+
+// ── ADMIN / USERS ─────────────────────────────────────────────────────────────
+export const adminApi = {
+  // Usuarios
+  getUsers: (params?: { page?: number; limit?: number; search?: string; role?: string; isActive?: boolean }) =>
+    api.get('/admin/users', { params }),
+  getUser: (id: string) => api.get(`/admin/users/${id}`),
+  createUser: (data: {
+    email: string;
+    password: string;
+    fullName: string;
+    role?: string;
+    permissions?: string[];
+    useCustomPermissions?: boolean;
+  }) => api.post('/admin/users', data),
+  updateUser: (id: string, data: {
+    fullName?: string;
+    role?: string;
+    isActive?: boolean;
+    permissions?: string[];
+    useCustomPermissions?: boolean;
+  }) => api.put(`/admin/users/${id}`, data),
+  updateUserPermissions: (id: string, data: {
+    permissions: string[];
+    useCustomPermissions?: boolean;
+  }) => api.put(`/admin/users/${id}/permissions`, data),
+  resetUserPassword: (id: string, newPassword: string) =>
+    api.post(`/admin/users/${id}/reset-password`, { newPassword }),
+  deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
+  activateUser: (id: string) => api.post(`/admin/users/${id}/activate`),
+  
+  // Permisos disponibles
+  getPermissions: () => api.get('/admin/permissions'),
+}
+
+// ── AUDIT ─────────────────────────────────────────────────────────────────────
+export const auditApi = {
+  getLogs: (params?: {
+    page?: number;
+    limit?: number;
+    userId?: string;
+    action?: string;
+    category?: string;
+    startDate?: string;
+    endDate?: string;
+    resourceType?: string;
+    severity?: string;
+  }) => api.get('/admin/audit/logs', { params }),
+  getStats: (params?: { days?: number }) => api.get('/admin/audit/stats', { params }),
+}
+
+// ── FINANCES ──────────────────────────────────────────────────────────────────
+export const financesApi = {
+  // Categorías
+  getCategories: (params?: { type?: string; active?: boolean }) => 
+    api.get('/finances/categories', { params }),
+  seedCategories: () => api.post('/finances/categories/seed'),
+  createCategory: (data: { 
+    name: string; 
+    code: string; 
+    type: 'INCOME' | 'EXPENSE'; 
+    description?: string; 
+    color?: string 
+  }) => api.post('/finances/categories', data),
+  
+  // Fondos
+  getFunds: (params?: { active?: boolean }) => 
+    api.get('/finances/funds', { params }),
+  seedFunds: () => api.post('/finances/funds/seed'),
+  createFund: (data: { 
+    name: string; 
+    code: string; 
+    description?: string; 
+    color?: string; 
+    goal?: number;
+    isRestricted?: boolean 
+  }) => api.post('/finances/funds', data),
+  
+  // Transacciones
+  getTransactions: (params?: {
+    type?: string;
+    category?: string;
+    fund?: string;
+    startDate?: string;
+    endDate?: string;
+    person?: string;
+    approvalStatus?: string;
+    page?: number;
+    limit?: number;
+  }) => api.get('/finances/transactions', { params }),
+  createTransaction: (data: {
+    type: 'INCOME' | 'EXPENSE';
+    category: string;
+    fund: string;
+    amount: number;
+    date?: string;
+    description?: string;
+    person?: string;
+    paymentMethod?: string;
+    reference?: string;
+    notes?: string;
+  }) => api.post('/finances/transactions', data),
+  approveTransaction: (id: string, data: { approved: boolean; notes?: string }) =>
+    api.patch(`/finances/transactions/${id}/approve`, data),
+  deleteTransaction: (id: string) => api.delete(`/finances/transactions/${id}`),
+  
+  // Reportes
+  getSummary: (params?: { startDate?: string; endDate?: string }) =>
+    api.get('/finances/summary', { params }),
+  getTithingReport: (params?: { personId?: string; year?: number }) =>
+    api.get('/finances/reports/tithing', { params }),
+  getCouncilReport: (params?: { month?: number; year?: number }) =>
+    api.get('/finances/reports/council', { params }),
+  getOfferingsReport: (params?: { startDate?: string; endDate?: string }) =>
+    api.get('/finances/reports/offerings', { params }),
+  getMonthlyComparison: (params?: { months?: number }) =>
+    api.get('/finances/reports/monthly-comparison', { params }),
+  getAnnualReport: (params?: { year?: number }) =>
+    api.get('/finances/reports/annual', { params }),
+  getDetailedTransactions: (params?: { 
+    startDate?: string; 
+    endDate?: string;
+    type?: string;
+    category?: string;
+    fund?: string;
+  }) => api.get('/finances/reports/transactions', { params }),
 }
 
 export default api

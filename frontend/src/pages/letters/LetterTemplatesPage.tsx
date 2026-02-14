@@ -14,6 +14,7 @@ import {
   Tag,
   Save,
   Send,
+  Download,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -47,7 +48,8 @@ interface GeneratedLetter {
   templateName: string
   personName?: string
   recipientName?: string
-  content: string
+  finalContent: string
+  variablesUsed?: Record<string, string>
   generatedBy: { id: string; name: string }
   createdAt: string
 }
@@ -55,6 +57,7 @@ interface GeneratedLetter {
 const CATEGORIES = [
   'General',
   'Invitación',
+  'Invitación Individual',
   'Certificado',
   'Constancia',
   'Agradecimiento',
@@ -64,14 +67,78 @@ const CATEGORIES = [
 ]
 
 const AVAILABLE_VARIABLES = [
-  { key: 'nombre', label: 'Nombre', desc: 'Nombre completo de la persona' },
-  { key: 'fecha', label: 'Fecha', desc: 'Fecha actual formateada' },
-  { key: 'iglesia', label: 'Iglesia', desc: 'Nombre de la iglesia' },
-  { key: 'pastor', label: 'Pastor', desc: 'Nombre del pastor' },
-  { key: 'ministerio', label: 'Ministerio', desc: 'Ministerio de la persona' },
-  { key: 'telefono', label: 'Teléfono', desc: 'Teléfono de la persona' },
-  { key: 'email', label: 'Email', desc: 'Email de la persona' },
+  // Datos de MI IGLESIA
+  { key: 'nombre_iglesia', label: 'Mi Iglesia', desc: 'Nombre de mi iglesia (remitente)' },
+  { key: 'direccion_iglesia', label: 'Dirección', desc: 'Dirección de mi iglesia' },
+  { key: 'telefono_iglesia', label: 'Teléfono', desc: 'Teléfono de mi iglesia' },
+  { key: 'nombre_pastor', label: 'Mi Pastor/a', desc: 'Nombre del pastor/a que firma' },
+  { key: 'titulo_pastor', label: 'Título', desc: 'Título del pastor (Pastor, Pastora, Rev.)' },
+  // Datos del DESTINATARIO (iglesia o institución)
+  { key: 'iglesia_destinatario', label: 'Iglesia Dest.', desc: 'Nombre de la iglesia destinataria' },
+  { key: 'pastor_destinatario', label: 'Pastor Dest.', desc: 'Pastor/a de la iglesia destinataria' },
+  { key: 'institucion_destino', label: 'Institución', desc: 'Nombre de la institución destino' },
+  // Datos del EVENTO
+  { key: 'tipo_evento', label: 'Tipo Evento', desc: 'Tipo de evento (culto de Jóvenes, congreso, etc.)' },
+  { key: 'dia_actividad', label: 'Día', desc: 'Día de la semana (viernes, sábado, etc.)' },
+  { key: 'fecha_actividad', label: 'Fecha', desc: 'Fecha del evento (14 de abril del 2023)' },
+  { key: 'tema_evento', label: 'Tema', desc: 'Tema del evento entre comillas' },
+  { key: 'hora_actividad', label: 'Hora', desc: 'Hora del evento (7:00 P.M.)' },
+  // Datos para RECOMENDACIÓN
+  { key: 'fecha_carta', label: 'Fecha Carta', desc: 'Fecha de la carta' },
+  { key: 'nombre_persona', label: 'Nombre Persona', desc: 'Nombre de la persona recomendada' },
+  { key: 'titulo_persona', label: 'Título Persona', desc: 'Hno., Hna., Lic., etc.' },
+  { key: 'años_conocido', label: 'Años', desc: 'Tiempo que conoce a la persona' },
+  { key: 'proposito', label: 'Propósito', desc: 'Propósito de la recomendación' },
 ]
+
+// Plantilla de invitación a IGLESIAS (con destinatario específico)
+const DEFAULT_INVITATION_TEMPLATE = `Iglesia: {{iglesia_destinatario}}
+Pastor/a/es: {{pastor_destinatario}}
+
+Que la paz y el amor de nuestro Señor Jesús esté con cada uno ustedes y en su congregación.
+
+Después de darle un cordial saludo, la iglesia {{nombre_iglesia}} tiene el honor de invitarles a ser partes de su gran {{tipo_evento}}, que estaremos efectuando el {{dia_actividad}} {{fecha_actividad}} con el tema "{{tema_evento}}", a partir de las {{hora_actividad}}, donde estaremos adorando a nuestro Padre celestial unánimes, contamos con su apoyo.
+
+De antemano le damos las gracias por su apoyo, que la paz del Dios todo poderoso inunde sus vidas.
+
+
+_______________________________
+{{nombre_pastor}}
+{{titulo_pastor}}`
+
+// Plantilla de invitación INDIVIDUAL (con destinatario pero formato más limpio)
+const DEFAULT_INDIVIDUAL_INVITATION_TEMPLATE = `{{fecha_carta}}
+
+Iglesia: {{iglesia_destinatario}}
+Pastor/a: {{pastor_destinatario}}
+
+Que la paz y el amor de nuestro Señor Jesús esté con cada uno ustedes y en su congregación.
+
+Después de darle un cordial saludo, la iglesia {{nombre_iglesia}} tiene el honor de invitarles a ser partes de su gran {{tipo_evento}}, que estaremos efectuando el {{dia_actividad}} {{fecha_actividad}} con el tema "{{tema_evento}}", a partir de las {{hora_actividad}}, donde estaremos adorando a nuestro Padre celestial unánimes, contamos con su apoyo.
+
+De antemano le damos las gracias por su apoyo, que la paz del Dios todo poderoso inunde sus vidas.
+
+
+_______________________________
+{{nombre_pastor}}
+{{titulo_pastor}}`
+
+// Plantilla de Carta de Recomendación
+const DEFAULT_RECOMMENDATION_TEMPLATE = `{{fecha_carta}}
+
+Dirigido a: {{institucion_destino}}
+De: {{nombre_iglesia}}
+
+Carta de Recomendación
+
+El/la que suscribe la {{titulo_pastor}} {{nombre_pastor}}, doy constancia de que el {{titulo_persona}} {{nombre_persona}} miembro activo de la iglesia, {{nombre_iglesia}} y a quien conozco ya hace {{años_conocido}} y que ha mostrado ser un buen cristiano, además de ser una persona íntegra y respetuoso(a); por tal motivo la recomendación para que {{proposito}}.
+
+Se extiende la siguiente para usos y fines a quien interesa o a quien pueda interesar.
+
+
+_______________________________
+{{nombre_pastor}}
+{{titulo_pastor}}`
 
 const LetterTemplatesPage = () => {
   const [templates, setTemplates] = useState<LetterTemplate[]>([])
@@ -91,11 +158,39 @@ const LetterTemplatesPage = () => {
   })
   const [savingTemplate, setSavingTemplate] = useState(false)
 
-  // Generate modal
+  // Generate modal - formulario completo
   const [showGenerateModal, setShowGenerateModal] = useState(false)
   const [generateTemplate, setGenerateTemplate] = useState<LetterTemplate | null>(null)
   const [generatePersonId, setGeneratePersonId] = useState('')
   const [generating, setGenerating] = useState(false)
+  const [generateForm, setGenerateForm] = useState({
+    // Datos de MI iglesia (remitente)
+    nombre_iglesia: '',
+    direccion_iglesia: '',
+    telefono_iglesia: '',
+    nombre_pastor: '',
+    titulo_pastor: 'Pastora',
+    // Datos del DESTINATARIO (iglesia)
+    iglesia_destinatario: '',
+    pastor_destinatario: '',
+    // Datos del DESTINATARIO (institución)
+    institucion_destino: '',
+    // Datos del EVENTO
+    tipo_evento: 'culto de Jóvenes',
+    dia_actividad: 'viernes',
+    fecha_actividad: '',
+    tema_evento: '',
+    hora_actividad: '7:00 P.M.',
+    // Datos para RECOMENDACIÓN
+    fecha_carta: new Date().toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' }),
+    nombre_persona: '',
+    titulo_persona: 'Hno.',
+    años_conocido: 'varios años',
+    proposito: 'sea aceptado como alumno del Instituto Bíblico de las Asambleas de Dios HASHEM',
+  })
+  const [showLetterPreview, setShowLetterPreview] = useState(false)
+  const [letterPreviewContent, setLetterPreviewContent] = useState('')
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
 
   // Preview modal
   const [showPreview, setShowPreview] = useState(false)
@@ -185,16 +280,94 @@ const LetterTemplatesPage = () => {
   const openGenerateModal = (template: LetterTemplate) => {
     setGenerateTemplate(template)
     setGeneratePersonId('')
+    // Resetear formulario con valores predeterminados
+    setGenerateForm({
+      // Datos de MI iglesia (remitente)
+      nombre_iglesia: '',
+      direccion_iglesia: '',
+      telefono_iglesia: '',
+      nombre_pastor: '',
+      titulo_pastor: 'Pastora',
+      // Datos del DESTINATARIO (iglesia)
+      iglesia_destinatario: '',
+      pastor_destinatario: '',
+      // Datos del DESTINATARIO (institución)
+      institucion_destino: '',
+      // Datos del EVENTO
+      tipo_evento: 'culto de Jóvenes',
+      dia_actividad: 'viernes',
+      fecha_actividad: '',
+      tema_evento: '',
+      hora_actividad: '7:00 P.M.',
+      // Datos para RECOMENDACIÓN
+      fecha_carta: new Date().toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' }),
+      nombre_persona: '',
+      titulo_persona: 'Hno.',
+      años_conocido: 'varios años',
+      proposito: 'sea aceptado como alumno del Instituto Bíblico de las Asambleas de Dios HASHEM',
+    })
+    setShowLetterPreview(false)
+    setLetterPreviewContent('')
     setShowGenerateModal(true)
   }
 
+  // Función para reemplazar variables en el contenido
+  const replaceVariables = (content: string, formData: typeof generateForm) => {
+    let result = content
+    Object.entries(formData).forEach(([key, value]) => {
+      const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'gi')
+      result = result.replace(regex, value || `{{${key}}}`)
+    })
+    return result
+  }
+
+  // Preview de la carta con los datos del formulario
+  const previewGeneratedLetter2 = () => {
+    if (!generateTemplate) return
+    const content = typeof generateTemplate.content === 'string' 
+      ? generateTemplate.content 
+      : JSON.stringify(generateTemplate.content)
+    const preview = replaceVariables(content, generateForm)
+    setLetterPreviewContent(preview)
+    setShowLetterPreview(true)
+  }
+
   const generateLetter = async () => {
-    if (!generateTemplate || !generatePersonId) return toast.error('Selecciona una persona')
+    if (!generateTemplate) return toast.error('Selecciona una plantilla')
+    
+    // Validar campos requeridos según categoría
+    if (generateTemplate.category === 'Invitación' && !generateForm.iglesia_destinatario.trim()) {
+      return toast.error('La iglesia destinataria es requerida')
+    }
+    if (generateTemplate.category === 'Recomendación' && !generateForm.nombre_persona.trim()) {
+      return toast.error('El nombre de la persona es requerido')
+    }
+    if (generateTemplate.category === 'Invitación Individual' && !generateForm.iglesia_destinatario.trim()) {
+      return toast.error('La iglesia destinataria es requerida')
+    }
+    
+    // Determinar el nombre del destinatario para guardar
+    let recipientName = 'General'
+    if (generateTemplate.category === 'Recomendación') {
+      recipientName = generateForm.nombre_persona
+    } else if (generateTemplate.category === 'Invitación') {
+      recipientName = generateForm.iglesia_destinatario || generateForm.institucion_destino
+    } else if (generateTemplate.category === 'Invitación Individual') {
+      recipientName = generateForm.iglesia_destinatario || generateForm.tipo_evento
+    }
+    
     setGenerating(true)
     try {
+      const content = typeof generateTemplate.content === 'string' 
+        ? generateTemplate.content 
+        : JSON.stringify(generateTemplate.content)
+      const finalContent = replaceVariables(content, generateForm)
+      
       await lettersApi.generate({
         templateId: generateTemplate._id,
-        personId: generatePersonId,
+        customFields: generateForm,
+        content: finalContent,
+        recipientName,
       })
       toast.success('Carta generada exitosamente')
       setShowGenerateModal(false)
@@ -205,6 +378,48 @@ const LetterTemplatesPage = () => {
     setGenerating(false)
   }
 
+  // Descargar carta como PDF
+  const downloadLetterPdf = async () => {
+    if (!letterPreviewContent) return
+    
+    // Determinar el nombre del destinatario para el archivo
+    let recipientName = 'carta'
+    if (generateTemplate?.category === 'Recomendación') {
+      recipientName = generateForm.nombre_persona
+    } else if (generateTemplate?.category === 'Invitación') {
+      recipientName = generateForm.iglesia_destinatario || generateForm.institucion_destino || 'invitacion'
+    } else if (generateTemplate?.category === 'Invitación Individual') {
+      recipientName = generateForm.tipo_evento || 'invitacion-individual'
+    }
+    
+    setDownloadingPdf(true)
+    try {
+      const res = await lettersApi.downloadPdf({
+        content: letterPreviewContent,
+        title: generateTemplate?.name || 'Carta',
+        recipientName,
+        // Datos adicionales para el encabezado y firma
+        churchData: {
+          nombre: generateForm.nombre_iglesia,
+          direccion: generateForm.direccion_iglesia,
+          telefono: generateForm.telefono_iglesia,
+          pastor: generateForm.nombre_pastor,
+          tituloPastor: generateForm.titulo_pastor,
+        },
+      })
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `carta-${recipientName?.replace(/\s+/g, '-') || 'documento'}-${new Date().toISOString().split('T')[0]}.pdf`
+      a.click()
+      window.URL.revokeObjectURL(url)
+      toast.success('PDF descargado')
+    } catch (e: any) {
+      toast.error('Error al generar PDF')
+    }
+    setDownloadingPdf(false)
+  }
+
   const previewTemplate = (template: LetterTemplate) => {
     const content = typeof template.content === 'string' ? template.content : JSON.stringify(template.content, null, 2)
     setPreviewContent(content)
@@ -213,7 +428,7 @@ const LetterTemplatesPage = () => {
   }
 
   const previewGeneratedLetter = (letter: GeneratedLetter) => {
-    setPreviewContent(letter.content)
+    setPreviewContent(letter.finalContent)
     setPreviewTitle(`${letter.templateName} - ${letter.personName || letter.recipientName || 'Destinatario'}`)
     setShowPreview(true)
   }
@@ -574,7 +789,19 @@ const LetterTemplatesPage = () => {
                 <Label>Categoría</Label>
                 <select
                   value={templateForm.category}
-                  onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value })}
+                  onChange={(e) => {
+                    const category = e.target.value
+                    let defaultContent = templateForm.content
+                    // Auto-rellenar con plantilla por defecto según categoría
+                    if (category === 'Invitación') {
+                      defaultContent = DEFAULT_INVITATION_TEMPLATE
+                    } else if (category === 'Invitación Individual') {
+                      defaultContent = DEFAULT_INDIVIDUAL_INVITATION_TEMPLATE
+                    } else if (category === 'Recomendación') {
+                      defaultContent = DEFAULT_RECOMMENDATION_TEMPLATE
+                    }
+                    setTemplateForm({ ...templateForm, category, content: defaultContent })
+                  }}
                   className="w-full h-10 rounded-md border border-neutral-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   {CATEGORIES.map((cat) => (
@@ -628,52 +855,305 @@ const LetterTemplatesPage = () => {
 
       {/* Generate Modal */}
       <Dialog open={showGenerateModal} onOpenChange={setShowGenerateModal}>
-        <DialogContent>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Generar Carta</DialogTitle>
+            <DialogTitle>Generar Carta de Invitación</DialogTitle>
             <DialogDescription>
-              Selecciona la persona para generar una carta con la plantilla "{generateTemplate?.name}"
+              Completa los datos para generar la carta con la plantilla "{generateTemplate?.name}"
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Persona Destinataria *</Label>
-              <select
-                value={generatePersonId}
-                onChange={(e) => setGeneratePersonId(e.target.value)}
-                className="w-full h-10 rounded-md border border-neutral-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                <option value="">Seleccionar persona...</option>
-                {persons.map((p: any) => (
-                  <option key={p._id} value={p._id}>
-                    {p.fullName} {p.ministry ? `(${p.ministry})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {generateTemplate?.variables && generateTemplate.variables.length > 0 && (
-              <div className="rounded-lg bg-neutral-50 p-3">
-                <p className="text-xs font-medium text-neutral-600 mb-2">Variables que se reemplazarán:</p>
-                <div className="flex flex-wrap gap-1">
-                  {generateTemplate.variables.map((v) => (
-                    <span key={v} className="text-[10px] px-2 py-0.5 rounded bg-white border border-neutral-200 font-mono">
-                      {`{{${v}}}`}
-                    </span>
-                  ))}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Form Column */}
+            <div className="space-y-4">
+              {/* SECCIÓN: MI IGLESIA */}
+              <div className="rounded-lg border border-primary-100 bg-primary-50/30 p-4 space-y-3">
+                <p className="text-xs font-semibold text-primary-700 uppercase tracking-wide">Mi Iglesia (Remitente)</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Nombre de la Iglesia *</Label>
+                    <Input
+                      value={generateForm.nombre_iglesia}
+                      onChange={(e) => setGenerateForm({ ...generateForm, nombre_iglesia: e.target.value })}
+                      placeholder="Ej: Iglesia Evangélica Dios Fuerte"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Dirección</Label>
+                    <Input
+                      value={generateForm.direccion_iglesia}
+                      onChange={(e) => setGenerateForm({ ...generateForm, direccion_iglesia: e.target.value })}
+                      placeholder="Ej: C/ Principal No. 168"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Teléfono</Label>
+                    <Input
+                      value={generateForm.telefono_iglesia}
+                      onChange={(e) => setGenerateForm({ ...generateForm, telefono_iglesia: e.target.value })}
+                      placeholder="849-876-7611"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Pastor/a que firma *</Label>
+                    <Input
+                      value={generateForm.nombre_pastor}
+                      onChange={(e) => setGenerateForm({ ...generateForm, nombre_pastor: e.target.value })}
+                      placeholder="Orfelina Ferreras"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Título</Label>
+                    <select
+                      value={generateForm.titulo_pastor}
+                      onChange={(e) => setGenerateForm({ ...generateForm, titulo_pastor: e.target.value })}
+                      className="w-full h-9 rounded-md border border-neutral-200 bg-white px-3 text-sm"
+                    >
+                      <option value="Pastor">Pastor</option>
+                      <option value="Pastora">Pastora</option>
+                      <option value="Rev.">Rev.</option>
+                      <option value="Obispo">Obispo</option>
+                      <option value="Apóstol">Apóstol</option>
+                    </select>
+                  </div>
                 </div>
               </div>
-            )}
+
+              {/* SECCIÓN: DESTINATARIO (para Invitaciones e Invitaciones Individuales) */}
+              {['Invitación', 'Invitación Individual'].includes(generateTemplate?.category || '') && (
+              <div className="rounded-lg border border-blue-100 bg-blue-50/30 p-4 space-y-3">
+                <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Iglesia Destinataria</p>
+                {generateTemplate?.category === 'Invitación Individual' && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Fecha de la Carta</Label>
+                  <Input
+                    value={generateForm.fecha_carta}
+                    onChange={(e) => setGenerateForm({ ...generateForm, fecha_carta: e.target.value })}
+                    placeholder="14 de febrero de 2026"
+                    className="h-9 text-sm"
+                  />
+                </div>
+                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Nombre de la Iglesia *</Label>
+                    <Input
+                      value={generateForm.iglesia_destinatario}
+                      onChange={(e) => setGenerateForm({ ...generateForm, iglesia_destinatario: e.target.value })}
+                      placeholder="Ej: Redil de amor"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Pastor/a</Label>
+                    <Input
+                      value={generateForm.pastor_destinatario}
+                      onChange={(e) => setGenerateForm({ ...generateForm, pastor_destinatario: e.target.value })}
+                      placeholder="Ej: Milcíades"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+              )}
+
+              {/* SECCIÓN: EVENTO (para Invitaciones a Iglesias e Individuales) */}
+              {['Invitación', 'Invitación Individual'].includes(generateTemplate?.category || '') && (
+              <div className="rounded-lg border border-amber-100 bg-amber-50/30 p-4 space-y-3">
+                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Datos del Evento</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Tipo de Evento</Label>
+                    <Input
+                      value={generateForm.tipo_evento}
+                      onChange={(e) => setGenerateForm({ ...generateForm, tipo_evento: e.target.value })}
+                      placeholder="culto de Jóvenes"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Tema del Evento</Label>
+                    <Input
+                      value={generateForm.tema_evento}
+                      onChange={(e) => setGenerateForm({ ...generateForm, tema_evento: e.target.value })}
+                      placeholder="ACTIVANDO LA GENERACIÓN DE LOS ÍNTIMOS"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Día</Label>
+                    <select
+                      value={generateForm.dia_actividad}
+                      onChange={(e) => setGenerateForm({ ...generateForm, dia_actividad: e.target.value })}
+                      className="w-full h-9 rounded-md border border-neutral-200 bg-white px-3 text-sm"
+                    >
+                      <option value="lunes">lunes</option>
+                      <option value="martes">martes</option>
+                      <option value="miércoles">miércoles</option>
+                      <option value="jueves">jueves</option>
+                      <option value="viernes">viernes</option>
+                      <option value="sábado">sábado</option>
+                      <option value="domingo">domingo</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Fecha</Label>
+                    <Input
+                      value={generateForm.fecha_actividad}
+                      onChange={(e) => setGenerateForm({ ...generateForm, fecha_actividad: e.target.value })}
+                      placeholder="14 de abril del 2023"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Hora</Label>
+                    <Input
+                      value={generateForm.hora_actividad}
+                      onChange={(e) => setGenerateForm({ ...generateForm, hora_actividad: e.target.value })}
+                      placeholder="7:00 P.M."
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+              )}
+
+              {/* SECCIÓN: RECOMENDACIÓN (para Cartas de Recomendación) */}
+              {generateTemplate?.category === 'Recomendación' && (
+              <div className="rounded-lg border border-green-100 bg-green-50/30 p-4 space-y-3">
+                <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">Datos de Recomendación</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Fecha de la Carta</Label>
+                    <Input
+                      value={generateForm.fecha_carta}
+                      onChange={(e) => setGenerateForm({ ...generateForm, fecha_carta: e.target.value })}
+                      placeholder="15 de agosto de 2023"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Institución Destino *</Label>
+                    <Input
+                      value={generateForm.institucion_destino}
+                      onChange={(e) => setGenerateForm({ ...generateForm, institucion_destino: e.target.value })}
+                      placeholder="Instituto Bíblico de las Asambleas de Dios HASHEM"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Título</Label>
+                    <select
+                      value={generateForm.titulo_persona}
+                      onChange={(e) => setGenerateForm({ ...generateForm, titulo_persona: e.target.value })}
+                      className="w-full h-9 rounded-md border border-neutral-200 bg-white px-3 text-sm"
+                    >
+                      <option value="Hno.">Hno.</option>
+                      <option value="Hna.">Hna.</option>
+                      <option value="Sr.">Sr.</option>
+                      <option value="Sra.">Sra.</option>
+                      <option value="Lic.">Lic.</option>
+                      <option value="Dr.">Dr.</option>
+                    </select>
+                  </div>
+                  <div className="col-span-2 space-y-1.5">
+                    <Label className="text-xs">Nombre de la Persona *</Label>
+                    <Input
+                      value={generateForm.nombre_persona}
+                      onChange={(e) => setGenerateForm({ ...generateForm, nombre_persona: e.target.value })}
+                      placeholder="Andy R. Rosado Segura"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Tiempo que lo conoce</Label>
+                    <Input
+                      value={generateForm.años_conocido}
+                      onChange={(e) => setGenerateForm({ ...generateForm, años_conocido: e.target.value })}
+                      placeholder="varios años"
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Propósito de la recomendación</Label>
+                    <Input
+                      value={generateForm.proposito}
+                      onChange={(e) => setGenerateForm({ ...generateForm, proposito: e.target.value })}
+                      placeholder="sea aceptado como alumno del Instituto..."
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+              )}
+
+              <div className="flex gap-2 pt-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={previewGeneratedLetter2}
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  Vista Previa
+                </Button>
+              </div>
+            </div>
+
+            {/* Preview Column */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Vista Previa de la Carta</Label>
+              {showLetterPreview && letterPreviewContent ? (
+                <div className="bg-white border border-neutral-200 rounded-lg p-6 min-h-[400px] max-h-[500px] overflow-y-auto">
+                  <div className="font-serif text-sm text-neutral-800 leading-relaxed whitespace-pre-wrap">
+                    {letterPreviewContent}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-neutral-50 border border-dashed border-neutral-200 rounded-lg p-6 min-h-[400px] flex items-center justify-center">
+                  <div className="text-center text-neutral-400">
+                    <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">Completa los datos y presiona "Vista Previa"</p>
+                    <p className="text-xs mt-1">para ver cómo quedará la carta</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setShowGenerateModal(false)}>
               Cancelar
             </Button>
-            <Button onClick={generateLetter} disabled={generating || !generatePersonId}>
+            {showLetterPreview && letterPreviewContent && (
+              <Button 
+                variant="secondary"
+                onClick={downloadLetterPdf}
+                disabled={downloadingPdf}
+              >
+                {downloadingPdf ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Download className="w-4 h-4 mr-2" />}
+                Descargar PDF
+              </Button>
+            )}
+            <Button onClick={generateLetter} disabled={generating || (
+              generateTemplate?.category === 'Invitación' ? !generateForm.iglesia_destinatario :
+              generateTemplate?.category === 'Recomendación' ? !generateForm.nombre_persona :
+              generateTemplate?.category === 'Invitación Individual' ? !generateForm.tipo_evento :
+              !generateForm.nombre_iglesia
+            )}>
               {generating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-              Generar Carta
+              Guardar Carta
             </Button>
           </DialogFooter>
         </DialogContent>

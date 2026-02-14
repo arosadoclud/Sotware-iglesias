@@ -50,6 +50,16 @@ export interface IProgram extends Document {
   programTime?: string;     // Hora en formato "7:00 PM"
   verse?: string;           // Versículo completo
 
+  // ── CAMPOS PARA GRUPOS DE LIMPIEZA ──
+  generationType?: 'standard' | 'cleaning_groups';
+  assignedGroupNumber?: number;
+  totalGroups?: number;
+  cleaningMembers?: Array<{
+    id: mongoose.Types.ObjectId;
+    name: string;
+    phone?: string;
+  }>;
+
   // Métodos
   getAssignmentsBySection(sectionName: string): IAssignment[];
   getAssignmentsByPerson(personId: string | mongoose.Types.ObjectId): IAssignment[];
@@ -189,6 +199,29 @@ const ProgramSchema = new Schema<IProgram>(
       required: false,
       maxlength: [500, 'El versículo no puede exceder 500 caracteres'],
     },
+
+    // ── CAMPOS PARA GRUPOS DE LIMPIEZA ──
+    generationType: {
+      type: String,
+      enum: ['standard', 'cleaning_groups'],
+      default: 'standard',
+    },
+    // Número de grupo asignado para esta fecha (1, 2, 3...)
+    assignedGroupNumber: {
+      type: Number,
+      required: false,
+    },
+    // Total de grupos definidos
+    totalGroups: {
+      type: Number,
+      required: false,
+    },
+    // Miembros del grupo asignado
+    cleaningMembers: [{
+      id: { type: Schema.Types.ObjectId, ref: 'Person' },
+      name: { type: String },
+      phone: { type: String },
+    }],
   },
   {
     timestamps: true,

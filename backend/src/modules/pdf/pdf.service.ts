@@ -118,30 +118,34 @@ export class PdfService {
       const churchName =
         (program as any).churchName || church.name || "Iglesia";
       const subtitle =
-        (program as any).subtitle || (program as any).churchSub || (church as any).subTitle || "";
-      // location puede estar en el programa o construirse desde church.address
-      let location = (program as any).location || "";
-      if (!location && church.address) {
-        const addr = church.address as any;
-        location = typeof addr === 'string' ? addr : [addr.city, addr.state, addr.country].filter(Boolean).join(', ');
-      }
+        (program as any).subtitle || (program as any).churchSub || "";
+      // Removemos location del PDF - no mostrar dirección
+      const location = "";
       const worshipType = (program as any).activityType?.name || "Culto";
 
       // Logo: embeber como base64 data URI para máxima compatibilidad con Puppeteer
       let logoUrl: string | null = null;
       const rawLogo = (program as any).logoUrl || church.logoUrl || null;
+      
+      // Directorios donde buscar el logo
+      const searchDirs = [
+        path.join(process.cwd(), "uploads"),
+        path.join(process.cwd(), "backend", "uploads"),
+        path.join(__dirname, "..", "..", "..", "uploads"),
+        path.join(process.cwd(), "public"),
+        path.join(process.cwd(), "public", "uploads"),
+      ];
+      
       if (rawLogo) {
         if (rawLogo.startsWith("http://") || rawLogo.startsWith("https://")) {
           logoUrl = rawLogo;
         } else if (rawLogo.startsWith("data:")) {
           logoUrl = rawLogo;
         } else {
-          const logoFilename = path.basename(rawLogo);
-          const searchDirs = [
-            path.join(process.cwd(), "uploads"),
-            path.join(__dirname, "..", "..", "..", "uploads"),
-            path.join(process.cwd(), "public"),
-          ];
+          // Manejar rutas relativas como /uploads/logo.png
+          const logoFilename = rawLogo.startsWith("/uploads/") 
+            ? rawLogo.replace("/uploads/", "") 
+            : path.basename(rawLogo);
           const searchNames = [logoFilename, "logo.png"];
 
           for (const dir of searchDirs) {
@@ -161,6 +165,18 @@ export class PdfService {
                 break;
               }
             }
+          }
+        }
+      }
+      
+      // Fallback: buscar logo.png siempre si no se encontró
+      if (!logoUrl) {
+        for (const dir of searchDirs) {
+          const candidate = path.join(dir, "logo.png");
+          if (fs.existsSync(candidate)) {
+            const fileBuffer = fs.readFileSync(candidate);
+            logoUrl = `data:image/png;base64,${fileBuffer.toString("base64")}`;
+            break;
           }
         }
       }
@@ -250,14 +266,20 @@ export class PdfService {
     const html = this.buildHtml(options);
     const { program, church } = options;
 
+    // Configuración para Render/producción
+    const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
+    
     const browser = await puppeteer.launch({
       headless: true,
+      executablePath,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
         "--disable-gpu",
         "--allow-file-access-from-files",
+        "--single-process",
+        "--no-zygote",
       ],
     });
 
@@ -305,6 +327,30 @@ export class PdfService {
     } catch {
       return DEFAULT_BRAND_COLOR_LIGHT;
     }
+  }
+
+  /**
+   * Genera el PDF y lo guarda en /public/flyers/ para acceso público
+   * Devuelve la URL relativa del archivo
+   */
+  async generatePublicUrl(options: PdfGenerationOptions): Promise<{ url: string; filename: string }> {
+    const result = await this.generateBuffer(options);
+    
+    // Crear directorio si no existe
+    const flyersDir = path.join(process.cwd(), "backend", "public", "flyers");
+    if (!fs.existsSync(flyersDir)) {
+      fs.mkdirSync(flyersDir, { recursive: true });
+    }
+    
+    // Guardar el PDF
+    const filePath = path.join(flyersDir, result.filename);
+    fs.writeFileSync(filePath, result.buffer);
+    
+    // Devolver URL relativa
+    return {
+      url: `/public/flyers/${result.filename}`,
+      filename: result.filename
+    };
   }
 }
 

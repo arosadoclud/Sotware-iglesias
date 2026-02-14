@@ -57,23 +57,37 @@ interface StatCardProps {
 
 const StatCard = ({ title, value, icon: Icon, subtitle, color, bgColor, delay = 0 }: StatCardProps) => (
   <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
+    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
     transition={{ duration: 0.4, delay }}
+    whileHover={{ y: -4, transition: { duration: 0.2 } }}
   >
-    <Card className="relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-shadow">
-      <CardContent className="p-5">
+    <Card className="relative overflow-hidden border-0 shadow-lg shadow-neutral-200/50 hover:shadow-xl transition-all duration-300 group">
+      <div className={`absolute top-0 right-0 w-32 h-32 ${bgColor} rounded-full -translate-y-1/2 translate-x-1/2 opacity-40 group-hover:opacity-60 transition-opacity`} />
+      <CardContent className="p-5 relative">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
             <p className="text-sm font-medium text-neutral-500">{title}</p>
-            <p className="text-3xl font-bold text-neutral-900">{value}</p>
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: delay + 0.2 }}
+              className="text-3xl font-bold text-neutral-900"
+            >
+              {value}
+            </motion.p>
             {subtitle && (
               <p className="text-xs text-neutral-400">{subtitle}</p>
             )}
           </div>
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${bgColor}`}>
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", bounce: 0.5, delay: delay + 0.1 }}
+            className={`w-12 h-12 rounded-xl flex items-center justify-center ${bgColor} shadow-sm`}
+          >
             <Icon className={`w-6 h-6 ${color}`} />
-          </div>
+          </motion.div>
         </div>
       </CardContent>
     </Card>
@@ -115,9 +129,20 @@ const DashboardPage = () => {
 
   if (loading || !stats) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-        <p className="text-sm text-neutral-500">Cargando estadísticas...</p>
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        >
+          <Loader2 className="w-10 h-10 text-primary-600" />
+        </motion.div>
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-neutral-500 font-medium"
+        >
+          Cargando estadísticas...
+        </motion.p>
       </div>
     )
   }
@@ -135,11 +160,44 @@ const DashboardPage = () => {
       className="space-y-6"
     >
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-neutral-900">Dashboard</h1>
-        <p className="text-neutral-500 mt-1">
-          Resumen general de la iglesia
-        </p>
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-4">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", bounce: 0.5, duration: 0.6 }}
+            className="w-14 h-14 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/30"
+          >
+            <BarChart3 className="w-7 h-7 text-white" />
+          </motion.div>
+          <div>
+            <motion.h1 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-2xl font-bold text-neutral-900"
+            >
+              Dashboard
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15 }}
+              className="text-neutral-500"
+            >
+              Bienvenido, aquí está el resumen de tu iglesia
+            </motion.p>
+          </div>
+        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl"
+        >
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+          <span className="text-sm font-medium text-emerald-700">Sistema activo</span>
+        </motion.div>
       </div>
 
       {/* Tarjetas de Estadísticas */}

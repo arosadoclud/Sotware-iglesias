@@ -64,8 +64,8 @@ const logger = winston.createLogger({
   exitOnError: false,
 });
 
-// Método helper para errores HTTP
-logger.http = (message: string, meta?: any) => {
+// Método helper para log HTTP (usando verbose para evitar conflicto de tipos)
+export const logHttp = (message: string, meta?: any) => {
   logger.info(message, { type: 'http', ...meta });
 };
 

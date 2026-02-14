@@ -587,6 +587,16 @@ const FlyerPreviewPage = () => {
               Vista en tiempo real
             </div>
             <span style={styles.topbarBadge}>Editor de Programa</span>
+            <button 
+              onClick={() => navigate(`/programs/share-whatsapp?ids=${id}`)} 
+              className="fe-btn-whatsapp" 
+              style={{
+                ...styles.topbarSaveBtn, 
+                background: 'linear-gradient(135deg, #25D366, #128C7E)',
+              }}
+            >
+              📱 WhatsApp
+            </button>
             <button onClick={handleSave} disabled={saving} className="fe-btn-primary" style={{
               ...styles.topbarSaveBtn, opacity: saving ? 0.6 : 1,
             }}>

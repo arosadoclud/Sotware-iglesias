@@ -1,9 +1,44 @@
 import { generateFlyerPdf } from './generateFlyerPdf';
+import { generateCleaningPdf } from './generateCleaningPdf';
 export const downloadProgramFlyerPdf = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const program = await Program.findOne({ _id: req.params.id, churchId: req.churchId });
     if (!program) throw new NotFoundError('Programa no encontrado');
 
+    // Formatear fecha igual que el frontend
+    function formatDateES(dateObj: Date): string {
+      if (!dateObj) return '—';
+      const opts: Intl.DateTimeFormatOptions = {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+      };
+      const formatted = dateObj.toLocaleDateString('es-DO', opts);
+      return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+    }
+
+    // ── CLEANING GROUPS PDF ──
+    if (program.generationType === 'cleaning_groups') {
+      const cleaningData = {
+        churchName: program.churchName || '',
+        churchSub: program.churchSub || '',
+        logoUrl: program.logoUrl || '',
+        date: formatDateES(program.programDate),
+        groupNumber: program.assignedGroupNumber || 1,
+        totalGroups: program.totalGroups || 1,
+        members: (program.cleaningMembers || []).map((m: any) => ({
+          id: m.id?.toString() || '',
+          name: m.name || '',
+          phone: m.phone || '',
+        })),
+      };
+      const pdfBuffer = await generateCleaningPdf(cleaningData);
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="limpieza-grupo-${program.assignedGroupNumber}-${program._id}.pdf"`,
+      });
+      return res.send(pdfBuffer);
+    }
+
+    // ── STANDARD FLYER PDF ──
     // Preparar datos para la plantilla
     // Obtener hora y AM/PM
     let hour = '';
@@ -23,15 +58,6 @@ export const downloadProgramFlyerPdf = async (req: AuthRequest, res: Response, n
       const displayAmpm = ampm || 'AM';
       const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
       return `${h12}:${m.padStart(2, '0')} ${displayAmpm}`;
-    }
-    // Formatear fecha igual que el frontend
-    function formatDateES(dateObj: Date): string {
-      if (!dateObj) return '—';
-      const opts: Intl.DateTimeFormatOptions = {
-        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-      };
-      const formatted = dateObj.toLocaleDateString('es-DO', opts);
-      return formatted.charAt(0).toUpperCase() + formatted.slice(1);
     }
     const flyerData = {
       churchName: program.churchName,
@@ -170,7 +196,7 @@ export const generateProgram = async (req: AuthRequest, res: Response, next: Nex
 
 export const generateBatchPrograms = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { activityTypeId, startDate, endDate } = req.body;
+    const { activityTypeId, startDate, endDate, numberOfGroups } = req.body;
     if (!activityTypeId || !startDate || !endDate) throw new BadRequestError('activityTypeId, startDate y endDate son requeridos');
 
     const activity = await ActivityType.findOne({ _id: activityTypeId, churchId: req.churchId });
@@ -196,6 +222,113 @@ export const generateBatchPrograms = async (req: AuthRequest, res: Response, nex
 
     if (dates.length === 0) throw new BadRequestError('No hay fechas que coincidan con el dia de la actividad en el rango dado');
     if (dates.length > 52) throw new BadRequestError('El rango no puede generar mas de 52 programas a la vez');
+
+    // ──────────── CLEANING GROUPS LOGIC ────────────
+    if (activity.generationType === 'cleaning_groups') {
+      const numGroups = numberOfGroups || 4;
+      if (numGroups < 2 || numGroups > 20) throw new BadRequestError('El número de grupos debe estar entre 2 y 20');
+
+      // Obtener todos los miembros activos de la iglesia
+      const activePersons = await Person.find({
+        churchId: req.churchId,
+        status: { $nin: ['INACTIVO', 'INACTIVE', 'inactivo', 'inactive'] },
+      }).lean();
+
+      if (activePersons.length < numGroups) {
+        throw new BadRequestError(`No hay suficientes miembros activos (${activePersons.length}) para ${numGroups} grupos`);
+      }
+
+      // Mezclar aleatoriamente usando Fisher-Yates
+      const shuffled = [...activePersons];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+
+      // Dividir en grupos equitativos
+      const groups: Array<Array<{ id: any; name: string; phone?: string }>> = Array.from({ length: numGroups }, () => []);
+      shuffled.forEach((person, idx) => {
+        const groupIdx = idx % numGroups;
+        groups[groupIdx].push({
+          id: person._id,
+          name: person.fullName || `${person.firstName} ${person.lastName}`.trim(),
+          phone: person.phone,
+        });
+      });
+
+      // Obtener datos de la iglesia
+      const church = await Church.findById(req.churchId).lean();
+
+      // Generar programas con rotación de grupos
+      const results: Array<{ date: Date; success: boolean; programId?: string; error?: string; groupNumber?: number }> = [];
+
+      for (let i = 0; i < dates.length; i++) {
+        const date = dates[i];
+        const groupIndex = i % numGroups;
+        const groupNumber = groupIndex + 1;
+
+        // Verificar si ya existe programa para esta fecha
+        const existing = await Program.findOne({
+          churchId: req.churchId,
+          'activityType.id': activityTypeId,
+          programDate: date,
+        });
+
+        if (existing) {
+          results.push({ date, success: false, error: 'Ya existe un programa para esta fecha' });
+          continue;
+        }
+
+        try {
+          const program = await Program.create({
+            churchId: req.churchId,
+            activityType: { id: activity._id, name: activity.name },
+            programDate: date,
+            status: 'DRAFT',
+            generationType: 'cleaning_groups',
+            assignedGroupNumber: groupNumber,
+            totalGroups: numGroups,
+            cleaningMembers: groups[groupIndex],
+            assignments: [], // No role assignments for cleaning
+            churchName: church?.name || '',
+            churchSub: church?.subTitle || '',
+            location: church?.location || '',
+            logoUrl: church?.logoUrl || '',
+            programTime: activity.defaultTime || '',
+            generatedBy: { id: req.userId!, name: req.user?.fullName || 'Sistema' },
+            generatedAt: new Date(),
+          });
+
+          results.push({ date, success: true, programId: program._id.toString(), groupNumber });
+        } catch (err: any) {
+          results.push({ date, success: false, error: err.message });
+        }
+      }
+
+      const generated = results.filter((r) => r.success);
+      const errors = results.filter((r) => !r.success);
+
+      return res.status(201).json({
+        success: true,
+        data: {
+          generated: generated.length,
+          errors: errors.length,
+          total: results.length,
+          isCleaningGroups: true,
+          numberOfGroups: numGroups,
+          totalMembers: activePersons.length,
+          membersPerGroup: Math.ceil(activePersons.length / numGroups),
+          results: results.map((r) => ({
+            date: r.date,
+            success: r.success,
+            programId: r.programId,
+            error: r.error,
+            groupNumber: r.groupNumber,
+          })),
+        },
+      });
+    }
+    // ──────────── END CLEANING GROUPS LOGIC ────────────
 
     const church = await Church.findById(req.churchId).select('settings').lean();
     const rotationWeeks = church?.settings?.rotationWeeks || 4;
@@ -323,6 +456,21 @@ export const deleteAllPrograms = async (req: AuthRequest, res: Response, next: N
       success: true, 
       message: `${result.deletedCount} programa${result.deletedCount !== 1 ? 's' : ''} eliminado${result.deletedCount !== 1 ? 's' : ''}`,
       data: { deletedCount: result.deletedCount }
+    });
+  } catch (error) { next(error); }
+};
+
+export const publishAllPrograms = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const result = await Program.updateMany(
+      { churchId: req.churchId, status: 'DRAFT' },
+      { $set: { status: 'PUBLISHED' } }
+    );
+    await cache.del(CacheKeys.dashboardStats(req.churchId!));
+    res.json({ 
+      success: true, 
+      message: `${result.modifiedCount} programa${result.modifiedCount !== 1 ? 's' : ''} publicado${result.modifiedCount !== 1 ? 's' : ''}`,
+      data: { publishedCount: result.modifiedCount }
     });
   } catch (error) { next(error); }
 };

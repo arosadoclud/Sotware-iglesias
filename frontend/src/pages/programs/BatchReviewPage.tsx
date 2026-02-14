@@ -7,7 +7,7 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import {
   Loader2, ArrowLeft, Download, FileText, ChevronLeft, ChevronRight,
-  CheckCircle, Calendar, Clock, Users
+  CheckCircle, Calendar, Clock, Users, MessageCircle
 } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent } from '../../components/ui/card'
@@ -34,6 +34,15 @@ interface ProgramData {
     sectionName: string
     roleName: string
     person?: { id: string; name: string; phone?: string }
+  }>
+  // Cleaning groups fields
+  generationType?: 'standard' | 'cleaning_groups'
+  assignedGroupNumber?: number
+  totalGroups?: number
+  cleaningMembers?: Array<{
+    id: string
+    name: string
+    phone?: string
   }>
 }
 
@@ -87,12 +96,6 @@ function formatTimeDisplay(prog: ProgramData): string {
 
 const FlyerMiniPreview = ({ prog, churchInfo }: { prog: ProgramData; churchInfo?: any }) => {
   const churchName = prog.church?.name || prog.churchName || churchInfo?.name || 'Iglesia'
-  const churchSub = prog.church?.subTitle || prog.churchSub || churchInfo?.subTitle || ''
-  // location/address puede ser string o objeto {city, state, country} - normalizar a string
-  const rawLocation = prog.church?.location || prog.location || churchInfo?.address || ''
-  const location = typeof rawLocation === 'object' && rawLocation !== null
-    ? [rawLocation.city, rawLocation.state, rawLocation.country].filter(Boolean).join(', ')
-    : String(rawLocation)
   const logoUrl = prog.logoUrl || prog.church?.logoUrl || churchInfo?.logoUrl || ''
   // logoUrl puede venir como "/uploads/file.png" o solo "file.png"
   const logoSrc = logoUrl
@@ -113,8 +116,6 @@ const FlyerMiniPreview = ({ prog, churchInfo }: { prog: ProgramData; churchInfo?
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative', zIndex: 1 }}>
           <div style={{ flex: 1, textAlign: 'center' }}>
             <div style={{ fontFamily: F.display, fontSize: '1.1rem', fontWeight: 700, color: 'white', lineHeight: 1.1 }}>{churchName}</div>
-            {churchSub && <div style={{ fontSize: '0.65rem', color: C.goldLight, marginTop: 2 }}>{churchSub}</div>}
-            {location && <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>{location}</div>}
           </div>
           <img src={logoSrc} alt="" style={{ width: 45, height: 45, borderRadius: 8, objectFit: 'contain', border: '2px solid rgba(200,168,75,0.4)', background: 'rgba(255,255,255,0.1)' }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
@@ -149,34 +150,58 @@ const FlyerMiniPreview = ({ prog, churchInfo }: { prog: ProgramData; churchInfo?
 
       {/* Section title */}
       <div style={{ textAlign: 'center', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: C.navy, paddingBottom: '0.4rem' }}>
-        Orden del Culto
+        {prog.generationType === 'cleaning_groups' ? `Grupo ${prog.assignedGroupNumber} de ${prog.totalGroups}` : 'Orden del Culto'}
       </div>
 
-      {/* Assignments table */}
+      {/* Assignments/Members table */}
       <div style={{ padding: '0 1rem 0.8rem' }}>
-        {(prog.assignments || []).map((a, i) => (
-          <div key={i} style={{
-            display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: 6, marginBottom: 2, minHeight: 32,
-            background: i % 2 === 0 ? C.gray100 : C.white,
-            border: i % 2 === 1 ? `1px solid ${C.gray100}` : 'none',
-          }}>
-            <div style={{ flexShrink: 0, width: 18, height: 18, background: C.navy, color: C.goldLight, borderRadius: 4, fontSize: '0.55rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
-              {String(a.sectionOrder).padStart(2, '0')}
-            </div>
-            <div style={{ flexShrink: 0, width: 100, fontSize: '0.7rem', fontWeight: 600, color: C.navy }}>
-              {a.roleName || a.sectionName}
-            </div>
-            {a.person?.name ? (
-              <div style={{ flex: 1, fontFamily: F.display, fontSize: '0.8rem', fontWeight: 600, color: C.gray900, fontStyle: 'italic' }}>
-                {a.person.name}
+        {prog.generationType === 'cleaning_groups' ? (
+          // Cleaning group members
+          (prog.cleaningMembers || []).map((m, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: 6, marginBottom: 2, minHeight: 32,
+              background: i % 2 === 0 ? C.gray100 : C.white,
+              border: i % 2 === 1 ? `1px solid ${C.gray100}` : 'none',
+            }}>
+              <div style={{ flexShrink: 0, width: 18, height: 18, background: '#f59e0b', color: C.white, borderRadius: 4, fontSize: '0.55rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
+                {String(i + 1).padStart(2, '0')}
               </div>
-            ) : (
-              <div style={{ flex: 1, color: C.gray300, fontSize: '0.65rem' }}>
-                - - - - - - -
+              <div style={{ flex: 1, fontFamily: F.display, fontSize: '0.8rem', fontWeight: 600, color: C.gray900 }}>
+                {m.name}
               </div>
-            )}
-          </div>
-        ))}
+              {m.phone && (
+                <div style={{ fontSize: '0.6rem', color: C.gray500 }}>
+                  {m.phone}
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          // Standard assignments
+          (prog.assignments || []).map((a, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', padding: '6px 8px', borderRadius: 6, marginBottom: 2, minHeight: 32,
+              background: i % 2 === 0 ? C.gray100 : C.white,
+              border: i % 2 === 1 ? `1px solid ${C.gray100}` : 'none',
+            }}>
+              <div style={{ flexShrink: 0, width: 18, height: 18, background: C.navy, color: C.goldLight, borderRadius: 4, fontSize: '0.55rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
+                {String(a.sectionOrder).padStart(2, '0')}
+              </div>
+              <div style={{ flexShrink: 0, width: 100, fontSize: '0.7rem', fontWeight: 600, color: C.navy }}>
+                {a.roleName || a.sectionName}
+              </div>
+              {a.person?.name ? (
+                <div style={{ flex: 1, fontFamily: F.display, fontSize: '0.8rem', fontWeight: 600, color: C.gray900, fontStyle: 'italic' }}>
+                  {a.person.name}
+                </div>
+              ) : (
+                <div style={{ flex: 1, color: C.gray300, fontSize: '0.65rem' }}>
+                  - - - - - - -
+                </div>
+              )}
+            </div>
+          ))
+        )}
       </div>
 
       {/* Verse */}
@@ -329,6 +354,14 @@ const BatchReviewPage = () => {
             </div>
 
             <div className="flex gap-3">
+              <Button
+                onClick={() => navigate(`/programs/share-whatsapp?ids=${programs.map(p => p._id).join(',')}`)}
+                variant="outline"
+                className="gap-2 text-green-600 border-green-200 hover:bg-green-50"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Compartir por WhatsApp
+              </Button>
               <Button
                 onClick={handleDownloadAll}
                 disabled={downloadingAll}

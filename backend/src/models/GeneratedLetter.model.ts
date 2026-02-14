@@ -4,7 +4,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 export interface IGeneratedLetter extends Document {
   _id: mongoose.Types.ObjectId;
   churchId: mongoose.Types.ObjectId;
-  templateId: mongoose.Types.ObjectId;
+  templateId?: mongoose.Types.ObjectId | string;
   templateName: string;
   recipientName: string;
   recipientEmail?: string;
@@ -29,9 +29,9 @@ const GeneratedLetterSchema = new Schema<IGeneratedLetter>(
       index: true,
     },
     templateId: {
-      type: Schema.Types.ObjectId,
+      type: Schema.Types.Mixed,
       ref: 'LetterTemplate',
-      required: [true, 'El ID de la plantilla es requerido'],
+      required: false,
       index: true,
     },
     templateName: {

@@ -25,6 +25,8 @@ export interface IActivityType extends Document {
   churchId: mongoose.Types.ObjectId;
   name: string;
   description?: string;
+  color?: string; // Color para distinguir actividades (hex o nombre)
+  generationType: 'standard' | 'cleaning_groups'; // Tipo de generación de programa
   daysOfWeek: number[]; // Array de días: 0=Domingo, 6=Sábado
   dayOfWeek: number; // COMPAT: retorna daysOfWeek[0] o 0
   defaultTime: string; // HH:mm formato (fallback)
@@ -99,6 +101,17 @@ const ActivityTypeSchema = new Schema<IActivityType>(
       type: String,
       trim: true,
       maxlength: [500, 'La descripción no puede exceder 500 caracteres'],
+    },
+    color: {
+      type: String,
+      trim: true,
+      default: '#3b82f6', // Azul por defecto
+      match: [/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Color debe ser hexadecimal válido'],
+    },
+    generationType: {
+      type: String,
+      enum: ['standard', 'cleaning_groups'],
+      default: 'standard',
     },
     daysOfWeek: {
       type: [Number],
