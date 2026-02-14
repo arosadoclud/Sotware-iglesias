@@ -197,7 +197,7 @@ const PersonsPage = () => {
         const status = row.original.status
         const config = getStatusConfig(status)
         return (
-          <Badge variant={config?.variant} className="font-medium shadow-sm">
+          <Badge variant={config?.variant === 'destructive' ? 'danger' : config?.variant} className="font-medium shadow-sm">
             {config?.label || status}
           </Badge>
         )
@@ -675,7 +675,7 @@ const PersonsPage = () => {
                     .toUpperCase()
                     .replace(/\s+/g, '_')
                     .replace(/[^A-Z0-9_]/g, '')
-                  await personStatusesApi.create({ ...newStatusForm, code })
+                  await personStatusesApi.create(newStatusForm)
                   toast.success('Estado creado correctamente')
                   setShowStatusModal(false)
                   setNewStatusForm({ name: '', color: 'gray' })

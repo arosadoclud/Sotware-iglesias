@@ -388,7 +388,7 @@ const GenerateProgramPage = () => {
         if (programIds.length > 0) {
           setTimeout(() => navigate(`/programs/batch-review?ids=${programIds.join(',')}`), 600)
         } else if (gen === 0 && errors > 0) {
-          toast.info('No se generaron programas. Revisa la configuración de la actividad.')
+          toast('No se generaron programas. Revisa la configuración de la actividad.')
         }
       }
     } catch (e: any) {
