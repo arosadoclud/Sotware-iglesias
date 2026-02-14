@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import envConfig from '../../config/env';
 import { AuditService, AuditAction, AuditCategory, AuditSeverity } from '../../middleware/audit.middleware';
 import { AuthRequest } from '../../middleware/auth.middleware';
+import { LoginSecurityService } from '../../services/loginSecurity.service';
 
 /**
  * Registrar nuevo usuario (solo para crear el primer admin)
@@ -12,8 +13,20 @@ export const register = async (req: Request, res: Response) => {
   try {
     const { email, password, name, role, churchId } = req.body;
 
-    if (!email || !password || !name) {
-      return res.status(400).json({ success: false, message: 'Email, contraseña y nombre son requeridos' });
+    // Validar email
+    const emailValidation = LoginSecurityService.validateEmail(email);
+    if (!emailValidation.valid) {
+      return res.status(400).json({ success: false, message: emailValidation.message });
+    }
+
+    // Validar contraseña
+    const passwordValidation = LoginSecurityService.validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({ success: false, message: passwordValidation.message });
+    }
+
+    if (!name) {
+      return res.status(400).json({ success: false, message: 'Nombre es requerido' });
     }
 
     // Verificar si el usuario ya existe
@@ -93,17 +106,75 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Email y contraseña requeridos' });
+    
+    // Validar formato de email
+    const emailValidation = LoginSecurityService.validateEmail(email);
+    if (!emailValidation.valid) {
+      return res.status(400).json({ success: false, message: emailValidation.message });
+    }
+
+    if (!password || typeof password !== 'string') {
+      return res.status(400).json({ success: false, message: 'Contraseña es requerida' });
+    }
+
+    // Obtener IP del cliente
+    const clientIp = LoginSecurityService.getClientIp(req);
+
+    // Verificar si puede intentar login (rate limiting y bloqueos)
+    const securityCheck = await LoginSecurityService.canAttemptLogin(email, clientIp);
+    if (!securityCheck.allowed) {
+      await AuditService.log({
+        churchId: null as any,
+        userId: null as any,
+        userEmail: email,
+        userName: 'Unknown',
+        userRole: 'VIEWER',
+        action: AuditAction.LOGIN_FAILED,
+        category: AuditCategory.AUTH,
+        resourceType: 'Auth',
+        success: false,
+        errorMessage: securityCheck.message || 'Cuenta bloqueada',
+        ipAddress: clientIp,
+        userAgent: req.headers['user-agent'],
+        severity: AuditSeverity.WARNING,
+      });
+
+      return res.status(429).json({ 
+        success: false, 
+        message: securityCheck.message,
+        blockedUntil: securityCheck.blockedUntil,
+      });
     }
 
     const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash');
     if (!user) {
+      // Registrar intento fallido
+      await LoginSecurityService.recordFailedAttempt(email, clientIp);
+      
+      await AuditService.log({
+        churchId: null as any,
+        userId: null as any,
+        userEmail: email,
+        userName: 'Unknown',
+        userRole: 'VIEWER',
+        action: AuditAction.LOGIN_FAILED,
+        category: AuditCategory.AUTH,
+        resourceType: 'Auth',
+        success: false,
+        errorMessage: 'Usuario no encontrado',
+        ipAddress: clientIp,
+        userAgent: req.headers['user-agent'],
+        severity: AuditSeverity.WARNING,
+      });
+
       return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
 
     const passwordMatch = await user.comparePassword(password);
     if (!passwordMatch) {
+      // Registrar intento fallido
+      await LoginSecurityService.recordFailedAttempt(email, clientIp);
+
       // Audit: Login fallido
       await AuditService.log({
         churchId: user.churchId,
@@ -116,7 +187,7 @@ export const login = async (req: Request, res: Response) => {
         resourceType: 'Auth',
         success: false,
         errorMessage: 'Contraseña incorrecta',
-        ipAddress: req.ip || req.socket?.remoteAddress,
+        ipAddress: clientIp,
         userAgent: req.headers['user-agent'],
         severity: AuditSeverity.WARNING,
       });
@@ -126,6 +197,9 @@ export const login = async (req: Request, res: Response) => {
     if (!user.isActive) {
       return res.status(401).json({ success: false, message: 'Usuario desactivado. Contacte al administrador.' });
     }
+
+    // Limpiar intentos fallidos tras login exitoso
+    await LoginSecurityService.clearAttempts(email, clientIp);
 
     user.lastLogin = new Date();
     await user.save();
@@ -141,7 +215,7 @@ export const login = async (req: Request, res: Response) => {
       category: AuditCategory.AUTH,
       resourceType: 'Auth',
       success: true,
-      ipAddress: req.ip || req.socket?.remoteAddress,
+      ipAddress: clientIp,
       userAgent: req.headers['user-agent'],
     });
 

@@ -9,6 +9,7 @@ export { default as Program, IProgram, ProgramStatus, IAssignment } from './Prog
 export { default as LetterTemplate, ILetterTemplate } from './LetterTemplate.model';
 export { default as GeneratedLetter, IGeneratedLetter } from './GeneratedLetter.model';
 export { default as AuditLog, IAuditLog, AuditAction, AuditCategory, AuditSeverity } from './AuditLog.model';
+export { default as LoginAttempt, ILoginAttempt } from './LoginAttempt.model';
 
 // Módulo de Finanzas
 export { FinanceCategory, IFinanceCategory, DEFAULT_INCOME_CATEGORIES, DEFAULT_EXPENSE_CATEGORIES } from './FinanceCategory.model';
