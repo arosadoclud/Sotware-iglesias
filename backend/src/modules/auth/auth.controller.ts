@@ -5,6 +5,66 @@ import envConfig from '../../config/env';
 import { AuditService, AuditAction, AuditCategory, AuditSeverity } from '../../middleware/audit.middleware';
 import { AuthRequest } from '../../middleware/auth.middleware';
 
+/**
+ * Registrar nuevo usuario (solo para crear el primer admin)
+ */
+export const register = async (req: Request, res: Response) => {
+  try {
+    const { email, password, name, role, churchId } = req.body;
+
+    if (!email || !password || !name) {
+      return res.status(400).json({ success: false, message: 'Email, contraseña y nombre son requeridos' });
+    }
+
+    // Verificar si el usuario ya existe
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'El usuario ya existe' });
+    }
+
+    // Crear nuevo usuario
+    const newUser = new User({
+      email: email.toLowerCase(),
+      passwordHash: password, // El pre-save hook lo hasheará
+      fullName: name,
+      role: role || 'ADMIN',
+      churchId: churchId || null,
+      isActive: true,
+    });
+
+    await newUser.save();
+
+    // Generar token
+    const accessToken = jwt.sign(
+      { id: newUser._id, role: newUser.role, churchId: newUser.churchId },
+      envConfig.jwtSecret,
+      { expiresIn: '1d' }
+    );
+
+    const permissions = newUser.getEffectivePermissions();
+
+    res.status(201).json({
+      success: true,
+      message: 'Usuario creado exitosamente',
+      data: {
+        user: {
+          id: newUser._id,
+          fullName: newUser.fullName,
+          email: newUser.email,
+          role: newUser.role,
+          churchId: newUser.churchId,
+          permissions,
+          useCustomPermissions: newUser.useCustomPermissions,
+        },
+        accessToken,
+      },
+    });
+  } catch (error: any) {
+    console.error('Register error:', error);
+    res.status(500).json({ success: false, message: 'Error al crear usuario: ' + error.message });
+  }
+};
+
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
