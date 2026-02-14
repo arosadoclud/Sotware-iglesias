@@ -22,13 +22,38 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'El usuario ya existe' });
     }
 
+    // Para SUPER_ADMIN, crear una iglesia por defecto si no se proporciona
+    let finalChurchId = churchId;
+    if ((role === 'SUPER_ADMIN' || !role) && !churchId) {
+      // Importar Church model
+      const Church = (await import('../../models/Church.model')).default;
+      
+      // Crear iglesia por defecto
+      const defaultChurch = new Church({
+        name: 'Iglesia Principal',
+        address: { city: 'Ciudad', country: 'País' },
+        settings: {
+          timezone: 'America/New_York',
+          rotationWeeks: 4,
+          allowRepetitions: false,
+          dateFormat: 'DD/MM/YYYY',
+          whatsappEnabled: true,
+        },
+        plan: 'PRO',
+        isActive: true,
+      });
+      
+      await defaultChurch.save();
+      finalChurchId = defaultChurch._id;
+    }
+
     // Crear nuevo usuario
     const newUser = new User({
       email: email.toLowerCase(),
       passwordHash: password, // El pre-save hook lo hasheará
       fullName: name,
       role: role || 'ADMIN',
-      churchId: churchId || null,
+      churchId: finalChurchId,
       isActive: true,
     });
 
