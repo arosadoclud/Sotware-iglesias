@@ -648,7 +648,7 @@ const SettingsPage = () => {
 
       {/* Tabs Navigation */}
       <div className="bg-neutral-100/80 p-1 sm:p-1.5 rounded-2xl overflow-hidden">
-        <div className="flex gap-0.5 sm:gap-1 overflow-x-auto scrollbar-hide pb-1 -mb-1">
+        <div className="grid grid-cols-3 sm:flex sm:gap-1 gap-0.5 overflow-x-auto scrollbar-hide pb-1 -mb-1">
           {TABS.map((tab) => {
             const Icon = tab.icon
             const isActive = activeTab === tab.id
@@ -658,7 +658,7 @@ const SettingsPage = () => {
                 onClick={() => setActiveTab(tab.id)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+                className={`relative flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-5 py-2 sm:py-3 rounded-xl text-[10px] sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                   isActive
                     ? 'text-primary-700'
                     : 'text-neutral-500 hover:text-neutral-700'
@@ -671,10 +671,9 @@ const SettingsPage = () => {
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-                <span className="relative z-10 flex items-center gap-1.5 sm:gap-2">
-                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                <span className="relative z-10 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-2">
+                  <Icon className="w-4 h-4 sm:w-4 sm:h-4" />
+                  <span className="leading-tight">{tab.label}</span>
                 </span>
               </motion.button>
             )

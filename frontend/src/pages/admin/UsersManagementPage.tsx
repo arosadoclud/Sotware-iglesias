@@ -340,21 +340,23 @@ const UsersManagementPage = () => {
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center shadow-lg">
-            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+      <div className="flex flex-col gap-3 mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-neutral-900 truncate">Gestión de Usuarios</h1>
+              <p className="text-xs sm:text-sm text-neutral-500 truncate">Administrar usuarios y permisos</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-neutral-900">Gestión de Usuarios</h1>
-            <p className="text-xs sm:text-sm text-neutral-500 hidden sm:block">Administrar usuarios y permisos del sistema</p>
-          </div>
+          <Button onClick={() => { resetForm(); setShowCreateModal(true) }} className="gap-2 w-full sm:w-auto" size="sm">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Nuevo Usuario</span>
+            <span className="sm:hidden">Nuevo</span>
+          </Button>
         </div>
-        <Button onClick={() => { resetForm(); setShowCreateModal(true) }} className="gap-2 w-full sm:w-auto" size="sm">
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">Nuevo Usuario</span>
-          <span className="sm:hidden">Nuevo</span>
-        </Button>
       </div>
 
       {/* Filters */}

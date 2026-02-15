@@ -511,7 +511,7 @@ const GenerateProgramPage = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {activities.map((a) => (
                         <button
                           key={a._id}
@@ -522,18 +522,20 @@ const GenerateProgramPage = () => {
                               : 'border-neutral-200 hover:border-neutral-300'
                           }`}
                         >
-                          <p className="font-semibold text-neutral-900 truncate mb-1">{a.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-neutral-500 flex-wrap">
-                            <Clock className="w-3 h-3" />
-                            <span>
-                              {(a.daysOfWeek?.length > 0 ? a.daysOfWeek : [a.dayOfWeek ?? 0])
-                                .map((d: number) => DAYS[d]?.slice(0, 3))
-                                .join(', ')} · {a.defaultTime}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-neutral-400 mt-1">
-                            <Users className="w-3 h-3" />
-                            <span>{a.roleConfig?.length || 0} secciones</span>
+                          <p className="font-semibold text-neutral-900 text-sm sm:text-base mb-1 line-clamp-1">{a.name}</p>
+                          <div className="flex flex-col gap-1 text-xs text-neutral-500">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-3 h-3 flex-shrink-0" />
+                              <span className="truncate">
+                                {(a.daysOfWeek?.length > 0 ? a.daysOfWeek : [a.dayOfWeek ?? 0])
+                                  .map((d: number) => DAYS[d]?.slice(0, 3))
+                                  .join(', ')} · {a.defaultTime}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Users className="w-3 h-3 flex-shrink-0" />
+                              <span>{a.roleConfig?.length || 0} secciones</span>
+                            </div>
                           </div>
                         </button>
                       ))}

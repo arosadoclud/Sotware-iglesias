@@ -156,7 +156,7 @@ const PersonsPage = () => {
       cell: ({ row }) => {
         const ministry = row.original.ministry
         return ministry ? (
-          <Badge variant="outline" className="font-medium bg-neutral-50 hover:bg-neutral-100 transition-colors">
+          <Badge variant="outline" className="font-medium bg-neutral-50 hover:bg-neutral-100 transition-colors text-xs max-w-[120px] truncate">
             {ministry}
           </Badge>
         ) : (
