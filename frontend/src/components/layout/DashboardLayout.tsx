@@ -385,7 +385,7 @@ const DashboardLayoutImproved = () => {
 
       {/* Main Content */}
       <main className="min-h-screen lg:pl-[280px]">
-        <div className="p-4 lg:p-8 pt-20 lg:pt-8">
+        <div className="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pt-16 sm:pt-18 lg:pt-8">
           <Outlet />
         </div>
       </main>

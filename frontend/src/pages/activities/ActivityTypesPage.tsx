@@ -285,19 +285,20 @@ const ActivityTypesPage = () => {
       className="space-y-6"
     >
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-neutral-900">Tipos de Actividades</h1>
-          <p className="text-neutral-600 mt-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-neutral-900 truncate">Tipos de Actividades</h1>
+          <p className="text-xs sm:text-sm md:text-base text-neutral-600 mt-1">
             Configura los servicios semanales y sus roles de oportunidades
             {activities.length > 0 && (
               <span className="ml-1 text-neutral-500">({activities.length})</span>
             )}
           </p>
         </div>
-        <Button onClick={openNew} size="lg">
-          <Plus className="w-5 h-5 mr-2" />
-          Nueva Actividad
+        <Button onClick={openNew} size="lg" className="w-full sm:w-auto">
+          <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+          <span className="hidden sm:inline">Nueva Actividad</span>
+          <span className="sm:hidden">Nueva</span>
         </Button>
       </div>
 
