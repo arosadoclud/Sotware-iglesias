@@ -346,7 +346,141 @@ const ProgramsPage = () => {
           transition={{ delay: 0.1, type: "spring", bounce: 0.2 }}
           className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"
         >
-          <div className="overflow-x-auto -mx-4 sm:mx-0">
+          {/* Vista móvil - Tarjetas */}
+          <div className="block md:hidden">
+            <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.size === programs.length && programs.length > 0}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Seleccionar todos ({programs.length})
+                  </span>
+                </label>
+              </div>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {programs.map((prog, index) => {
+                const date = new Date(prog.programDate)
+                const sc = STATUS_CONFIG[prog.status] || STATUS_CONFIG.DRAFT
+                const StatusIcon = sc.icon
+                const nextSt = NEXT_STATUS[prog.status]
+                const assignedCount = (prog.assignments || []).filter((a: any) => a.person?.name).length
+
+                return (
+                  <motion.div
+                    key={prog._id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    className={`p-4 transition-all ${selectedIds.has(prog._id) ? 'bg-primary-50/50' : 'hover:bg-gray-50'}`}
+                  >
+                    {/* Header con checkbox y estado */}
+                    <div className="flex items-start justify-between mb-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(prog._id)}
+                        onChange={() => toggleSelect(prog._id)}
+                        className="w-4 h-4 mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500 flex-shrink-0"
+                      />
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${sc.style}`}>
+                        <StatusIcon className="w-3 h-3" />
+                        {sc.label}
+                      </span>
+                    </div>
+
+                    {/* Contenido principal */}
+                    <div className="mb-3">
+                      <h3 className="font-semibold text-gray-900 text-base mb-1">
+                        {prog.activityType?.name}
+                      </h3>
+                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                        <Calendar className="w-4 h-4 flex-shrink-0" />
+                        <span>{DAYS[date.getDay()]}, {format(date, "d MMM yyyy", { locale: es })}</span>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        {assignedCount} persona{assignedCount !== 1 ? 's' : ''} asignada{assignedCount !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+
+                    {/* Botones de acción */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Cambiar estado */}
+                      {nextSt && (
+                        <button
+                          onClick={() => handleStatusChange(prog._id, nextSt.value, prog.activityType?.name)}
+                          disabled={updatingStatus === prog._id}
+                          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 flex-1 justify-center"
+                        >
+                          {updatingStatus === prog._id
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : <Send className="w-4 h-4" />
+                          }
+                          {nextSt.label}
+                        </button>
+                      )}
+                      
+                      {/* Botones secundarios */}
+                      <div className="flex gap-2">
+                        {/* Editar (solo DRAFT) */}
+                        {prog.status === 'DRAFT' && (
+                          <button
+                            onClick={() => navigate(`/programs/${prog._id}/flyer`)}
+                            className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Editar programa"
+                          >
+                            <Edit className="w-5 h-5" />
+                          </button>
+                        )}
+                        
+                        {/* Descargar PDF (programas publicados/completados) */}
+                        {(prog.status === 'PUBLISHED' || prog.status === 'COMPLETED') && (
+                          <button
+                            onClick={() => handleDownloadPdf(prog)}
+                            disabled={downloadingPdf === prog._id}
+                            className="p-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-50"
+                            title="Descargar PDF"
+                          >
+                            {downloadingPdf === prog._id
+                              ? <Loader2 className="w-5 h-5 animate-spin" />
+                              : <Download className="w-5 h-5" />
+                            }
+                          </button>
+                        )}
+                        
+                        {/* WhatsApp (programas publicados/completados) */}
+                        {(prog.status === 'PUBLISHED' || prog.status === 'COMPLETED') && (
+                          <button
+                            onClick={() => navigate(`/programs/share-whatsapp?ids=${prog._id}`)}
+                            className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Compartir por WhatsApp"
+                          >
+                            <MessageCircle className="w-5 h-5" />
+                          </button>
+                        )}
+                        
+                        {/* Eliminar */}
+                        <button
+                          onClick={() => handleDelete(prog._id)}
+                          className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Vista desktop - Tabla */}
+          <div className="hidden md:block overflow-x-auto">
             <div className="inline-block min-w-full align-middle">
               <table className="min-w-full w-full">
               <thead>
@@ -361,7 +495,7 @@ const ProgramsPage = () => {
                     />
                   </th>
                   <th className="text-left py-3.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actividad / Fecha</th>
-                  <th className="text-left py-3.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Asignados</th>
+                  <th className="text-left py-3.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Asignados</th>
                   <th className="text-left py-3.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
                   <th className="text-right py-3.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
@@ -396,7 +530,7 @@ const ProgramsPage = () => {
                           {DAYS[date.getDay()]}, {format(date, "d MMM yyyy", { locale: es })}
                         </p>
                       </td>
-                      <td className="py-3.5 px-4 hidden sm:table-cell">
+                      <td className="py-3.5 px-4">
                         <span className="text-sm text-gray-600">
                           {assignedCount} persona{assignedCount !== 1 ? 's' : ''}
                         </span>
@@ -421,7 +555,7 @@ const ProgramsPage = () => {
                                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                 : <Send className="w-3.5 h-3.5" />
                               }
-                              <span className="hidden md:inline">{nextSt.label}</span>
+                              <span className="hidden lg:inline">{nextSt.label}</span>
                             </button>
                           )}
                           {/* Editar (solo DRAFT) */}
@@ -432,7 +566,7 @@ const ProgramsPage = () => {
                               title="Editar programa"
                             >
                               <Edit className="w-3.5 h-3.5" />
-                              <span className="hidden md:inline">Editar</span>
+                              <span className="hidden lg:inline">Editar</span>
                             </button>
                           )}
                           {/* Descargar PDF (programas publicados/completados) */}
@@ -447,7 +581,7 @@ const ProgramsPage = () => {
                                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                 : <Download className="w-3.5 h-3.5" />
                               }
-                              <span className="hidden md:inline">Descargar PDF</span>
+                              <span className="hidden lg:inline">Descargar PDF</span>
                             </button>
                           )}
                           {/* Compartir WhatsApp (programas publicados/completados) */}
@@ -458,7 +592,7 @@ const ProgramsPage = () => {
                               title="Compartir por WhatsApp"
                             >
                               <MessageCircle className="w-3.5 h-3.5" />
-                              <span className="hidden md:inline">WhatsApp</span>
+                              <span className="hidden lg:inline">WhatsApp</span>
                             </button>
                           )}
                           {/* Eliminar */}
