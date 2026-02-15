@@ -64,29 +64,29 @@ const StatCard = ({ title, value, icon: Icon, subtitle, color, bgColor, delay = 
   >
     <Card className="relative overflow-hidden border-0 shadow-lg shadow-neutral-200/50 hover:shadow-xl transition-all duration-300 group">
       <div className={`absolute top-0 right-0 w-32 h-32 ${bgColor} rounded-full -translate-y-1/2 translate-x-1/2 opacity-40 group-hover:opacity-60 transition-opacity`} />
-      <CardContent className="p-5 relative">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-neutral-500">{title}</p>
+      <CardContent className="p-4 sm:p-5 relative">
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-1 sm:space-y-2 flex-1 min-w-0">
+            <p className="text-xs sm:text-sm font-medium text-neutral-500 truncate">{title}</p>
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: delay + 0.2 }}
-              className="text-3xl font-bold text-neutral-900"
+              className="text-2xl sm:text-3xl font-bold text-neutral-900"
             >
               {value}
             </motion.p>
             {subtitle && (
-              <p className="text-xs text-neutral-400">{subtitle}</p>
+              <p className="text-[10px] sm:text-xs text-neutral-400 line-clamp-2">{subtitle}</p>
             )}
           </div>
           <motion.div 
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", bounce: 0.5, delay: delay + 0.1 }}
-            className={`w-12 h-12 rounded-xl flex items-center justify-center ${bgColor} shadow-sm`}
+            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${bgColor} shadow-sm`}
           >
-            <Icon className={`w-6 h-6 ${color}`} />
+            <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${color}`} />
           </motion.div>
         </div>
       </CardContent>
@@ -160,22 +160,22 @@ const DashboardPage = () => {
       className="space-y-6"
     >
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:gap-0 sm:flex-row items-start sm:items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row items-start sm:items-center justify-between">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", bounce: 0.5, duration: 0.6 }}
-            className="w-11 h-11 sm:w-14 sm:h-14 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/30"
+            className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/30 flex-shrink-0"
           >
             <BarChart3 className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
           </motion.div>
-          <div>
+          <div className="flex-1 min-w-0">
             <motion.h1 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-xl sm:text-2xl font-bold text-neutral-900"
+              className="text-lg sm:text-2xl font-bold text-neutral-900"
             >
               Dashboard
             </motion.h1>
@@ -183,9 +183,9 @@ const DashboardPage = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.15 }}
-              className="text-xs sm:text-sm text-neutral-500 hidden sm:block"
+              className="text-xs sm:text-sm text-neutral-500"
             >
-              Bienvenido, aquí está el resumen de tu iglesia
+              Resumen de tu iglesia
             </motion.p>
           </div>
         </div>
