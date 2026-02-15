@@ -24,55 +24,59 @@ const CalendarPage = () => {
   const startDay = getDay(startOfMonth(currentMonth))
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Calendario de Programas</h1>
+    <div className="space-y-3 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Calendario de Programas</h1>
         <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
-          <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-1.5 sm:p-2 hover:bg-gray-100 rounded touch-manipulation">
-            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors">
+            <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-sm sm:text-lg font-semibold capitalize min-w-[140px] sm:min-w-[180px] text-center">
+          <span className="text-base sm:text-lg font-semibold capitalize min-w-[150px] text-center">
             {format(currentMonth, 'MMMM yyyy', { locale: es })}
           </span>
-          <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-1.5 sm:p-2 hover:bg-gray-100 rounded touch-manipulation">
-            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+          <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors">
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       </div>
 
       {loading ? <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary-600" /></div> : (
-        <div className="card overflow-hidden">
-          <div className="grid grid-cols-7 gap-px bg-gray-200 overflow-x-auto">
-            {/* Encabezado de días - móvil usa letras, tablet/desktop nombres completos */}
-            {DAYS.map((d, i) => (
-              <div key={d} className="bg-gray-50 py-1.5 sm:py-2 text-center text-xs sm:text-sm font-semibold text-gray-600">
-                <span className="sm:hidden">{d}</span>
-                <span className="hidden sm:inline">{DAYS_FULL[i]}</span>
-              </div>
-            ))}
-            {/* Celdas vacías antes del primer día */}
-            {Array.from({ length: startDay }).map((_, i) => <div key={`e-${i}`} className="bg-white min-h-[60px] sm:min-h-[80px] md:min-h-[100px]" />)}
-            {/* Días del mes */}
-            {days.map(day => {
-              const dayPrograms = programs.filter(p => isSameDay(new Date(p.programDate), day))
-              const isToday = isSameDay(day, new Date())
-              return (
-                <div key={day.toISOString()} className={`bg-white min-h-[70px] sm:min-h-[90px] md:min-h-[110px] p-1.5 sm:p-2 ${isToday ? 'ring-2 ring-primary-500 ring-inset' : ''}`}>
-                  <span className={`text-xs sm:text-sm font-semibold ${isToday ? 'font-bold text-primary-600' : 'text-gray-700'}`}>{day.getDate()}</span>
-                  <div className="mt-1 sm:mt-1.5 space-y-1">
-                    {dayPrograms.slice(0, 2).map(p => (
-                      <div key={p._id} className="flex items-center gap-1 text-[10px] sm:text-xs">
-                        <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${STATUS_DOT[p.status] || 'bg-gray-400'}`} />
-                        <span className="truncate text-gray-600 leading-tight">{p.activityType?.name}</span>
-                      </div>
-                    ))}
-                    {dayPrograms.length > 2 && (
-                      <div className="text-[9px] sm:text-[10px] text-gray-500 font-medium ml-2">+{dayPrograms.length - 2} más</div>
-                    )}
-                  </div>
+        <div className="card overflow-x-auto -mx-4 sm:mx-0">
+          <div className="min-w-[640px] sm:min-w-0">
+            <div className="grid grid-cols-7 gap-px bg-gray-200">
+              {/* Encabezado de días */}
+              {DAYS_FULL.map((d) => (
+                <div key={d} className="bg-gray-50 py-2 px-1 text-center text-xs sm:text-sm font-semibold text-gray-700">
+                  <span className="sm:hidden">{d.slice(0, 1)}</span>
+                  <span className="hidden sm:inline">{d}</span>
                 </div>
-              )
-            })}
+              ))}
+              {/* Celdas vacías antes del primer día */}
+              {Array.from({ length: startDay }).map((_, i) => <div key={`e-${i}`} className="bg-white min-h-[80px] sm:min-h-[100px] md:min-h-[120px]" />)}
+              {/* Días del mes */}
+              {days.map(day => {
+                const dayPrograms = programs.filter(p => isSameDay(new Date(p.programDate), day))
+                const isToday = isSameDay(day, new Date())
+                return (
+                  <div key={day.toISOString()} className={`bg-white min-h-[80px] sm:min-h-[100px] md:min-h-[120px] p-1.5 sm:p-2 border-l border-t border-gray-100 ${isToday ? 'ring-2 ring-primary-500 ring-inset bg-primary-50/30' : ''}`}>
+                    <div className={`text-xs sm:text-sm font-bold mb-1 ${isToday ? 'text-primary-600' : 'text-gray-700'}`}>
+                      {day.getDate()}
+                    </div>
+                    <div className="space-y-0.5 sm:space-y-1">
+                      {dayPrograms.slice(0, 3).map(p => (
+                        <div key={p._id} className="flex items-start gap-1 text-[9px] sm:text-xs leading-tight">
+                          <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 mt-0.5 ${STATUS_DOT[p.status] || 'bg-gray-400'}`} />
+                          <span className="truncate text-gray-700 font-medium">{p.activityType?.name}</span>
+                        </div>
+                      ))}
+                      {dayPrograms.length > 3 && (
+                        <div className="text-[8px] sm:text-[10px] text-primary-600 font-semibold ml-2">+{dayPrograms.length - 3}</div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       )}

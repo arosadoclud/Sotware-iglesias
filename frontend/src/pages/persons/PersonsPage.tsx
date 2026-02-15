@@ -363,35 +363,38 @@ const PersonsPage = () => {
       className="space-y-6"
     >
       {/* Header mejorado */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl rotate-3 opacity-20" />
-            <div className="relative p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-500/25">
-              <Users className="w-6 h-6 text-white" />
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl rotate-3 opacity-20" />
+              <div className="relative p-2.5 sm:p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-500/25">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-neutral-900">Personas</h1>
+              <p className="text-sm sm:text-base text-neutral-600">
+                Gestiona los participantes y sus roles
+                {total > 0 && (
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-primary-100 text-primary-700">
+                    {total} registrados
+                  </span>
+                )}
+              </p>
             </div>
           </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900">Personas</h1>
-            <p className="text-neutral-600">
-              Gestiona los participantes y sus roles
-              {total > 0 && (
-                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-primary-100 text-primary-700">
-                  {total} registrados
-                </span>
-              )}
-            </p>
-          </div>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full sm:w-auto"
+          >
+            <Button onClick={openNew} size="lg" className="shadow-lg hover:shadow-xl transition-shadow w-full sm:w-auto">
+              <UserPlus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              <span className="sm:inline">Nueva Persona</span>
+            </Button>
+          </motion.div>
         </div>
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Button onClick={openNew} size="lg" className="shadow-lg hover:shadow-xl transition-shadow">
-            <UserPlus className="w-5 h-5 mr-2" />
-            Nueva Persona
-          </Button>
-        </motion.div>
       </div>
 
       {/* Content */}

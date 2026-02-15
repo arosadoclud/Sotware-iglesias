@@ -192,21 +192,23 @@ export function DataTable<TData, TValue>({
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between px-2">
-        <div className="flex-1 text-sm text-neutral-600">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 px-2">
+        <div className="text-xs sm:text-sm text-neutral-600 order-2 sm:order-1">
           {serverPagination ? (
             <>
-              Mostrando {(page - 1) * pageSize + 1} a {Math.min(page * pageSize, total)} de {total} resultados
+              <span className="hidden sm:inline">Mostrando {(page - 1) * pageSize + 1} a {Math.min(page * pageSize, total)} de {total} resultados</span>
+              <span className="sm:hidden">{(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} de {total}</span>
             </>
           ) : (
             <>
-              Mostrando {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} a {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} de {table.getFilteredRowModel().rows.length} resultados
+              <span className="hidden sm:inline">Mostrando {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} a {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} de {table.getFilteredRowModel().rows.length} resultados</span>
+              <span className="sm:hidden">{table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-{Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)} de {table.getFilteredRowModel().rows.length}</span>
             </>
           )}
         </div>
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium text-neutral-700">Filas por página</p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 w-full sm:w-auto order-1 sm:order-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <p className="text-xs sm:text-sm font-medium text-neutral-700 whitespace-nowrap">Filas</p>
             <Select
               value={`${table.getState().pagination.pageSize}`}
               onValueChange={(value) => {
@@ -224,18 +226,18 @@ export function DataTable<TData, TValue>({
                 ))}
               </SelectContent>
             </Select>
+            <div className="text-xs sm:text-sm font-medium text-neutral-700 sm:ml-4">
+              {serverPagination ? (
+                <>Pág {page}/{Math.max(1, Math.ceil(total / pageSize))}</>
+              ) : (
+                <>Pág {table.getState().pagination.pageIndex + 1}/{table.getPageCount()}</>
+              )}
+            </div>
           </div>
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium text-neutral-700">
-            {serverPagination ? (
-              <>Página {page} de {Math.max(1, Math.ceil(total / pageSize))}</>
-            ) : (
-              <>Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}</>
-            )}
-          </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <Button
               variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
+              className="hidden sm:flex h-8 w-8 p-0"
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
             >
@@ -262,7 +264,7 @@ export function DataTable<TData, TValue>({
             </Button>
             <Button
               variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
+              className="hidden sm:flex h-8 w-8 p-0"
               onClick={() => table.setPageIndex(table.getPageCount() - 1)}
               disabled={!table.getCanNextPage()}
             >

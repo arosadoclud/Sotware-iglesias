@@ -194,66 +194,69 @@ const ProgramsPage = () => {
       className="space-y-6"
     >
       {/* Header mejorado */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl rotate-3 opacity-20" />
-            <div className="relative p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg shadow-purple-500/25">
-              <Calendar className="w-6 h-6 text-white" />
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl rotate-3 opacity-20" />
+              <div className="relative p-2.5 sm:p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg shadow-purple-500/25">
+                <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+            </div>
+            <div>
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">Programas</h1>
+              <p className="text-gray-500 text-xs sm:text-sm">
+                {total} programa{total !== 1 ? 's' : ''} en total
+                {filterStatus && (
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                    {STATUS_CONFIG[filterStatus]?.label}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Programas</h1>
-            <p className="text-gray-500 text-xs sm:text-sm">
-              {total} programa{total !== 1 ? 's' : ''} en total
-              {filterStatus && (
-                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                  {STATUS_CONFIG[filterStatus]?.label}
-                </span>
-              )}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {total > 0 && (
-            <>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleDownloadAllPdf}
-                disabled={downloadingAllPdf}
-                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {downloadingAllPdf ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
-                    <span className="hidden sm:inline">Descargando...</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            {total > 0 && (
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleDownloadAllPdf}
+                  disabled={downloadingAllPdf}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {downloadingAllPdf ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="hidden sm:inline">Descargando...</span>
+                      <span className="sm:hidden">...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      <span className="hidden sm:inline">{selectedIds.size > 0 ? `Descargar (${selectedIds.size})` : 'Descargar PDFs'}</span>
+                      <span className="sm:hidden">PDF</span>
+                    </>
+                  )}
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handlePublishAll}
+                  disabled={publishingAll}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {publishingAll ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="hidden sm:inline">Publicando...</span>
+                    <span className="sm:hidden">...</span>
                   </>
                 ) : (
                   <>
-                    <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">{selectedIds.size > 0 ? `Descargar (${selectedIds.size})` : 'Descargar PDFs'}</span>
-                    <span className="sm:hidden">PDF</span>
-                  </>
-                )}
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handlePublishAll}
-                disabled={publishingAll}
-                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {publishingAll ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
-                    <span className="hidden sm:inline">Publicando...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span className="hidden lg:inline">Publicar Todos</span>
-                    <span className="lg:hidden">Publicar</span>
+                    <Send className="w-4 h-4" />
+                    <span className="hidden sm:inline">Publicar Todos</span>
+                    <span className="sm:hidden">Pub</span>
                   </>
                 )}
               </motion.button>
@@ -262,18 +265,19 @@ const ProgramsPage = () => {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleDeleteAll}
                 disabled={deletingAll}
-                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {deletingAll ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     <span className="hidden sm:inline">Eliminando...</span>
+                    <span className="sm:hidden">...</span>
                   </>
                 ) : (
                   <>
-                    <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span className="hidden lg:inline">Eliminar Todos</span>
-                    <span className="lg:hidden">Eliminar</span>
+                    <Trash2 className="w-4 h-4" />
+                    <span className="hidden sm:inline">Eliminar Todos</span>
+                    <span className="sm:hidden">Del</span>
                   </>
                 )}
               </motion.button>
@@ -283,10 +287,10 @@ const ProgramsPage = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <Link to="/programs/generate" className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg">
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Link to="/programs/generate" className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg">
+              <Sparkles className="w-4 h-4" />
               <span className="hidden sm:inline">Generar Programa</span>
-              <span className="sm:hidden">Generar</span>
+              <span className="sm:hidden">Nuevo</span>
             </Link>
           </motion.div>
         </div>
