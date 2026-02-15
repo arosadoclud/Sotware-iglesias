@@ -475,9 +475,9 @@ const ProgramsPage = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
-              <p className="text-sm text-gray-500">
-                Página <span className="font-medium text-gray-700">{page}</span> de <span className="font-medium text-gray-700">{totalPages}</span> · {total} programas
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0 px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+              <p className="text-xs sm:text-sm text-gray-500">
+                <span className="hidden sm:inline">Página </span><span className="font-medium text-gray-700">{page}</span> de <span className="font-medium text-gray-700">{totalPages}</span><span className="hidden sm:inline"> · {total} programas</span>
               </p>
               <div className="flex gap-1">
                 <button onClick={() => setPage(p => Math.max(1,p-1))} disabled={page === 1}

@@ -57,17 +57,17 @@ const CalendarPage = () => {
               const dayPrograms = programs.filter(p => isSameDay(new Date(p.programDate), day))
               const isToday = isSameDay(day, new Date())
               return (
-                <div key={day.toISOString()} className={`bg-white min-h-[60px] sm:min-h-[80px] md:min-h-[100px] p-1 sm:p-2 ${isToday ? 'ring-2 ring-primary-500 ring-inset' : ''}`}>
-                  <span className={`text-xs sm:text-sm ${isToday ? 'font-bold text-primary-600' : 'text-gray-700'}`}>{day.getDate()}</span>
-                  <div className="mt-0.5 sm:mt-1 space-y-0.5 sm:space-y-1">
-                    {dayPrograms.slice(0, 3).map(p => (
-                      <div key={p._id} className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs">
+                <div key={day.toISOString()} className={`bg-white min-h-[70px] sm:min-h-[90px] md:min-h-[110px] p-1.5 sm:p-2 ${isToday ? 'ring-2 ring-primary-500 ring-inset' : ''}`}>
+                  <span className={`text-xs sm:text-sm font-semibold ${isToday ? 'font-bold text-primary-600' : 'text-gray-700'}`}>{day.getDate()}</span>
+                  <div className="mt-1 sm:mt-1.5 space-y-1">
+                    {dayPrograms.slice(0, 2).map(p => (
+                      <div key={p._id} className="flex items-center gap-1 text-[10px] sm:text-xs">
                         <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${STATUS_DOT[p.status] || 'bg-gray-400'}`} />
                         <span className="truncate text-gray-600 leading-tight">{p.activityType?.name}</span>
                       </div>
                     ))}
-                    {dayPrograms.length > 3 && (
-                      <div className="text-[9px] sm:text-[10px] text-gray-500 font-medium ml-2 sm:ml-2.5">+{dayPrograms.length - 3} más</div>
+                    {dayPrograms.length > 2 && (
+                      <div className="text-[9px] sm:text-[10px] text-gray-500 font-medium ml-2">+{dayPrograms.length - 2} más</div>
                     )}
                   </div>
                 </div>

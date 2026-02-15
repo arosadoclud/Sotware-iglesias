@@ -122,13 +122,14 @@ export function DataTable<TData, TValue>({
             onChange={(event) =>
               table.getColumn(searchKey)?.setFilterValue(event.target.value)
             }
-            className="max-w-sm"
+            className="max-w-sm text-sm"
           />
         </div>
       )}
 
       {/* Table */}
-      <div className="rounded-lg border border-neutral-200 bg-white shadow-sm">
+      <div className="rounded-lg border border-neutral-200 bg-white shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -187,6 +188,7 @@ export function DataTable<TData, TValue>({
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       {/* Pagination */}

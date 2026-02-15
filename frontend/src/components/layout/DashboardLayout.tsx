@@ -384,17 +384,11 @@ const DashboardLayoutImproved = () => {
       </AnimatePresence>
 
       {/* Main Content */}
-      <motion.main
-        animate={{
-          paddingLeft: collapsed ? '80px' : '280px',
-        }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="lg:transition-all"
-      >
+      <main className="min-h-screen lg:pl-[280px]">
         <div className="p-4 lg:p-8 pt-20 lg:pt-8">
           <Outlet />
         </div>
-      </motion.main>
+      </main>
     </div>
   )
 }
