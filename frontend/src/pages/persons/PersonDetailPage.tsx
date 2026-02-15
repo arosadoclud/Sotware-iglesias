@@ -44,7 +44,7 @@ const PersonDetailPage = () => {
                 {r.roleName}
               </span>
             ))}
-          </div></div>
+          </div>
         </div>
       </div>
     </div>

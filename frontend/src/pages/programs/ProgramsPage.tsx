@@ -295,6 +295,7 @@ const ProgramsPage = () => {
           </motion.div>
         </div>
       </div>
+      </div>
 
       {/* Filters mejorados */}
       <div className="flex gap-1.5 sm:gap-2 flex-wrap overflow-x-auto pb-2 -mb-2">
@@ -475,6 +476,7 @@ const ProgramsPage = () => {
                 })}
               </tbody>
             </table>
+          </div>
           </div>
 
           {/* Pagination */}
