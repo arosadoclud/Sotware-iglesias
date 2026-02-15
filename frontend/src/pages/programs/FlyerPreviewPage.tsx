@@ -128,6 +128,7 @@ const FlyerPreviewPage = () => {
   const [peoplePool, setPeoplePool] = useState<PersonOption[]>([])
   const [saving, setSaving] = useState(false)
   const [downloadingPdf, setDownloadingPdf] = useState(false)
+  const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit')
 
   // Suggestions
   const [activeSuggestionIdx, setActiveSuggestionIdx] = useState<number | null>(null)
@@ -653,11 +654,41 @@ const FlyerPreviewPage = () => {
           </div>
         </div>
 
+        {/* ══════════════════════ MOBILE TABS ══════════════════════ */}
+        <div className="fe-mobile-tabs" style={styles.mobileTabs}>
+          <button 
+            className={`fe-tab ${activeTab === 'edit' ? 'active' : ''}`}
+            onClick={() => setActiveTab('edit')}
+            style={{
+              ...styles.mobileTab,
+              ...(activeTab === 'edit' ? styles.mobileTabActive : {})
+            }}
+          >
+            ⚙️ Configuración
+          </button>
+          <button 
+            className={`fe-tab ${activeTab === 'preview' ? 'active' : ''}`}
+            onClick={() => setActiveTab('preview')}
+            style={{
+              ...styles.mobileTab,
+              ...(activeTab === 'preview' ? styles.mobileTabActive : {})
+            }}
+          >
+            👁️ Vista Previa
+          </button>
+        </div>
+
         {/* ══════════════════════ WORKSPACE ══════════════════════ */}
         <div className="fe-workspace" style={styles.workspace}>
 
           {/* ─── LEFT PANEL: EDITOR ─── */}
-          <div className="fe-panel" style={styles.panel}>
+          <div 
+            className="fe-panel" 
+            style={{
+              ...styles.panel,
+              display: activeTab === 'edit' ? 'block' : 'none'
+            }}
+          >
             <div style={styles.panelHeader}>
               <h2 style={styles.panelHeaderTitle}>⚙️ Configuración</h2>
             </div>
@@ -793,7 +824,12 @@ const FlyerPreviewPage = () => {
           </div>
 
           {/* ─── RIGHT PANEL: FLYER PREVIEW ─── */}
-          <div style={styles.previewWrapper}>
+          <div 
+            style={{
+              ...styles.previewWrapper,
+              display: activeTab === 'preview' ? 'block' : 'none'
+            }}
+          >
             {/* Label */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={styles.previewLabel}>
@@ -988,20 +1024,44 @@ const SCOPED_CSS = `
     animation: pulse 1.5s infinite; flex-shrink: 0;
   }
 
+  /* Mobile Tab Styles */
+  .fe-mobile-tabs { display: none; }
+  
+  .fe-tab {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: ${F.body};
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  
+  .fe-tab:hover {
+    background: rgba(255,255,255,0.1) !important;
+  }
+
   /* Responsive Styles */
   @media (max-width: 1280px) {
-    .fe-workspace { grid-template-columns: 340px 1fr !important; gap: 1.5rem !important; }
+    .fe-workspace { grid-template-columns: 360px 1fr !important; gap: 1.5rem !important; }
   }
 
   @media (max-width: 1024px) {
-    .fe-workspace { grid-template-columns: 300px 1fr !important; gap: 1rem !important; padding: 1.5rem 1rem !important; }
+    .fe-workspace { grid-template-columns: 320px 1fr !important; gap: 1rem !important; padding: 1.5rem 1rem !important; }
     .fe-topbar-brand { font-size: 1rem !important; }
   }
 
   @media (max-width: 900px) {
-    .fe-workspace { grid-template-columns: 1fr !important; }
-    .fe-panel { position: static !important; }
+    .fe-mobile-tabs { display: flex !important; }
+    .fe-workspace { grid-template-columns: 1fr !important; gap: 0 !important; padding: 0 !important; }
+    .fe-panel { 
+      position: static !important; 
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      border-top: 1px solid #e5e7eb !important;
+    }
     .fe-topbar-brand { display: none !important; }
+    .fe-flyer-container { max-width: none !important; }
+    .fe-preview-wrapper { padding: 1rem !important; }
   }
 
   @media (max-width: 640px) {
@@ -1011,8 +1071,23 @@ const SCOPED_CSS = `
     .fe-topbar-badge { font-size: 0.6rem !important; padding: 2px 8px !important; }
     .fe-topbar-save-btn { font-size: 0.7rem !important; padding: 6px 12px !important; }
     .fe-live-badge { font-size: 0.6rem !important; }
-    .fe-workspace { padding: 1rem !important; }
     .fe-panel-body { padding: 1rem !important; }
+    
+    /* Táctil-friendly inputs */
+    .fe-form-input { min-height: 44px !important; font-size: 16px !important; }
+    .fe-name-input { min-height: 44px !important; font-size: 16px !important; }
+    .fe-btn { min-height: 48px !important; font-size: 1rem !important; }
+    .fe-assignment-row { padding: 12px 0 !important; }
+    .fe-role-badge { width: 32px !important; height: 32px !important; }
+    .fe-clear-btn { width: 32px !important; height: 32px !important; }
+    
+    /* Preview optimizado */
+    .fe-flyer-container { 
+      margin: 0 -1rem !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      border: 1px solid #e5e7eb !important;
+    }
   }
 `
 
@@ -1065,6 +1140,19 @@ const styles: Record<string, React.CSSProperties> = {
     color: C.green, fontWeight: 600,
   },
 
+  // Mobile tabs
+  mobileTabs: {
+    background: C.navy, display: 'none', borderTop: '1px solid rgba(255,255,255,0.1)',
+  },
+  mobileTab: {
+    flex: 1, padding: '12px 16px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)',
+    borderBottom: '2px solid transparent', background: 'transparent', border: 'none',
+    cursor: 'pointer', fontFamily: F.body, fontWeight: 600, transition: 'all 0.2s',
+  },
+  mobileTabActive: {
+    color: 'white', borderBottomColor: C.goldLight, background: 'rgba(255,255,255,0.05)',
+  },
+
   // Workspace
   workspace: {
     display: 'grid', gridTemplateColumns: '380px 1fr', gap: '2rem',
@@ -1094,9 +1182,9 @@ const styles: Record<string, React.CSSProperties> = {
     textTransform: 'uppercase', color: C.gray500, marginBottom: 5,
   },
   formInput: {
-    width: '100%', padding: '9px 12px', border: `1.5px solid ${C.gray300}`, borderRadius: 8,
+    width: '100%', padding: '10px 14px', border: `1.5px solid ${C.gray300}`, borderRadius: 8,
     fontFamily: F.body, fontSize: '0.875rem', color: C.gray900, background: C.white,
-    transition: 'border-color 0.15s, box-shadow 0.15s', outline: 'none',
+    transition: 'border-color 0.15s, box-shadow 0.15s', outline: 'none', minHeight: 40,
   },
 
   // Assignments section
@@ -1125,9 +1213,9 @@ const styles: Record<string, React.CSSProperties> = {
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
   },
   nameInput: {
-    width: '100%', padding: '6px 10px', border: `1.5px solid ${C.gray300}`,
-    borderRadius: 7, fontSize: '0.83rem', fontFamily: F.body,
-    outline: 'none', transition: 'all 0.15s', color: C.gray900, minWidth: 0,
+    width: '100%', padding: '8px 12px', border: `1.5px solid ${C.gray300}`,
+    borderRadius: 7, fontSize: '0.875rem', fontFamily: F.body,
+    outline: 'none', transition: 'all 0.15s', color: C.gray900, minWidth: 0, minHeight: 40,
   },
   clearBtn: {
     flexShrink: 0, width: 28, height: 28, background: 'none',
