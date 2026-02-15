@@ -24,6 +24,12 @@ export interface IChurch extends Document {
     dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY';
     whatsappEnabled: boolean;
     defaultTime?: string;
+    moduleProtection?: {
+      enabled: boolean;
+      password: string;
+      modules: ('finances' | 'settings' | 'audit' | 'users')[];
+      autoLockMinutes: number;
+    };
   };
   // SaaS — Paso 7
   plan: 'FREE' | 'PRO' | 'ENTERPRISE';
@@ -97,6 +103,16 @@ const ChurchSchema = new Schema<IChurch>(
       dateFormat: { type: String, enum: ['DD/MM/YYYY', 'MM/DD/YYYY'], default: 'DD/MM/YYYY' },
       whatsappEnabled: { type: Boolean, default: false },
       defaultTime: { type: String, default: '10:00' },
+      moduleProtection: {
+        enabled: { type: Boolean, default: true },
+        password: { type: String, default: '$2a$10$YourHashedPasswordHere' }, // Hasheado con bcrypt
+        modules: { 
+          type: [String], 
+          enum: ['finances', 'settings', 'audit', 'users'],
+          default: ['finances', 'settings', 'audit', 'users']
+        },
+        autoLockMinutes: { type: Number, default: 30 },
+      },
     },
     // SaaS — Paso 7
     plan: {
