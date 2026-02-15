@@ -619,17 +619,17 @@ const SettingsPage = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="max-w-5xl mx-auto space-y-6"
+      className="max-w-5xl mx-auto space-y-4 sm:space-y-6"
     >
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/25">
-            <Settings2 className="w-7 h-7 text-white" />
+      <div className="flex flex-col sm:flex-row  items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/25">
+            <Settings2 className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-neutral-900">Configuración</h1>
-            <p className="text-neutral-500">Administra tu iglesia y preferencias</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-neutral-900">Configuración</h1>
+            <p className="text-sm sm:text-base text-neutral-500 hidden sm:block">Administra tu iglesia y preferencias</p>
           </div>
         </div>
         
@@ -641,14 +641,14 @@ const SettingsPage = () => {
             className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full"
           >
             <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-            <span className="text-sm text-amber-700 font-medium">Cambios sin guardar</span>
+            <span className="text-xs sm:text-sm text-amber-700 font-medium">Cambios sin guardar</span>
           </motion.div>
         )}
       </div>
 
       {/* Tabs Navigation */}
-      <div className="bg-neutral-100/80 p-1.5 rounded-2xl">
-        <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+      <div className="bg-neutral-100/80 p-1 sm:p-1.5 rounded-2xl overflow-hidden">
+        <div className="flex gap-0.5 sm:gap-1 overflow-x-auto scrollbar-hide pb-1 -mb-1">
           {TABS.map((tab) => {
             const Icon = tab.icon
             const isActive = activeTab === tab.id
@@ -658,7 +658,7 @@ const SettingsPage = () => {
                 onClick={() => setActiveTab(tab.id)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`relative flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
+                className={`relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                   isActive
                     ? 'text-primary-700'
                     : 'text-neutral-500 hover:text-neutral-700'
@@ -671,9 +671,10 @@ const SettingsPage = () => {
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                   />
                 )}
-                <span className="relative z-10 flex items-center gap-2">
-                  <Icon className="w-4 h-4" />
-                  {tab.label}
+                <span className="relative z-10 flex items-center gap-1.5 sm:gap-2">
+                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
                 </span>
               </motion.button>
             )

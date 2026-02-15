@@ -160,22 +160,22 @@ const DashboardPage = () => {
       className="space-y-6"
     >
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", bounce: 0.5, duration: 0.6 }}
-            className="w-14 h-14 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/30"
+            className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/30"
           >
-            <BarChart3 className="w-7 h-7 text-white" />
+            <BarChart3 className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
           </motion.div>
           <div>
             <motion.h1 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-2xl font-bold text-neutral-900"
+              className="text-xl sm:text-2xl font-bold text-neutral-900"
             >
               Dashboard
             </motion.h1>
@@ -183,7 +183,7 @@ const DashboardPage = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.15 }}
-              className="text-neutral-500"
+              className="text-sm sm:text-base text-neutral-500 hidden sm:block"
             >
               Bienvenido, aquí está el resumen de tu iglesia
             </motion.p>
@@ -201,7 +201,7 @@ const DashboardPage = () => {
       </div>
 
       {/* Tarjetas de Estadísticas */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Personas"
           value={stats.totalPersons}
@@ -241,13 +241,13 @@ const DashboardPage = () => {
       </div>
 
       {/* Gráficos: Tendencia + Distribución */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-3">
         {/* Tendencia Mensual - Ocupa 2 columnas */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="lg:col-span-2"
+          className="md:col-span-2"
         >
           <Card className="border-0 shadow-sm">
             <CardHeader className="pb-2">
@@ -261,7 +261,7 @@ const DashboardPage = () => {
             </CardHeader>
             <CardContent>
               {hasMonthlyData ? (
-                <ResponsiveContainer width="100%" height={280}>
+                <ResponsiveContainer width="100%" height={250} className="sm:h-[280px]">
                   <AreaChart data={stats.monthlyTrend}>
                     <defs>
                       <linearGradient id="colorPart" x1="0" y1="0" x2="0" y2="1">
@@ -384,7 +384,7 @@ const DashboardPage = () => {
       </div>
 
       {/* Top Participantes + Actividad Reciente */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
         {/* Top Participantes */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

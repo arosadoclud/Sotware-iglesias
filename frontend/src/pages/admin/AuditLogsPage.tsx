@@ -234,66 +234,67 @@ const AuditLogsPage = () => {
   // ── Render ──────────────────────────────────────────────────────────────────
   
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-700 rounded-xl flex items-center justify-center shadow-lg">
-            <Shield className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-violet-500 to-purple-700 rounded-xl flex items-center justify-center shadow-lg">
+            <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-neutral-900">Auditoría del Sistema</h1>
-            <p className="text-neutral-500">Historial de acciones y cambios</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-neutral-900">Auditoría del Sistema</h1>
+            <p className="text-xs sm:text-sm text-neutral-500 hidden sm:block">Historial de acciones y cambios</p>
           </div>
         </div>
-        <Button variant="outline" onClick={() => { loadLogs(); loadStats() }} className="gap-2">
+        <Button variant="outline" onClick={() => { loadLogs(); loadStats() }} className="gap-2 w-full sm:w-auto" size="sm">
           <RefreshCw className="w-4 h-4" />
-          Actualizar
+          <span className="hidden sm:inline">Actualizar</span>
+          <span className="sm:hidden">Refresh</span>
         </Button>
       </div>
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Activity className="w-5 h-5 text-blue-600" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-neutral-900">{stats.total}</p>
-                  <p className="text-xs text-neutral-500">Eventos (30 días)</p>
+                  <p className="text-lg sm:text-2xl font-bold text-neutral-900">{stats.total}</p>
+                  <p className="text-[10px] sm:text-xs text-neutral-500">Eventos (30 días)</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <User className="w-5 h-5 text-green-600" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-neutral-900">{stats.byUser.length}</p>
-                  <p className="text-xs text-neutral-500">Usuarios activos</p>
+                  <p className="text-lg sm:text-2xl font-bold text-neutral-900">{stats.byUser.length}</p>
+                  <p className="text-[10px] sm:text-xs text-neutral-500">Usuarios activos</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-amber-600" />
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-neutral-900">
+                  <p className="text-lg sm:text-2xl font-bold text-neutral-900">
                     {Math.round(stats.total / 30)}
                   </p>
-                  <p className="text-xs text-neutral-500">Promedio/día</p>
+                  <p className="text-[10px] sm:text-xs text-neutral-500">Promedio/día</p>
                 </div>
               </div>
             </CardContent>

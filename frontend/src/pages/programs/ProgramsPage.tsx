@@ -203,8 +203,8 @@ const ProgramsPage = () => {
             </div>
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Programas</h1>
-            <p className="text-gray-500 text-sm">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Programas</h1>
+            <p className="text-gray-500 text-xs sm:text-sm">
               {total} programa{total !== 1 ? 's' : ''} en total
               {filterStatus && (
                 <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
@@ -222,17 +222,18 @@ const ProgramsPage = () => {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleDownloadAllPdf}
                 disabled={downloadingAllPdf}
-                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {downloadingAllPdf ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Descargando...
+                    <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                    <span className="hidden sm:inline">Descargando...</span>
                   </>
                 ) : (
                   <>
-                    <Download className="w-4 h-4" />
-                    {selectedIds.size > 0 ? `Descargar (${selectedIds.size})` : 'Descargar PDFs'}
+                    <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">{selectedIds.size > 0 ? `Descargar (${selectedIds.size})` : 'Descargar PDFs'}</span>
+                    <span className="sm:hidden">PDF</span>
                   </>
                 )}
               </motion.button>
@@ -241,17 +242,18 @@ const ProgramsPage = () => {
                 whileTap={{ scale: 0.98 }}
                 onClick={handlePublishAll}
                 disabled={publishingAll}
-                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {publishingAll ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Publicando...
+                    <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                    <span className="hidden sm:inline">Publicando...</span>
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4" />
-                    Publicar Todos
+                    <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="hidden lg:inline">Publicar Todos</span>
+                    <span className="lg:hidden">Publicar</span>
                   </>
                 )}
               </motion.button>
@@ -260,17 +262,18 @@ const ProgramsPage = () => {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleDeleteAll}
                 disabled={deletingAll}
-                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {deletingAll ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Eliminando...
+                    <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                    <span className="hidden sm:inline">Eliminando...</span>
                   </>
                 ) : (
                   <>
-                    <Trash2 className="w-4 h-4" />
-                    Eliminar Todos
+                    <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="hidden lg:inline">Eliminar Todos</span>
+                    <span className="lg:hidden">Eliminar</span>
                   </>
                 )}
               </motion.button>
@@ -280,22 +283,24 @@ const ProgramsPage = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <Link to="/programs/generate" className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg">
-              <Sparkles className="w-4 h-4" /> Generar Programa
+            <Link to="/programs/generate" className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg">
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Generar Programa</span>
+              <span className="sm:hidden">Generar</span>
             </Link>
           </motion.div>
         </div>
       </div>
 
       {/* Filters mejorados */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-1.5 sm:gap-2 flex-wrap overflow-x-auto pb-2 -mb-2">
         {[['', 'Todos'], ['DRAFT','Borrador'], ['PUBLISHED','Publicado'], ['COMPLETED','Completado'], ['CANCELLED','Cancelado']].map(([val, lbl]) => (
           <motion.button
             key={val}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => { setFilterStatus(val); setPage(1) }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all border whitespace-nowrap ${
               filterStatus === val
                 ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white border-transparent shadow-md shadow-primary-500/25'
                 : 'bg-white text-gray-600 border-gray-200 hover:border-primary-200 hover:bg-primary-50/50'
@@ -336,8 +341,9 @@ const ProgramsPage = () => {
           transition={{ delay: 0.1, type: "spring", bounce: 0.2 }}
           className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"
         >
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <div className="inline-block min-w-full align-middle">
+              <table className="min-w-full w-full">
               <thead>
                 <tr className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100/50">
                   <th className="py-3.5 px-3 w-10">

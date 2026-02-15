@@ -988,9 +988,31 @@ const SCOPED_CSS = `
     animation: pulse 1.5s infinite; flex-shrink: 0;
   }
 
+  /* Responsive Styles */
+  @media (max-width: 1280px) {
+    .fe-workspace { grid-template-columns: 340px 1fr !important; gap: 1.5rem !important; }
+  }
+
+  @media (max-width: 1024px) {
+    .fe-workspace { grid-template-columns: 300px 1fr !important; gap: 1rem !important; padding: 1.5rem 1rem !important; }
+    .fe-topbar-brand { font-size: 1rem !important; }
+  }
+
   @media (max-width: 900px) {
     .fe-workspace { grid-template-columns: 1fr !important; }
     .fe-panel { position: static !important; }
+    .fe-topbar-brand { display: none !important; }
+  }
+
+  @media (max-width: 640px) {
+    .fe-page { font-size: 14px; }
+    .fe-topbar { padding: 0 1rem !important; }
+    .fe-topbar-back-btn { font-size: 0.75rem !important; padding: 5px 10px !important; }
+    .fe-topbar-badge { font-size: 0.6rem !important; padding: 2px 8px !important; }
+    .fe-topbar-save-btn { font-size: 0.7rem !important; padding: 6px 12px !important; }
+    .fe-live-badge { font-size: 0.6rem !important; }
+    .fe-workspace { padding: 1rem !important; }
+    .fe-panel-body { padding: 1rem !important; }
   }
 `
 
