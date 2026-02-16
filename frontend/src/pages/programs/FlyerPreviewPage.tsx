@@ -681,13 +681,273 @@ const FlyerPreviewPage = () => {
         {/* ══════════════════════ WORKSPACE ══════════════════════ */}
         <div className="fe-workspace" style={styles.workspace}>
 
-          {/* ─── LEFT PANEL: EDITOR ─── */}
-          <div 
-            className="fe-panel" 
-            style={{
+          {/* ─── MOBILE: VERTICAL LAYOUT (Preview + Config) ─── */}
+          <div className="fe-mobile-vertical">
+            {/* Preview superior */}
+            <div style={{
+              ...styles.previewWrapper,
+              marginBottom: '1rem'
+            }}>
+              {/* Label */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={styles.previewLabel}>
+                  Vista previa del flyer
+                  <span style={styles.previewLabelLine} />
+                </span>
+                <div style={styles.liveBadge}>
+                  <div className="fe-live-dot" />
+                  Se actualiza en tiempo real
+                </div>
+              </div>
+
+              {/* ══════════ FLYER ══════════ */}
+              <div style={styles.flyerContainer}>
+
+                {/* ── HEADER ── */}
+                <div style={styles.flyerHeader}>
+                  <div style={styles.flyerHeaderCircle1} />
+                  <div style={styles.flyerHeaderCircle2} />
+
+                  <div style={styles.headerInner}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 8 }}>
+                      <div style={{ ...styles.flyerChurchName, textAlign: 'center', marginBottom: 6 }}>{form.churchName || 'Iglesia'}</div>
+                      {form.churchSub && <div style={{ ...styles.flyerChurchSub, textAlign: 'center' }}>{form.churchSub}</div>}
+                      {form.location && <div style={{ ...styles.flyerChurchLoc, textAlign: 'center' }}>{form.location}</div>}
+                    </div>
+                    <div style={{ position: 'relative', flexShrink: 0, width: 60, height: 60 }}>
+                      <img
+                        src={logoSrc}
+                        alt="Logo Iglesia"
+                        style={styles.logoImg}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none'
+                          const fallback = (e.target as HTMLImageElement).nextElementSibling as HTMLElement
+                          if (fallback) fallback.style.display = 'flex'
+                        }}
+                      />
+                      {/* Fallback icon when logo fails to load */}
+                      <div style={{
+                        display: 'none', width: 60, height: 60, background: 'rgba(255,255,255,0.1)',
+                        border: '2px solid rgba(200,168,75,0.5)', borderRadius: 12,
+                        alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem',
+                        backdropFilter: 'blur(4px)', position: 'absolute', top: 0, left: 0,
+                      }}>
+                        ✝
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gold band */}
+                <div style={styles.goldBand} />
+
+                {/* Badge */}
+                <div style={styles.badgeRow}>
+                  <div style={styles.flyerBadge}>{form.worshipType || 'Culto'}</div>
+                </div>
+
+                {/* Date & Time */}
+                <div style={styles.dateRow}>
+                  <div style={styles.flyerDate}>{formatDateES(form.dateInput)}</div>
+                  <div style={styles.flyerTime}>{formatTimeES(form.timeInput, form.ampm)}</div>
+                </div>
+
+                {/* Ornament */}
+                <div style={styles.ornament}>
+                  <div style={styles.ornamentLine} />
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {[0.7, 1, 0.7].map((op, idx) => (
+                      <span key={idx} style={{ ...styles.diamond, opacity: op }} />
+                    ))}
+                  </div>
+                  <div style={styles.ornamentLine} />
+                </div>
+
+                {/* Section title */}
+                <div style={styles.flyerSectionTitle}>Orden del Culto</div>
+
+                {/* Program table */}
+                <div style={styles.flyerTable}>
+                  {assignments.map((a, i) => (
+                    <div key={`prev-${a.id}-${i}`} style={{
+                      ...styles.flyerRow,
+                      background: i % 2 === 0 ? C.gray100 : C.white,
+                      border: i % 2 === 1 ? `1px solid ${C.gray100}` : 'none',
+                    }}>
+                      <div style={styles.flyerRowNum}>{String(a.id).padStart(2, '0')}</div>
+                      <div style={styles.flyerRowRole}>{a.name}</div>
+                      {a.person ? (
+                        <div style={styles.flyerRowPerson}>{a.person}</div>
+                      ) : (
+                        <div style={styles.flyerRowEmpty}>— — — — — — —</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Verse */}
+                {form.verse && (
+                  <div style={styles.flyerVerse}>
+                    <p style={styles.flyerVerseText}>{form.verse}</p>
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div style={styles.flyerFooter}>
+                  <span style={styles.flyerFooterText}>
+                    {(form.churchName || 'Iglesia').toUpperCase()}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Panel de configuración inferior */}
+            <div className="fe-panel" style={{
               ...styles.panel,
-              display: activeTab === 'edit' ? 'block' : 'none'
-            }}
+              position: 'static',
+              borderRadius: '12px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+              marginBottom: '1rem'
+            }}>
+              <div style={styles.panelHeader}>
+                <h2 style={styles.panelHeaderTitle}>⚙️ Configuración Manual</h2>
+              </div>
+
+              <div style={styles.panelBody}>
+                {/* Iglesia */}
+                <FormGroup label="Nombre de la iglesia" id="churchName" value={form.churchName} onChange={handleInput} />
+
+                <div style={styles.formRow}>
+                  <FormGroup label="Subtítulo" id="churchSub" value={form.churchSub} onChange={handleInput} />
+                  <FormGroup label="Tipo de culto" id="worshipType" value={form.worshipType} onChange={handleInput} />
+                </div>
+
+                <FormGroup label="Ubicación" id="location" value={form.location} onChange={handleInput} />
+
+                <div style={styles.formRow}>
+                  <FormGroup label="Fecha" id="dateInput" type="date" value={form.dateInput} onChange={handleInput} />
+                  <div style={{ marginBottom: '1rem', flex: 1 }}>
+                    <label htmlFor="timeInput" style={styles.formLabel}>Hora</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <input
+                        type="time"
+                        id="timeInput"
+                        step="60"
+                        value={form.timeInput}
+                        onChange={handleInput}
+                        style={{ ...styles.formInput, flex: 1, marginBottom: 0 }}
+                      />
+                      <select
+                        value={form.ampm || 'AM'}
+                        onChange={e => setForm(prev => ({ ...prev, ampm: e.target.value }))}
+                        style={{
+                          ...styles.formInput,
+                          width: 62,
+                          padding: '9px 6px',
+                          marginBottom: 0,
+                          fontWeight: 600,
+                          color: C.navy,
+                          textAlign: 'center' as const,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <FormGroup label="Versículo (footer)" id="verse" value={form.verse} onChange={handleInput} />
+
+                {/* Sección Asignaciones */}
+                <div style={styles.sectionTitle}>
+                  <span>Asignaciones del programa</span>
+                  <button className="fe-btn-randomize" onClick={randomizeAll} style={styles.randomizeBtn}>
+                    🎲 Asignar al azar
+                  </button>
+                </div>
+
+                {/* Rows */}
+                <div>
+                  {assignments.map((a, i) => (
+                    <div
+                      key={`a-${a.id}-${i}`}
+                      className="fe-assignment-row"
+                      style={{
+                        ...styles.assignmentRow,
+                        borderBottom: i < assignments.length - 1 ? `1px solid ${C.gray100}` : 'none',
+                      }}
+                    >
+                      <div style={styles.roleBadge}>
+                        {String(a.id).padStart(2, '0')}
+                      </div>
+                      <div style={styles.roleLabel} title={a.name}>{a.name}</div>
+                      <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+                        <input
+                          ref={(el) => { inputRefs.current[i] = el }}
+                          type="text"
+                          className={`fe-name-input${a.personId ? ' assigned' : ''}`}
+                          placeholder="Sin asignar"
+                          value={a.person}
+                          onChange={(e) => handleAssignmentInput(i, e.target.value)}
+                          onBlur={() => setTimeout(() => confirmAssignment(i), 150)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') { e.preventDefault(); confirmAssignment(i) }
+                            if (e.key === 'Escape') { setSuggestions([]); setActiveSuggestionIdx(null) }
+                          }}
+                          autoComplete="off"
+                          style={styles.nameInput}
+                        />
+                        {activeSuggestionIdx === i && suggestions.length > 0 && (
+                          <div ref={suggestionsRef} style={styles.suggestionsDropdown}>
+                            {suggestions.map((s) => (
+                              <div
+                                key={s.id}
+                                className="fe-suggestion-item"
+                                style={styles.suggestionItem}
+                                onMouseDown={(e) => { e.preventDefault(); selectSuggestion(i, s) }}
+                              >
+                                {s.fullName}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        className="fe-btn-clear"
+                        onClick={() => clearAssignment(i)}
+                        title="Limpiar"
+                        style={styles.clearBtn}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Actions */}
+                <div style={styles.actions}>
+                  <button className="fe-btn-gold" onClick={handleDownloadPdf} disabled={downloadingPdf || saving} style={{
+                    ...styles.btn, ...styles.btnGold, opacity: (downloadingPdf || saving) ? 0.6 : 1,
+                  }} title="Guardar cambios y descargar PDF">
+                    {downloadingPdf ? '⏳' : '💾⬇️'} Guardar y Descargar PDF
+                  </button>
+                  <button className="fe-btn-outline" onClick={randomizeAll} style={{ ...styles.btn, ...styles.btnOutline }}>
+                    🔀 Reasignar personas
+                  </button>
+                  <button className="fe-btn-outline" onClick={clearAll} style={{ ...styles.btn, ...styles.btnOutline }}>
+                    🗑️ Limpiar todas las asignaciones
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── DESKTOP: TWO-PANEL LAYOUT ─── */}
+          <div 
+            className="fe-panel fe-desktop-only" 
+            style={styles.panel}
           >
             <div style={styles.panelHeader}>
               <h2 style={styles.panelHeaderTitle}>⚙️ Configuración</h2>
@@ -823,12 +1083,144 @@ const FlyerPreviewPage = () => {
             </div>
           </div>
 
-          {/* ─── RIGHT PANEL: FLYER PREVIEW ─── */}
+            <div style={styles.panelHeader}>
+              <h2 style={styles.panelHeaderTitle}>⚙️ Configuración</h2>
+            </div>
+
+            <div style={styles.panelBody}>
+              {/* Iglesia */}
+              <FormGroup label="Nombre de la iglesia" id="churchName" value={form.churchName} onChange={handleInput} />
+
+              <div style={styles.formRow}>
+                <FormGroup label="Subtítulo" id="churchSub" value={form.churchSub} onChange={handleInput} />
+                <FormGroup label="Tipo de culto" id="worshipType" value={form.worshipType} onChange={handleInput} />
+              </div>
+
+              <FormGroup label="Ubicación" id="location" value={form.location} onChange={handleInput} />
+
+              <div style={styles.formRow}>
+                <FormGroup label="Fecha" id="dateInput" type="date" value={form.dateInput} onChange={handleInput} />
+                <div style={{ marginBottom: '1rem', flex: 1 }}>
+                  <label htmlFor="timeInput" style={styles.formLabel}>Hora</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input
+                      type="time"
+                      id="timeInput"
+                      step="60"
+                      value={form.timeInput}
+                      onChange={handleInput}
+                      style={{ ...styles.formInput, flex: 1, marginBottom: 0 }}
+                    />
+                    <select
+                      value={form.ampm || 'AM'}
+                      onChange={e => setForm(prev => ({ ...prev, ampm: e.target.value }))}
+                      style={{
+                        ...styles.formInput,
+                        width: 62,
+                        padding: '9px 6px',
+                        marginBottom: 0,
+                        fontWeight: 600,
+                        color: C.navy,
+                        textAlign: 'center' as const,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <FormGroup label="Versículo (footer)" id="verse" value={form.verse} onChange={handleInput} />
+
+              {/* Sección Asignaciones */}
+              <div style={styles.sectionTitle}>
+                <span>Asignaciones del programa</span>
+                <button className="fe-btn-randomize" onClick={randomizeAll} style={styles.randomizeBtn}>
+                  🎲 Asignar al azar
+                </button>
+              </div>
+
+              {/* Rows */}
+              <div>
+                {assignments.map((a, i) => (
+                  <div
+                    key={`a-${a.id}-${i}`}
+                    className="fe-assignment-row"
+                    style={{
+                      ...styles.assignmentRow,
+                      borderBottom: i < assignments.length - 1 ? `1px solid ${C.gray100}` : 'none',
+                    }}
+                  >
+                    <div style={styles.roleBadge}>
+                      {String(a.id).padStart(2, '0')}
+                    </div>
+                    <div style={styles.roleLabel} title={a.name}>{a.name}</div>
+                    <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+                      <input
+                        ref={(el) => { inputRefs.current[i] = el }}
+                        type="text"
+                        className={`fe-name-input${a.personId ? ' assigned' : ''}`}
+                        placeholder="Sin asignar"
+                        value={a.person}
+                        onChange={(e) => handleAssignmentInput(i, e.target.value)}
+                        onBlur={() => setTimeout(() => confirmAssignment(i), 150)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') { e.preventDefault(); confirmAssignment(i) }
+                          if (e.key === 'Escape') { setSuggestions([]); setActiveSuggestionIdx(null) }
+                        }}
+                        autoComplete="off"
+                        style={styles.nameInput}
+                      />
+                      {activeSuggestionIdx === i && suggestions.length > 0 && (
+                        <div ref={suggestionsRef} style={styles.suggestionsDropdown}>
+                          {suggestions.map((s) => (
+                            <div
+                              key={s.id}
+                              className="fe-suggestion-item"
+                              style={styles.suggestionItem}
+                              onMouseDown={(e) => { e.preventDefault(); selectSuggestion(i, s) }}
+                            >
+                              {s.fullName}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      className="fe-btn-clear"
+                      onClick={() => clearAssignment(i)}
+                      title="Limpiar"
+                      style={styles.clearBtn}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div style={styles.actions}>
+                <button className="fe-btn-gold" onClick={handleDownloadPdf} disabled={downloadingPdf || saving} style={{
+                  ...styles.btn, ...styles.btnGold, opacity: (downloadingPdf || saving) ? 0.6 : 1,
+                }} title="Guardar cambios y descargar PDF">
+                  {downloadingPdf ? '⏳' : '💾⬇️'} Guardar y Descargar PDF
+                </button>
+                <button className="fe-btn-outline" onClick={randomizeAll} style={{ ...styles.btn, ...styles.btnOutline }}>
+                  🔀 Reasignar personas
+                </button>
+                <button className="fe-btn-outline" onClick={clearAll} style={{ ...styles.btn, ...styles.btnOutline }}>
+                  🗑️ Limpiar todas las asignaciones
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── DESKTOP: RIGHT PANEL - FLYER PREVIEW ─── */}
           <div 
-            style={{
-              ...styles.previewWrapper,
-              display: activeTab === 'preview' ? 'block' : 'none'
-            }}
+            className="fe-desktop-only"
+            style={styles.previewWrapper}
           >
             {/* Label */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -1026,6 +1418,8 @@ const SCOPED_CSS = `
 
   /* Mobile Tab Styles */
   .fe-mobile-tabs { display: none; }
+  .fe-mobile-vertical { display: none; }
+  .fe-desktop-only { display: block; }
   
   .fe-tab {
     background: transparent;
@@ -1051,17 +1445,11 @@ const SCOPED_CSS = `
   }
 
   @media (max-width: 900px) {
-    .fe-mobile-tabs { display: flex !important; }
-    .fe-workspace { grid-template-columns: 1fr !important; gap: 0 !important; padding: 0 !important; }
-    .fe-panel { 
-      position: static !important; 
-      border-radius: 0 !important;
-      box-shadow: none !important;
-      border-top: 1px solid #e5e7eb !important;
-    }
+    .fe-mobile-tabs { display: none !important; }
+    .fe-mobile-vertical { display: block !important; }
+    .fe-desktop-only { display: none !important; }
+    .fe-workspace { display: block !important; padding: 1rem !important; }
     .fe-topbar-brand { display: none !important; }
-    .fe-flyer-container { max-width: none !important; }
-    .fe-preview-wrapper { padding: 1rem !important; }
   }
 
   @media (max-width: 640px) {
@@ -1081,12 +1469,11 @@ const SCOPED_CSS = `
     .fe-role-badge { width: 32px !important; height: 32px !important; }
     .fe-clear-btn { width: 32px !important; height: 32px !important; }
     
-    /* Preview optimizado */
-    .fe-flyer-container { 
-      margin: 0 -1rem !important;
-      border-radius: 0 !important;
-      box-shadow: none !important;
-      border: 1px solid #e5e7eb !important;
+    /* Mobile vertical layout */
+    .fe-mobile-vertical .fe-flyer-container { 
+      margin: 0 !important;
+      border-radius: 8px !important;
+      max-width: none !important;
     }
   }
 `
