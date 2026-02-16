@@ -1,8 +1,18 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 
 // Cargar variables de entorno
-dotenv.config({ path: path.join(__dirname, '../../.env') });
+// Prioridad: .env.local > .env
+const envLocalPath = path.join(__dirname, '../../.env.local');
+const envPath = path.join(__dirname, '../../.env');
+
+if (fs.existsSync(envLocalPath)) {
+  console.log('🔧 Cargando configuración de .env.local (desarrollo local)');
+  dotenv.config({ path: envLocalPath });
+} else {
+  dotenv.config({ path: envPath });
+}
 
 interface EnvConfig {
   // Server

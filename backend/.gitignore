@@ -1,0 +1,27 @@
+# Environment variables
+.env.local
+.env.*.local
+
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
+
+# Uploads y archivos generados
+public/flyers/*.pdf
+public/uploads/
+uploads/
