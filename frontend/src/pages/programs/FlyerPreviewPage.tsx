@@ -128,7 +128,7 @@ const FlyerPreviewPage = () => {
   const [peoplePool, setPeoplePool] = useState<PersonOption[]>([])
   const [saving, setSaving] = useState(false)
   const [downloadingPdf, setDownloadingPdf] = useState(false)
-  const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit')
+  const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('preview')
 
   // Suggestions
   const [activeSuggestionIdx, setActiveSuggestionIdx] = useState<number | null>(null)
@@ -657,16 +657,6 @@ const FlyerPreviewPage = () => {
         {/* ══════════════════════ MOBILE TABS ══════════════════════ */}
         <div className="fe-mobile-tabs" style={styles.mobileTabs}>
           <button 
-            className={`fe-tab ${activeTab === 'edit' ? 'active' : ''}`}
-            onClick={() => setActiveTab('edit')}
-            style={{
-              ...styles.mobileTab,
-              ...(activeTab === 'edit' ? styles.mobileTabActive : {})
-            }}
-          >
-            ⚙️ Configuración
-          </button>
-          <button 
             className={`fe-tab ${activeTab === 'preview' ? 'active' : ''}`}
             onClick={() => setActiveTab('preview')}
             style={{
@@ -675,6 +665,16 @@ const FlyerPreviewPage = () => {
             }}
           >
             👁️ Vista Previa
+          </button>
+          <button 
+            className={`fe-tab ${activeTab === 'edit' ? 'active' : ''}`}
+            onClick={() => setActiveTab('edit')}
+            style={{
+              ...styles.mobileTab,
+              ...(activeTab === 'edit' ? styles.mobileTabActive : {})
+            }}
+          >
+            ⚙️ Configuración
           </button>
         </div>
 

@@ -355,7 +355,7 @@ const ProgramsPage = () => {
                     type="checkbox"
                     checked={selectedIds.size === programs.length && programs.length > 0}
                     onChange={toggleSelectAll}
-                    className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
                   <span className="text-sm font-medium text-gray-700">
                     Seleccionar todos ({programs.length})
@@ -385,7 +385,7 @@ const ProgramsPage = () => {
                         type="checkbox"
                         checked={selectedIds.has(prog._id)}
                         onChange={() => toggleSelect(prog._id)}
-                        className="w-4 h-4 mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500 flex-shrink-0"
+                        className="w-3.5 h-3.5 mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500 flex-shrink-0"
                       />
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${sc.style}`}>
                         <StatusIcon className="w-3 h-3" />
@@ -490,7 +490,7 @@ const ProgramsPage = () => {
                       type="checkbox"
                       checked={selectedIds.size === programs.length && programs.length > 0}
                       onChange={toggleSelectAll}
-                      className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                      className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
                       title="Seleccionar todos"
                     />
                   </th>
@@ -521,7 +521,7 @@ const ProgramsPage = () => {
                           type="checkbox"
                           checked={selectedIds.has(prog._id)}
                           onChange={() => toggleSelect(prog._id)}
-                          className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                          className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
                         />
                       </td>
                       <td className="py-3.5 px-4">
