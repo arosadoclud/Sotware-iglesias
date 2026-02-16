@@ -3,6 +3,9 @@ import { useAuthStore } from '../store/authStore'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1'
 
+// Exportar la URL base del backend (sin /api/v1) para acceder a archivos estáticos
+export const BACKEND_URL = API_URL.replace('/api/v1', '')
+
 export const api = axios.create({
   baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },

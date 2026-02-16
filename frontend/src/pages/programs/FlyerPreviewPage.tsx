@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useDebounce } from 'use-debounce'
 import { useParams, useNavigate } from 'react-router-dom'
-import { programsApi, personsApi } from '../../lib/api'
+import { programsApi, personsApi, BACKEND_URL } from '../../lib/api'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
@@ -573,9 +573,12 @@ const FlyerPreviewPage = () => {
   const logoSrc = useMemo(
     () => {
       // Si hay logoUrl en el form, úsalo (puede venir como "/uploads/file.png" o solo "file.png")
-      if (form.logoUrl) return form.logoUrl.startsWith('/') ? form.logoUrl : `/uploads/${form.logoUrl}`
-      // Si existe logo.png en uploads, úsalo
-      return '/uploads/logo.png'
+      if (form.logoUrl) {
+        const logoPath = form.logoUrl.startsWith('/') ? form.logoUrl : `/uploads/${form.logoUrl}`
+        return `${BACKEND_URL}${logoPath}`
+      }
+      // Si existe logo.png en uploads, úsalo desde el backend
+      return `${BACKEND_URL}/uploads/logo.png`
     },
     [form.logoUrl]
   )
