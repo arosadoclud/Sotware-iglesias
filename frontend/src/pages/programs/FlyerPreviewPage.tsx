@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { programsApi, personsApi } from '../../lib/api'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
+import { jsPDF } from 'jspdf'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -28,7 +29,6 @@ interface FlyerForm {
   worshipTypeId: string
   dateInput: string
   timeInput: string
-  ampm?: string
   verse: string
   logoUrl: string
 }
@@ -41,7 +41,6 @@ const INITIAL_FORM: FlyerForm = {
   worshipTypeId: '',
   dateInput: '',
   timeInput: '',
-  ampm: 'AM',
   verse: '',
   logoUrl: '',
 }
@@ -57,7 +56,6 @@ function buildUpdatePayload(form: FlyerForm, assignments: Assignment[]) {
     activityType: { id: form.worshipTypeId, name: form.worshipType },
     programDate: form.dateInput,
     defaultTime: form.timeInput,
-    ampm: form.ampm,
     verse: form.verse,
     assignments: assignments.map((a) => ({
       sectionOrder: a.id,
@@ -86,15 +84,18 @@ function formatDateES(dateStr: string): string {
   return formatted.charAt(0).toUpperCase() + formatted.slice(1)
 }
 
-function formatTimeES(timeStr: string, ampm?: string): string {
+function formatTimeES(timeStr: string): string {
   if (!timeStr) return ''
-  // Soporta HH:mm o HH:mm:ss
+  // Normalizar a HH:MM (sin segundos) y convertir a formato 12h
   const parts = timeStr.split(':')
-  let h = parseInt(parts[0])
-  let m = parts[1] || '00'
-  const displayAmpm = ampm || 'AM'
+  const h = parseInt(parts[0], 10)
+  const m = (parts[1] || '00').padStart(2, '0')
+  
+  // Determinar AM/PM basado en la hora (0-23)
+  const calculatedAmpm = h >= 12 ? 'PM' : 'AM'
   const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h
-  return `${h12}:${m.padStart(2, '0')} ${displayAmpm}`
+  
+  return `${h12}:${m} ${calculatedAmpm}`
 }
 
 // ─── Inject Google Fonts ─────────────────────────────────────────────────────
@@ -162,7 +163,7 @@ const FlyerPreviewPage = () => {
       try {
         const [progRes, peopleRes] = await Promise.all([
           programsApi.get(id as string),
-          personsApi.getAll({ status: 'active' }),
+          personsApi.getAll(), // Traer todas las personas sin filtro de status
         ])
         if (cancelled) return
 
@@ -175,7 +176,6 @@ const FlyerPreviewPage = () => {
           worshipTypeId: prog.activityType?.id || '',
           dateInput: prog.programDate ? prog.programDate.slice(0, 10) : '',
           timeInput: prog.defaultTime || '',
-          ampm: prog.ampm || 'AM',
           verse: prog.verse || '',
           logoUrl: prog.church?.logoUrl || '',
         })
@@ -206,12 +206,16 @@ const FlyerPreviewPage = () => {
         }
 
         setAssignments(asigs)
-        setPeoplePool(
-          (peopleRes.data.data || []).map((p: any) => ({
-            id: p._id || p.id,
-            fullName: p.fullName,
-          }))
-        )
+        
+        const peopleData = (peopleRes.data.data || []).map((p: any) => ({
+          id: p._id || p.id,
+          fullName: p.fullName,
+        }))
+        
+        console.log('📊 Personas cargadas desde API:', peopleData.length)
+        console.log('👥 Lista de personas:', peopleData)
+        
+        setPeoplePool(peopleData)
       } catch (err) {
         if (!cancelled) {
           console.error('Error cargando datos del flyer:', err)
@@ -248,7 +252,26 @@ const FlyerPreviewPage = () => {
 
   const handleInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { id: fieldId, value } = e.target
-    setForm((prev) => ({ ...prev, [fieldId]: value }))
+    
+    // Si es el campo de hora, formatear automáticamente mientras escribe
+    if (fieldId === 'timeInput') {
+      // Permitir solo dígitos
+      let cleaned = value.replace(/[^0-9]/g, '')
+      
+      // Auto-formatear: agregar ':' después de 2 dígitos
+      if (cleaned.length >= 2) {
+        cleaned = cleaned.slice(0, 2) + ':' + cleaned.slice(2, 4)
+      }
+      
+      // Limitar a 5 caracteres (HH:MM)
+      if (cleaned.length > 5) {
+        cleaned = cleaned.slice(0, 5)
+      }
+      
+      setForm((prev) => ({ ...prev, [fieldId]: cleaned }))
+    } else {
+      setForm((prev) => ({ ...prev, [fieldId]: value }))
+    }
   }, [])
 
   const handleAssignmentInput = useCallback(async (idx: number, value: string) => {
@@ -408,25 +431,26 @@ const FlyerPreviewPage = () => {
       toast.error('No hay personas disponibles para asignar')
       return
     }
+    
+    // Mezclar personas aleatoriamente (algoritmo Fisher-Yates)
     const shuffled = [...peoplePool]
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
       ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
     }
+    
     setAssignments((prev) =>
       prev.map((row, i) => {
-        if (i < shuffled.length) {
-          return { ...row, person: shuffled[i].fullName, personId: shuffled[i].id }
-        }
-        return { ...row, person: '', personId: '' }
+        // Si hay suficientes personas, no repetir. Si no, usar módulo para repetir.
+        const personIndex = i < shuffled.length ? i : i % shuffled.length
+        return { ...row, person: shuffled[personIndex].fullName, personId: shuffled[personIndex].id }
       })
     )
+    
     if (peoplePool.length < assignments.length) {
-      toast.warning(
-        `Solo hay ${peoplePool.length} personas para ${assignments.length} roles.`
-      )
+      toast.success(`🎲 Personas asignadas (algunas repetidas por falta de personas)`)
     } else {
-      toast.success('Personas asignadas al azar')
+      toast.success('🎲 Personas asignadas al azar')
     }
   }, [peoplePool, assignments.length])
 
@@ -480,7 +504,6 @@ const FlyerPreviewPage = () => {
         worshipTypeId: prog.activityType?.id || form.worshipTypeId,
         dateInput: prog.programDate ? prog.programDate.slice(0, 10) : form.dateInput,
         timeInput: prog.defaultTime || form.timeInput,
-        ampm: prog.ampm || form.ampm,
         verse: prog.verse || form.verse,
         logoUrl: prog.logoUrl || form.logoUrl,
       })
@@ -568,6 +591,212 @@ const FlyerPreviewPage = () => {
       setDownloadingPdf(false)
     }
   }, [id, form, assignments, footerSummary, validateRequired])
+
+  // ─── Export PDF Local con jsPDF (Alternativa sin backend) ────────────────
+
+  const exportPDFLocal = useCallback(() => {
+    toast.info('⏳ Generando PDF...', { duration: 1500 })
+
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+    const PW = 210, PH = 297
+    const M = 14
+    const CW = PW - M * 2
+
+    // Colores
+    const NAVY = [27, 45, 91] as [number, number, number]
+    const NAVYM = [42, 64, 128] as [number, number, number]
+    const GOLD = [200, 168, 75] as [number, number, number]
+    const GOLDF = [232, 201, 106] as [number, number, number]
+    const GRAY9 = [17, 24, 39] as [number, number, number]
+    const GRAY5 = [107, 114, 128] as [number, number, number]
+    const GRAY3 = [209, 213, 219] as [number, number, number]
+    const GRAY1 = [243, 244, 246] as [number, number, number]
+    const WHITE = [255, 255, 255] as [number, number, number]
+
+    const setFill = (r: number, g: number, b: number) => doc.setFillColor(r, g, b)
+    const setDraw = (r: number, g: number, b: number) => doc.setDrawColor(r, g, b)
+    const setTxt = (r: number, g: number, b: number) => doc.setTextColor(r, g, b)
+    const rect = (x: number, y: number, w: number, h: number, fill = true) => doc.rect(x, y, w, h, fill ? 'F' : 'S')
+    const rrect = (x: number, y: number, w: number, h: number, r: number, fill = true) => doc.roundedRect(x, y, w, h, r, r, fill ? 'F' : 'S')
+
+    const centerText = (text: string, y: number, size: number, bold = false) => {
+      doc.setFontSize(size)
+      doc.setFont('helvetica', bold ? 'bold' : 'normal')
+      const tw = doc.getTextWidth(text)
+      doc.text(text, (PW - tw) / 2, y)
+    }
+
+    let y = 0
+
+    // 1. HEADER
+    const HH = 42
+    setFill(...NAVY)
+    rect(0, 0, PW, HH)
+    setFill(...GOLD)
+    rect(0, HH, PW, 2)
+
+    // Logo placeholder
+    setFill(...NAVYM)
+    doc.circle(M + 8, HH / 2, 8, 'F')
+    setTxt(...GOLDF)
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text('+', M + 8 - 2.5, HH / 2 + 2.5)
+
+    // Nombre iglesia
+    const nx = M + 20
+    setTxt(255, 255, 255)
+    doc.setFontSize(15)
+    doc.setFont('helvetica', 'bold')
+    const cname = form.churchName.toUpperCase()
+    doc.text(cname, nx, HH / 2 - 4)
+
+    setTxt(...GOLDF)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.text(form.churchSub || '', nx, HH / 2 + 3)
+
+    setTxt(150, 170, 210)
+    doc.setFontSize(7.5)
+    doc.setFont('helvetica', 'normal')
+    doc.text(form.location || '', nx, HH / 2 + 9)
+
+    y = HH + 2
+
+    // 2. BADGE TIPO DE CULTO
+    y += 9
+    const wtype = form.worshipType.toUpperCase()
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    setTxt(...NAVY)
+    const bw = doc.getTextWidth(wtype) + 18
+    const bx = (PW - bw) / 2
+    setFill(...GOLD)
+    rrect(bx, y, bw, 9, 4)
+    setTxt(...NAVY)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.text(wtype, (PW - doc.getTextWidth(wtype)) / 2, y + 6.2)
+
+    // 3. FECHA Y HORA
+    y += 14
+    const dateStr = formatDateES(form.dateInput)
+    setTxt(...GRAY9)
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    const dw = doc.getTextWidth(dateStr)
+    doc.text(dateStr, (PW - dw) / 2, y)
+
+    y += 6
+    const timeStr = formatTimeES(form.timeInput)
+    setTxt(...GRAY5)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    const tw2 = doc.getTextWidth(timeStr)
+    doc.text(timeStr, (PW - tw2) / 2, y)
+
+    // 4. SEPARADOR ORNAMENTAL
+    y += 8
+    setDraw(...GRAY3)
+    doc.setLineWidth(0.4)
+    doc.line(M + 10, y, PW / 2 - 10, y)
+    doc.line(PW / 2 + 10, y, PW - M - 10, y)
+    setFill(...GOLD)
+    for (const dx of [-5, 0, 5]) {
+      const cx = PW / 2 + dx
+      doc.setFillColor(...GOLD)
+      doc.rect(cx - 1.5, y - 1.5, 3, 3, 'F')
+    }
+
+    // 5. TÍTULO "ORDEN DEL CULTO"
+    y += 9
+    setTxt(...NAVY)
+    doc.setFontSize(7.5)
+    doc.setFont('helvetica', 'bold')
+    centerText('ORDEN DEL CULTO', y, 7.5, true)
+
+    // 6. FILAS DEL PROGRAMA
+    y += 6
+    const RH = 12.5
+
+    assignments.forEach((a, i) => {
+      const rowY = y + i * (RH + 1.5)
+      const bg = i % 2 === 0 ? GRAY1 : WHITE
+      setFill(...bg)
+      setDraw(...GRAY3)
+      doc.setLineWidth(0.3)
+      rrect(M, rowY, CW, RH, 3)
+
+      // Número
+      setFill(...NAVY)
+      rrect(M + 2, rowY + 2, 7, 8.5, 2)
+      setTxt(255, 255, 255)
+      doc.setFontSize(6.5)
+      doc.setFont('helvetica', 'bold')
+      doc.text(String(a.id).padStart(2, '0'), M + 2.8, rowY + 7.8)
+
+      // Rol
+      setTxt(...NAVY)
+      doc.setFontSize(9)
+      doc.setFont('helvetica', 'bold')
+      doc.text(a.name, M + 12, rowY + 8)
+
+      // Persona o línea
+      if (a.person) {
+        setTxt(...GRAY9)
+        doc.setFontSize(9.5)
+        doc.setFont('helvetica', 'bolditalic')
+        doc.text(a.person, M + CW / 2 + 2, rowY + 8)
+      } else {
+        setDraw(192, 199, 212)
+        doc.setLineWidth(0.4)
+        doc.line(M + CW / 2, rowY + 7.5, M + CW - 4, rowY + 7.5)
+      }
+    })
+
+    y = y + assignments.length * (RH + 1.5) + 6
+
+    // 7. VERSÍCULO
+    setDraw(...GRAY3)
+    doc.setLineWidth(0.4)
+    doc.line(M + 10, y, PW - M - 10, y)
+    y += 7
+    setTxt(...GRAY5)
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'italic')
+    // Texto del versículo (siempre el mismo)
+    const qtext = '"Por tanto, id, y haced discípulos a todas las naciones"'
+    const qtw = doc.getTextWidth(qtext)
+    doc.text(qtext, (PW - qtw) / 2, y)
+    
+    // Cita bíblica (si existe)
+    if (form.verse) {
+      y += 5.5
+      setTxt(...GOLD)
+      doc.setFontSize(7.5)
+      doc.setFont('helvetica', 'bold')
+      const vtw = doc.getTextWidth(form.verse)
+      doc.text(form.verse, (PW - vtw) / 2, y)
+    }
+
+    // 8. FOOTER
+    setFill(...NAVY)
+    rect(0, PH - 14, PW, 14)
+    setFill(...GOLD)
+    rect(0, PH - 14, PW, 1.5)
+    setTxt(255, 255, 255)
+    doc.setFontSize(7.5)
+    doc.setFont('helvetica', 'bold')
+    centerText(cname, PH - 5.5, 7.5, true)
+
+    // GUARDAR
+    const fname = `programa-${form.worshipType.replace(/\s/g, '-')}-${form.dateInput || 'sin-fecha'}.pdf`
+    doc.save(fname)
+    toast.success('✅ PDF descargado exitosamente', {
+      style: { background: '#22C55E', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
+      duration: 2500,
+    })
+  }, [form, assignments])
 
   // Usar logo real de la iglesia si existe
   const logoSrc = useMemo(
@@ -709,11 +938,7 @@ const FlyerPreviewPage = () => {
                   <div style={styles.flyerHeaderCircle2} />
 
                   <div style={styles.headerInner}>
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 8 }}>
-                      <div style={{ ...styles.flyerChurchName, textAlign: 'center', marginBottom: 6 }}>{form.churchName || 'Iglesia'}</div>
-                      {form.churchSub && <div style={{ ...styles.flyerChurchSub, textAlign: 'center' }}>{form.churchSub}</div>}
-                      {form.location && <div style={{ ...styles.flyerChurchLoc, textAlign: 'center' }}>{form.location}</div>}
-                    </div>
+                    {/* Logo a la IZQUIERDA */}
                     <div style={{ position: 'relative', flexShrink: 0, width: 60, height: 60 }}>
                       <img
                         src={logoSrc}
@@ -735,6 +960,12 @@ const FlyerPreviewPage = () => {
                         ✝
                       </div>
                     </div>
+                    {/* Texto a la DERECHA alineado a la izquierda */}
+                    <div style={{ flex: 1 }}>
+                      <div style={styles.flyerChurchName}>{form.churchName || 'Iglesia'}</div>
+                      {form.churchSub && <div style={styles.flyerChurchSub}>{form.churchSub}</div>}
+                      {form.location && <div style={styles.flyerChurchLoc}>{form.location}</div>}
+                    </div>
                   </div>
                 </div>
 
@@ -749,7 +980,7 @@ const FlyerPreviewPage = () => {
                 {/* Date & Time */}
                 <div style={styles.dateRow}>
                   <div style={styles.flyerDate}>{formatDateES(form.dateInput)}</div>
-                  <div style={styles.flyerTime}>{formatTimeES(form.timeInput, form.ampm)}</div>
+                  <div style={styles.flyerTime}>{formatTimeES(form.timeInput)}</div>
                 </div>
 
                 {/* Ornament */}
@@ -788,7 +1019,10 @@ const FlyerPreviewPage = () => {
                 {/* Verse */}
                 {form.verse && (
                   <div style={styles.flyerVerse}>
-                    <p style={styles.flyerVerseText}>{form.verse}</p>
+                    <p style={styles.flyerVerseText}>
+                      "Por tanto, id, y haced discípulos a todas las naciones"
+                    </p>
+                    <cite style={styles.flyerVerseCite}>{form.verse}</cite>
                   </div>
                 )}
 
@@ -826,36 +1060,7 @@ const FlyerPreviewPage = () => {
 
                 <div style={styles.formRow}>
                   <FormGroup label="Fecha" id="dateInput" type="date" value={form.dateInput} onChange={handleInput} />
-                  <div style={{ marginBottom: '1rem', flex: 1 }}>
-                    <label htmlFor="timeInput" style={styles.formLabel}>Hora</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <input
-                        type="time"
-                        id="timeInput"
-                        step="60"
-                        value={form.timeInput}
-                        onChange={handleInput}
-                        style={{ ...styles.formInput, flex: 1, marginBottom: 0 }}
-                      />
-                      <select
-                        value={form.ampm || 'AM'}
-                        onChange={e => setForm(prev => ({ ...prev, ampm: e.target.value }))}
-                        style={{
-                          ...styles.formInput,
-                          width: 62,
-                          padding: '9px 6px',
-                          marginBottom: 0,
-                          fontWeight: 600,
-                          color: C.navy,
-                          textAlign: 'center' as const,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <option value="AM">AM</option>
-                        <option value="PM">PM</option>
-                      </select>
-                    </div>
-                  </div>
+                  <FormGroup label="Hora" id="timeInput" type="text" value={form.timeInput} onChange={handleInput} placeholder="HH:MM" />
                 </div>
 
                 <FormGroup label="Versículo (footer)" id="verse" value={form.verse} onChange={handleInput} />
@@ -928,9 +1133,14 @@ const FlyerPreviewPage = () => {
 
                 {/* Actions */}
                 <div style={styles.actions}>
+                  <button className="fe-btn-gold" onClick={exportPDFLocal} style={{
+                    ...styles.btn, ...styles.btnGold,
+                  }} title="Descargar PDF generado en el navegador (sin guardar)">
+                    ⬇️ Descargar PDF (Vista Previa)
+                  </button>
                   <button className="fe-btn-gold" onClick={handleDownloadPdf} disabled={downloadingPdf || saving} style={{
                     ...styles.btn, ...styles.btnGold, opacity: (downloadingPdf || saving) ? 0.6 : 1,
-                  }} title="Guardar cambios y descargar PDF">
+                  }} title="Guardar cambios y descargar PDF desde el servidor">
                     {downloadingPdf ? '⏳' : '💾⬇️'} Guardar y Descargar PDF
                   </button>
                   <button className="fe-btn-outline" onClick={randomizeAll} style={{ ...styles.btn, ...styles.btnOutline }}>
@@ -967,36 +1177,7 @@ const FlyerPreviewPage = () => {
 
               <div style={styles.formRow}>
                 <FormGroup label="Fecha" id="dateInput" type="date" value={form.dateInput} onChange={handleInput} />
-                <div style={{ marginBottom: '1rem', flex: 1 }}>
-                  <label htmlFor="timeInput" style={styles.formLabel}>Hora</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <input
-                      type="time"
-                      id="timeInput"
-                      step="60"
-                      value={form.timeInput}
-                      onChange={handleInput}
-                      style={{ ...styles.formInput, flex: 1, marginBottom: 0 }}
-                    />
-                    <select
-                      value={form.ampm || 'AM'}
-                      onChange={e => setForm(prev => ({ ...prev, ampm: e.target.value }))}
-                      style={{
-                        ...styles.formInput,
-                        width: 62,
-                        padding: '9px 6px',
-                        marginBottom: 0,
-                        fontWeight: 600,
-                        color: C.navy,
-                        textAlign: 'center' as const,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <option value="AM">AM</option>
-                      <option value="PM">PM</option>
-                    </select>
-                  </div>
-                </div>
+                <FormGroup label="Hora" id="timeInput" type="text" value={form.timeInput} onChange={handleInput} placeholder="HH:MM" />
               </div>
 
               <FormGroup label="Versículo (footer)" id="verse" value={form.verse} onChange={handleInput} />
@@ -1069,6 +1250,11 @@ const FlyerPreviewPage = () => {
 
               {/* Actions */}
               <div style={styles.actions}>
+                <button className="fe-btn-gold" onClick={exportPDFLocal} style={{
+                  ...styles.btn, ...styles.btnGold,
+                }}>
+                  ⬇️ Descargar PDF (Vista Previa)
+                </button>
                 <button className="fe-btn-gold" onClick={handleDownloadPdf} disabled={downloadingPdf || saving} style={{
                   ...styles.btn, ...styles.btnGold, opacity: (downloadingPdf || saving) ? 0.6 : 1,
                 }} title="Guardar cambios y descargar PDF">
@@ -1110,11 +1296,7 @@ const FlyerPreviewPage = () => {
                 <div style={styles.flyerHeaderCircle2} />
 
                 <div style={styles.headerInner}>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 8 }}>
-                    <div style={{ ...styles.flyerChurchName, textAlign: 'center', marginBottom: 6 }}>{form.churchName || 'Iglesia'}</div>
-                    {form.churchSub && <div style={{ ...styles.flyerChurchSub, textAlign: 'center' }}>{form.churchSub}</div>}
-                    {form.location && <div style={{ ...styles.flyerChurchLoc, textAlign: 'center' }}>{form.location}</div>}
-                  </div>
+                  {/* Logo a la IZQUIERDA */}
                   <div style={{ position: 'relative', flexShrink: 0, width: 60, height: 60 }}>
                     <img
                       src={logoSrc}
@@ -1136,6 +1318,12 @@ const FlyerPreviewPage = () => {
                       ✝
                     </div>
                   </div>
+                  {/* Texto a la DERECHA alineado a la izquierda */}
+                  <div style={{ flex: 1 }}>
+                    <div style={styles.flyerChurchName}>{form.churchName || 'Iglesia'}</div>
+                    {form.churchSub && <div style={styles.flyerChurchSub}>{form.churchSub}</div>}
+                    {form.location && <div style={styles.flyerChurchLoc}>{form.location}</div>}
+                  </div>
                 </div>
               </div>
 
@@ -1150,7 +1338,7 @@ const FlyerPreviewPage = () => {
               {/* Date & Time */}
               <div style={styles.dateRow}>
                 <div style={styles.flyerDate}>{formatDateES(form.dateInput)}</div>
-                <div style={styles.flyerTime}>{formatTimeES(form.timeInput, form.ampm)}</div>
+                <div style={styles.flyerTime}>{formatTimeES(form.timeInput)}</div>
               </div>
 
               {/* Ornament */}
@@ -1189,7 +1377,10 @@ const FlyerPreviewPage = () => {
               {/* Verse */}
               {form.verse && (
                 <div style={styles.flyerVerse}>
-                  <p style={styles.flyerVerseText}>{form.verse}</p>
+                  <p style={styles.flyerVerseText}>
+                    "Por tanto, id, y haced discípulos a todas las naciones"
+                  </p>
+                  <cite style={styles.flyerVerseCite}>{form.verse}</cite>
                 </div>
               )}
 
@@ -1210,16 +1401,21 @@ const FlyerPreviewPage = () => {
 // ─── FormGroup ───────────────────────────────────────────────────────────────
 
 function FormGroup({
-  label, id, type = 'text', value, onChange,
+  label, id, type = 'text', value, onChange, placeholder,
 }: {
   label: string; id: string; type?: string; value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
 }) {
   return (
     <div style={{ marginBottom: '1rem' }}>
       <label htmlFor={id} style={styles.formLabel}>{label}</label>
       <input
-        type={type} id={id} value={value} onChange={onChange}
+        type={type}
+        id={id}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
         style={styles.formInput}
       />
     </div>
@@ -1302,39 +1498,45 @@ const SCOPED_CSS = `
   }
 
   /* Responsive Styles */
-  @media (max-width: 1280px) {
+  @media (max-width: 1400px) {
     .fe-workspace { grid-template-columns: 360px 1fr !important; gap: 1.5rem !important; }
   }
 
+  @media (max-width: 1280px) {
+    .fe-workspace { grid-template-columns: 340px 1fr !important; gap: 1.25rem !important; }
+  }
+
   @media (max-width: 1024px) {
-    .fe-workspace { grid-template-columns: 320px 1fr !important; gap: 1rem !important; padding: 1.5rem 1rem !important; }
+    .fe-workspace { grid-template-columns: 320px 1fr !important; gap: 1rem !important; padding: 1rem !important; }
     .fe-topbar-brand { font-size: 1rem !important; }
+    .fe-panel { top: 54px !important; }
   }
 
   @media (max-width: 900px) {
     .fe-mobile-tabs { display: none !important; }
     .fe-mobile-vertical { display: block !important; }
     .fe-desktop-only { display: none !important; }
-    .fe-workspace { display: block !important; padding: 1rem !important; }
+    .fe-workspace { display: block !important; padding: 0.75rem !important; }
+    .fe-topbar { height: 46px !important; }
     .fe-topbar-brand { display: none !important; }
   }
 
   @media (max-width: 640px) {
     .fe-page { font-size: 14px; }
-    .fe-topbar { padding: 0 1rem !important; }
-    .fe-topbar-back-btn { font-size: 0.75rem !important; padding: 5px 10px !important; }
-    .fe-topbar-badge { font-size: 0.6rem !important; padding: 2px 8px !important; }
-    .fe-topbar-save-btn { font-size: 0.7rem !important; padding: 6px 12px !important; }
+    .fe-topbar { padding: 0 0.75rem !important; height: 44px !important; }
+    .fe-topbar-back-btn { font-size: 0.7rem !important; padding: 4px 8px !important; }
+    .fe-topbar-badge { font-size: 0.6rem !important; padding: 2px 6px !important; }
+    .fe-topbar-save-btn { font-size: 0.7rem !important; padding: 5px 10px !important; }
     .fe-live-badge { font-size: 0.6rem !important; }
-    .fe-panel-body { padding: 1rem !important; }
+    .fe-panel-body { padding: 0.75rem !important; }
     
     /* Táctil-friendly inputs */
-    .fe-form-input { min-height: 44px !important; font-size: 16px !important; }
-    .fe-name-input { min-height: 44px !important; font-size: 16px !important; }
-    .fe-btn { min-height: 48px !important; font-size: 1rem !important; }
-    .fe-assignment-row { padding: 12px 0 !important; }
-    .fe-role-badge { width: 32px !important; height: 32px !important; }
-    .fe-clear-btn { width: 32px !important; height: 32px !important; }
+    .fe-form-input { min-height: 40px !important; font-size: 16px !important; }
+    .fe-name-input { min-height: 40px !important; font-size: 16px !important; }
+    .fe-btn { min-height: 44px !important; font-size: 0.9rem !important; }
+    .fe-assignment-row { padding: 10px 0 !important; }
+    .fe-role-badge { width: 28px !important; height: 28px !important; }
+    .fe-clear-btn { width: 28px !important; height: 28px !important; }
     
     /* Mobile vertical layout */
     .fe-mobile-vertical .fe-flyer-container { 
@@ -1364,18 +1566,18 @@ const styles: Record<string, React.CSSProperties> = {
 
   // Topbar
   topbar: {
-    background: C.navy, padding: '0 2rem', height: 56, display: 'flex', alignItems: 'center',
+    background: C.navy, padding: '0 1rem', height: 48, display: 'flex', alignItems: 'center',
     justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100,
-    boxShadow: '0 2px 12px rgba(0,0,0,0.2)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
   },
   topbarBackBtn: {
     background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)',
-    color: 'white', borderRadius: 8, padding: '6px 14px', cursor: 'pointer',
-    fontFamily: F.body, fontSize: '0.8rem', fontWeight: 500,
+    color: 'white', borderRadius: 6, padding: '5px 12px', cursor: 'pointer',
+    fontFamily: F.body, fontSize: '0.75rem', fontWeight: 500,
     display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s',
   },
   topbarBrand: {
-    color: 'white', fontFamily: F.display, fontSize: '1.25rem', fontWeight: 700,
+    color: 'white', fontFamily: F.display, fontSize: '1.1rem', fontWeight: 700,
     letterSpacing: '0.03em',
   },
   topbarBadge: {
@@ -1384,9 +1586,9 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '2px 10px', borderRadius: 20, letterSpacing: '0.08em', textTransform: 'uppercase',
   },
   topbarSaveBtn: {
-    background: C.navyMid, color: 'white', border: 'none', borderRadius: 8,
-    padding: '7px 16px', cursor: 'pointer', fontFamily: F.body,
-    fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center',
+    background: C.navyMid, color: 'white', border: 'none', borderRadius: 6,
+    padding: '6px 14px', cursor: 'pointer', fontFamily: F.body,
+    fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center',
     gap: 6, transition: 'all 0.18s',
   },
   liveBadge: {
@@ -1436,9 +1638,9 @@ const styles: Record<string, React.CSSProperties> = {
     textTransform: 'uppercase', color: C.gray500, marginBottom: 5,
   },
   formInput: {
-    width: '100%', padding: '10px 14px', border: `1.5px solid ${C.gray300}`, borderRadius: 8,
+    width: '100%', padding: '9px 12px', border: `1.5px solid ${C.gray300}`, borderRadius: 8,
     fontFamily: F.body, fontSize: '0.875rem', color: C.gray900, background: C.white,
-    transition: 'border-color 0.15s, box-shadow 0.15s', outline: 'none', minHeight: 40,
+    transition: 'border-color 0.15s, box-shadow 0.15s', outline: 'none',
   },
 
   // Assignments section
@@ -1467,15 +1669,15 @@ const styles: Record<string, React.CSSProperties> = {
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
   },
   nameInput: {
-    width: '100%', padding: '8px 12px', border: `1.5px solid ${C.gray300}`,
-    borderRadius: 7, fontSize: '0.875rem', fontFamily: F.body,
-    outline: 'none', transition: 'all 0.15s', color: C.gray900, minWidth: 0, minHeight: 40,
+    width: '100%', padding: '6px 10px', border: `1.5px solid ${C.gray300}`,
+    borderRadius: 7, fontSize: '0.83rem', fontFamily: F.body,
+    outline: 'none', transition: 'all 0.15s', color: C.gray900, minWidth: 0,
   },
   clearBtn: {
     flexShrink: 0, width: 28, height: 28, background: 'none',
     border: `1.5px solid ${C.gray300}`, borderRadius: 6, cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    color: C.gray500, transition: 'all 0.15s', fontSize: '0.85rem',
+    color: C.gray500, transition: 'all 0.15s', fontSize: '0.75rem',
   },
   suggestionsDropdown: {
     position: 'absolute', zIndex: 20, background: C.white,
@@ -1499,7 +1701,7 @@ const styles: Record<string, React.CSSProperties> = {
   btnOutline: { background: 'transparent', color: C.navy, border: `1.5px solid ${C.gray300}` },
 
   // Preview wrapper
-  previewWrapper: { display: 'flex', flexDirection: 'column', gap: '1rem' },
+  previewWrapper: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
   previewLabel: {
     fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase',
     color: C.gray500, display: 'flex', alignItems: 'center', gap: 8,
@@ -1511,11 +1713,11 @@ const styles: Record<string, React.CSSProperties> = {
   // ═══ FLYER ═══
   flyerContainer: {
     background: C.white, borderRadius: 12, boxShadow: '0 10px 40px rgba(0,0,0,0.14)',
-    overflow: 'hidden', width: '100%', maxWidth: 540, margin: '0 auto',
+    overflow: 'hidden', width: '100%', maxWidth: 540, margin: '0 auto', position: 'relative',
   },
   flyerHeader: {
     background: 'linear-gradient(135deg, #1B2D5B 0%, #2A4080 60%, #1B2D5B 100%)',
-    padding: '2.6rem 2rem 1.5rem', position: 'relative', overflow: 'hidden',
+    padding: '1.8rem 2rem 1.5rem', position: 'relative', overflow: 'hidden',
   },
   flyerHeaderCircle1: {
     position: 'absolute', top: -40, right: -40, width: 160, height: 160,
@@ -1575,7 +1777,7 @@ const styles: Record<string, React.CSSProperties> = {
   flyerTable: { padding: '0 1.5rem 1rem' },
   flyerRow: {
     display: 'flex', alignItems: 'center', padding: '10px 12px',
-    borderRadius: 8, marginBottom: 4, minHeight: 44,
+    borderRadius: 8, marginBottom: 4, minHeight: 44, transition: 'background 0.15s',
   },
   flyerRowNum: {
     flexShrink: 0, width: 22, height: 22, background: C.navy, color: C.goldLight,
@@ -1602,6 +1804,10 @@ const styles: Record<string, React.CSSProperties> = {
   flyerVerseText: {
     fontFamily: F.display, fontSize: '0.88rem', fontStyle: 'italic',
     color: C.gray500, lineHeight: 1.5, margin: 0,
+  },
+  flyerVerseCite: {
+    fontSize: '0.72rem', fontWeight: 700, color: C.gold, fontStyle: 'normal',
+    letterSpacing: '0.05em', display: 'block', marginTop: 3,
   },
 
   // Footer

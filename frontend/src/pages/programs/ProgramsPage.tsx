@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Wand2, Loader2, FileText, Trash2, Download, Send, Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Edit, Calendar, Sparkles, MessageCircle } from 'lucide-react'
+import { Wand2, Loader2, FileText, Trash2, Download, Send, Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Edit, Calendar, Sparkles, MessageCircle, Zap } from 'lucide-react'
 import { programsApi } from '../../lib/api'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { QuickEditDrawer } from '../../components/programs/QuickEditDrawer'
 
 const DAYS: Record<number,string> = {0:'Domingo',1:'Lunes',2:'Martes',3:'Miércoles',4:'Jueves',5:'Viernes',6:'Sábado'}
 
@@ -34,6 +35,7 @@ const ProgramsPage = () => {
   const [publishingAll, setPublishingAll] = useState(false)
   const [downloadingAllPdf, setDownloadingAllPdf] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [quickEditId, setQuickEditId] = useState<string | null>(null)
   const LIMIT = 20
 
   const load = async () => {
@@ -426,6 +428,15 @@ const ProgramsPage = () => {
                       
                       {/* Botones secundarios */}
                       <div className="flex gap-2">
+                        {/* Edición Rápida */}
+                        <button
+                          onClick={() => setQuickEditId(prog._id)}
+                          className="p-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"
+                          title="Edición rápida"
+                        >
+                          <Zap className="w-5 h-5" />
+                        </button>
+                        
                         {/* Editar (solo DRAFT) */}
                         {prog.status === 'DRAFT' && (
                           <button
@@ -435,7 +446,7 @@ const ProgramsPage = () => {
                           >
                             <Edit className="w-5 h-5" />
                           </button>
-                        )}
+                        )})
                         
                         {/* Descargar PDF (programas publicados/completados) */}
                         {(prog.status === 'PUBLISHED' || prog.status === 'COMPLETED') && (
@@ -558,6 +569,16 @@ const ProgramsPage = () => {
                               <span className="hidden lg:inline">{nextSt.label}</span>
                             </button>
                           )}
+                          {/* Edición Rápida */}
+                          <button
+                            onClick={() => setQuickEditId(prog._id)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-200"
+                            title="Edición rápida"
+                          >
+                            <Zap className="w-3.5 h-3.5" />
+                            <span className="hidden lg:inline">Rápida</span>
+                          </button>
+                          
                           {/* Editar (solo DRAFT) */}
                           {prog.status === 'DRAFT' && (
                             <button
@@ -566,7 +587,7 @@ const ProgramsPage = () => {
                               title="Editar programa"
                             >
                               <Edit className="w-3.5 h-3.5" />
-                              <span className="hidden lg:inline">Editar</span>
+                              <span className="hidden lg:inline">Editor</span>
                             </button>
                           )}
                           {/* Descargar PDF (programas publicados/completados) */}
@@ -633,6 +654,14 @@ const ProgramsPage = () => {
           )}
         </motion.div>
       )}
+      
+      {/* Quick Edit Drawer */}
+      <QuickEditDrawer
+        programId={quickEditId}
+        open={quickEditId !== null}
+        onOpenChange={(open) => !open && setQuickEditId(null)}
+        onSaved={() => load()}
+      />
     </motion.div>
   )
 }
