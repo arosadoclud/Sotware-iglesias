@@ -160,3 +160,16 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-neutral-400;
 }
+/* Animación shimmer para barras de progreso */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
