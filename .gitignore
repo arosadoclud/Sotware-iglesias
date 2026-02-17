@@ -37,3 +37,5 @@ backend/uploads/*
 
 # Claude workspace
 .claude/settings.local.json
+.vercel
+.env*.local

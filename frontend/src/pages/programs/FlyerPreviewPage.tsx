@@ -621,6 +621,7 @@ const FlyerPreviewPage = () => {
         timeInput: prog.defaultTime ? cleanTimeStr(prog.defaultTime).time : form.timeInput,
         timePeriod: prog.defaultTime ? extractTimePeriod(prog.defaultTime) : form.timePeriod,
         verse: prog.verse || form.verse,
+        verseText: prog.verseText || form.verseText,
         logoUrl: prog.logoUrl || form.logoUrl,
       })
       setAssignments(
