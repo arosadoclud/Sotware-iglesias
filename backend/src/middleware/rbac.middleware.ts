@@ -122,6 +122,11 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
  */
 export const rbac = (resource: Resource, action: Action) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
+    // SuperUsuarios tienen acceso completo a todo automáticamente
+    if (req.isSuperUser) {
+      return next();
+    }
+
     const userRole = req.user?.role as UserRole;
 
     if (!userRole) {

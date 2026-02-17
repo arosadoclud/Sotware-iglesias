@@ -8,6 +8,7 @@ export interface AuthRequest extends Request {
   user?: IUser;
   userId?: string;
   userRole?: string;
+  isSuperUser?: boolean;
   churchId?: string;
   // Añadido por tenantGuard (Paso 1) — plan de suscripción de la iglesia
   churchPlan?: 'FREE' | 'PRO' | 'ENTERPRISE';
@@ -50,6 +51,7 @@ export const authenticate = async (
     req.user = user;
     req.userId = user._id.toString();
     req.userRole = user.role;
+    req.isSuperUser = user.isSuperUser || false;
     req.churchId = user.churchId.toString();
 
     next();

@@ -266,6 +266,18 @@ export const financesApi = {
     reference?: string;
     notes?: string;
   }) => api.post('/finances/transactions', data),
+  updateTransaction: (id: string, data: {
+    type?: 'INCOME' | 'EXPENSE';
+    category?: string;
+    fund?: string;
+    amount?: number;
+    date?: string;
+    description?: string;
+    person?: string;
+    paymentMethod?: string;
+    reference?: string;
+    notes?: string;
+  }) => api.put(`/finances/transactions/${id}`, data),
   approveTransaction: (id: string, data: { approved: boolean; notes?: string }) =>
     api.patch(`/finances/transactions/${id}/approve`, data),
   deleteTransaction: (id: string) => api.delete(`/finances/transactions/${id}`),
@@ -290,6 +302,15 @@ export const financesApi = {
     category?: string;
     fund?: string;
   }) => api.get('/finances/reports/transactions', { params }),
+  getMonthlyPDFReport: async (params: { month: number; year: number }) => {
+    const response = await api.get('/finances/reports/monthly-pdf', { 
+      params,
+      responseType: 'blob'
+    })
+    return response
+  },
+  getAnnualCouncilReport: (params: { year: number }) =>
+    api.get('/finances/reports/council-annual', { params }),
 }
 
 // ── NEW MEMBERS (Seguimiento) ─────────────────────────────────────────────────

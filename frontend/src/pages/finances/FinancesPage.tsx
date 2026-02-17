@@ -1,3 +1,22 @@
+import { tithesApi } from '../../lib/tithesApi'
+  // Estado para desglose de diezmos
+  const [tithesDetails, setTithesDetails] = useState<any[]>([])
+  const [tithesLoading, setTithesLoading] = useState(false)
+  // Cargar desglose de diezmos para el período
+  const loadTithesDetails = async () => {
+    setTithesLoading(true)
+    try {
+      const res = await tithesApi.getMonthlyTithesDetails({ startDate: dateRange.start, endDate: dateRange.end })
+      setTithesDetails(res.data.data)
+    } catch {
+      setTithesDetails([])
+    }
+    setTithesLoading(false)
+  }
+
+  useEffect(() => {
+    loadTithesDetails()
+  }, [dateRange])
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { 
@@ -16,6 +35,7 @@ import {
   HelpCircle,
   MoreHorizontal,
   Trash2,
+  Pencil,
   CheckCircle,
   XCircle,
   Clock,
@@ -73,12 +93,11 @@ const CATEGORY_ICONS: Record<string, any> = {
   'ING-02': Gift,       // Ofrendas
   'ING-03': Star,       // Especiales
   'ING-04': Coins,      // Otros
-  'GAS-01': Users,      // Nómina
+  'GAS-01': Building,   // Pago del Local Iglesia
   'GAS-02': Zap,        // Servicios
   'GAS-03': Wrench,     // Mantenimiento
   'GAS-04': BookOpen,   // Ministerios
-  'GAS-05': Building,   // Concilio
-  'GAS-06': MoreHorizontal, // Otros
+  'GAS-05': MoreHorizontal, // Otros
 }
 
 const PAYMENT_METHODS = {
@@ -164,6 +183,7 @@ const FinancesPage = () => {
   // Modal
   const [showModal, setShowModal] = useState(false)
   const [modalType, setModalType] = useState<'INCOME' | 'EXPENSE'>('INCOME')
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     category: '',
@@ -180,6 +200,16 @@ const FinancesPage = () => {
 
   // Modal de ayuda
   const [showHelp, setShowHelp] = useState(false)
+
+  // Modal de crear categoría
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [categoryType, setCategoryType] = useState<'INCOME' | 'EXPENSE'>('INCOME')
+  const [categoryForm, setCategoryForm] = useState({
+    name: '',
+    description: '',
+    color: '#3b82f6',
+    icon: 'circle',
+  })
 
   // Cargar datos iniciales
   const loadData = async () => {
@@ -223,6 +253,7 @@ const FinancesPage = () => {
   // Abrir modal
   const openModal = (type: 'INCOME' | 'EXPENSE') => {
     setModalType(type)
+    setEditingId(null)
     const defaultFund = funds.find(f => f.isDefault)?._id || ''
     const defaultCategory = categories.find(c => c.type === type)?._id || ''
     
@@ -237,6 +268,89 @@ const FinancesPage = () => {
       reference: '',
       notes: '',
       serviceType: '',
+    })
+    setShowModal(true)
+  }
+
+  // Abrir modal de crear categoría
+  const openCategoryModal = (type: 'INCOME' | 'EXPENSE') => {
+    setCategoryType(type)
+    setCategoryForm({
+      name: '',
+      description: '',
+      color: type === 'INCOME' ? '#22c55e' : '#ef4444',
+      icon: 'circle',
+    })
+    setShowCategoryModal(true)
+  }
+
+  // Guardar nueva categoría
+  const handleSaveCategory = async () => {
+    if (!categoryForm.name.trim()) {
+      toast.error('El nombre de la categoría es requerido')
+      return
+    }
+
+    setSaving(true)
+    try {
+      // Generar código automático
+      const prefix = categoryType === 'INCOME' ? 'ING' : 'GAS'
+      const existingCodes = categories
+        .filter(c => c.type === categoryType)
+        .map(c => c.code)
+      
+      let nextNumber = 1
+      while (existingCodes.includes(`${prefix}-${String(nextNumber).padStart(2, '0')}`)) {
+        nextNumber++
+      }
+      const code = `${prefix}-${String(nextNumber).padStart(2, '0')}`
+
+      await financesApi.createCategory({
+        name: categoryForm.name,
+        code,
+        type: categoryType,
+        description: categoryForm.description,
+        color: categoryForm.color,
+        icon: categoryForm.icon,
+      })
+
+      toast.success('Categoría creada exitosamente')
+      setShowCategoryModal(false)
+      loadData() // Recargar categorías
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Error al crear categoría')
+    }
+    setSaving(false)
+  }
+
+  // Abrir modal para editar transacción
+  const handleEdit = (transaction: Transaction) => {
+    setEditingId(transaction._id)
+    setModalType(transaction.type)
+    
+    // Extraer serviceType si está en la descripción
+    let serviceType = ''
+    let description = transaction.description || ''
+    const isOfrenda = transaction.category?.code === 'ING-02'
+    if (isOfrenda && description) {
+      const serviceMatch = SERVICE_TYPES.find(s => description.startsWith(s.label))
+      if (serviceMatch) {
+        serviceType = serviceMatch.value
+        description = description.replace(serviceMatch.label, '').replace(/^\s*-\s*/, '').trim()
+      }
+    }
+
+    setForm({
+      category: transaction.category?._id || '',
+      fund: transaction.fund?._id || '',
+      amount: transaction.amount.toString(),
+      date: format(new Date(transaction.date), 'yyyy-MM-dd'),
+      description: description,
+      person: transaction.person?._id || '',
+      paymentMethod: transaction.paymentMethod || 'CASH',
+      reference: transaction.reference || '',
+      notes: transaction.notes || '',
+      serviceType: serviceType,
     })
     setShowModal(true)
   }
@@ -264,7 +378,7 @@ const FinancesPage = () => {
 
     setSaving(true)
     try {
-      await financesApi.createTransaction({
+      const transactionData = {
         type: modalType,
         category: form.category,
         fund: form.fund,
@@ -275,9 +389,18 @@ const FinancesPage = () => {
         paymentMethod: form.paymentMethod,
         reference: form.reference || undefined,
         notes: form.notes || undefined,
-      })
+      }
 
-      toast.success(modalType === 'INCOME' ? 'Ingreso registrado' : 'Gasto registrado')
+      if (editingId) {
+        // Modo edición
+        await financesApi.updateTransaction(editingId, transactionData)
+        toast.success('Transacción actualizada correctamente')
+      } else {
+        // Modo creación
+        await financesApi.createTransaction(transactionData)
+        toast.success(modalType === 'INCOME' ? 'Ingreso registrado' : 'Gasto registrado')
+      }
+
       setShowModal(false)
       loadData()
     } catch (error: any) {
@@ -508,6 +631,58 @@ const FinancesPage = () => {
           </Card>
         </motion.div>
       </div>
+
+      {/* Desglose de Diezmos y 10% Concilio */}
+      {tithesLoading ? (
+        <div className="flex items-center gap-2 text-yellow-600 py-6">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          Cargando desglose de diezmos...
+        </div>
+      ) : tithesDetails.length > 0 ? (
+        <div className="overflow-x-auto my-8">
+          <div className="mb-2 font-semibold text-amber-700 text-lg flex items-center gap-2">
+            <Heart className="w-5 h-5 text-pink-500" />
+            Desglose de Diezmos y 10% Concilio
+          </div>
+          <table className="min-w-[600px] w-full border rounded-lg overflow-hidden text-sm">
+            <thead>
+              <tr className="bg-amber-100 text-amber-900">
+                <th className="py-2 px-3 text-left">Fecha</th>
+                <th className="py-2 px-3 text-left">Diezmador</th>
+                <th className="py-2 px-3 text-right">Monto</th>
+                <th className="py-2 px-3 text-right">10% Concilio</th>
+                <th className="py-2 px-3 text-right">90% Iglesia</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tithesDetails.map((t, i) => (
+                <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-amber-50'}>
+                  <td className="py-2 px-3">{format(new Date(t.date), 'dd/MM/yyyy', { locale: es })}</td>
+                  <td className="py-2 px-3">{t.personName}</td>
+                  <td className="py-2 px-3 text-right text-green-700 font-semibold">RD$ {t.amount.toLocaleString()}</td>
+                  <td className="py-2 px-3 text-right text-amber-700 font-bold">RD$ {t.councilAmount.toLocaleString()}</td>
+                  <td className="py-2 px-3 text-right text-green-700">RD$ {t.churchAmount.toLocaleString()}</td>
+                </tr>
+              ))}
+              <tr className="bg-amber-200 font-bold">
+                <td colSpan={2} className="py-2 px-3 text-right">TOTALES:</td>
+                <td className="py-2 px-3 text-right text-green-800">
+                  RD$ {tithesDetails.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
+                </td>
+                <td className="py-2 px-3 text-right text-amber-900">
+                  RD$ {tithesDetails.reduce((sum, t) => sum + t.councilAmount, 0).toLocaleString()}
+                </td>
+                <td className="py-2 px-3 text-right text-green-800">
+                  RD$ {tithesDetails.reduce((sum, t) => sum + t.churchAmount, 0).toLocaleString()}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div className="mt-2 text-xs text-amber-700 bg-amber-50 rounded p-2">
+            <strong>Nota:</strong> El 10% de cada diezmo se acumula para el concilio y se remite al finalizar el año fiscal.
+          </div>
+        </div>
+      ) : null}
 
       {/* Fondos */}
       <motion.div
@@ -801,6 +976,15 @@ const FinancesPage = () => {
                                     </DropdownMenuItem>
                                   </>
                                 )}
+                                {canEdit && (tx.type === 'INCOME' || tx.approvalStatus === 'PENDING') && (
+                                  <DropdownMenuItem 
+                                    onClick={() => handleEdit(tx)}
+                                    className="text-blue-600"
+                                  >
+                                    <Pencil className="w-4 h-4 mr-2" />
+                                    Editar
+                                  </DropdownMenuItem>
+                                )}
                                 {canDelete && (
                                 <DropdownMenuItem 
                                   onClick={() => handleDelete(tx._id)}
@@ -829,7 +1013,12 @@ const FinancesPage = () => {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              {modalType === 'INCOME' ? (
+              {editingId ? (
+                <>
+                  <Pencil className="w-5 h-5 text-blue-600" />
+                  Editar Transacción
+                </>
+              ) : modalType === 'INCOME' ? (
                 <>
                   <ArrowUpCircle className="w-5 h-5 text-green-600" />
                   Registrar Ingreso
@@ -842,16 +1031,30 @@ const FinancesPage = () => {
               )}
             </DialogTitle>
             <DialogDescription>
-              {modalType === 'INCOME' 
-                ? 'Registra diezmos, ofrendas u otros ingresos' 
-                : 'Registra gastos de la iglesia'}
+              {editingId
+                ? 'Modifica los datos de la transacción'
+                : modalType === 'INCOME' 
+                  ? 'Registra diezmos, ofrendas u otros ingresos' 
+                  : 'Registra gastos de la iglesia'}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             {/* Categoría */}
             <div className="space-y-2">
-              <Label>Categoría *</Label>
+              <div className="flex items-center justify-between">
+                <Label>Categoría *</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => openCategoryModal(modalType)}
+                  className="h-6 px-2 text-xs text-primary-600 hover:text-primary-700 hover:bg-primary-50"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Nueva
+                </Button>
+              </div>
               <Select 
                 value={form.category} 
                 onValueChange={(v) => setForm({ ...form, category: v })}
@@ -1132,8 +1335,9 @@ const FinancesPage = () => {
                 </p>
                 <ul className="text-sm text-gray-600 mt-2 space-y-1 list-disc list-inside">
                   <li>Revise el balance en el dashboard</li>
-                  <li>Calcule la aportación al concilio (normalmente 10%)</li>
+                  <li>Genere el reporte mensual en PDF</li>
                   <li>Presente el reporte a la junta directiva</li>
+                  <li>La aportación al concilio (10%) se calcula automáticamente al final del año</li>
                 </ul>
               </div>
             </div>
@@ -1154,12 +1358,11 @@ const FinancesPage = () => {
                 <div>
                   <p className="text-sm font-medium text-red-600 mb-2">Gastos</p>
                   <ul className="text-sm text-gray-600 space-y-1">
-                    <li>👥 <strong>Nómina:</strong> Salarios</li>
-                    <li>⚡ <strong>Servicios:</strong> Luz, agua, etc.</li>
+                    <li>🏠 <strong>Local:</strong> Alquiler/pago del templo</li>
+                    <li>⚡ <strong>Servicios:</strong> Luz, agua, internet</li>
                     <li>🔧 <strong>Mantenimiento:</strong> Reparaciones</li>
                     <li>📖 <strong>Ministerios:</strong> Actividades</li>
-                    <li>🏢 <strong>Concilio:</strong> Aportación</li>
-                    <li>📦 <strong>Otros:</strong> Varios</li>
+                    <li>📦 <strong>Otros:</strong> Gastos varios</li>
                   </ul>
                 </div>
               </div>
@@ -1169,6 +1372,80 @@ const FinancesPage = () => {
           <DialogFooter>
             <Button onClick={() => setShowHelp(false)}>
               Entendido
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Crear Categoría */}
+      <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Nueva Categoría de {categoryType === 'INCOME' ? 'Ingreso' : 'Gasto'}
+            </DialogTitle>
+            <DialogDescription>
+              Crea una categoría personalizada para tus transacciones
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Nombre */}
+            <div className="space-y-2">
+              <Label>Nombre *</Label>
+              <Input
+                value={categoryForm.name}
+                onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                placeholder="Ej: Alquiler, Donaciones especiales..."
+                maxLength={50}
+              />
+            </div>
+
+            {/* Descripción */}
+            <div className="space-y-2">
+              <Label>Descripción (opcional)</Label>
+              <Input
+                value={categoryForm.description}
+                onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
+                placeholder="Breve descripción..."
+                maxLength={100}
+              />
+            </div>
+
+            {/* Color */}
+            <div className="space-y-2">
+              <Label>Color</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="color"
+                  value={categoryForm.color}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, color: e.target.value })}
+                  className="w-20 h-10 cursor-pointer"
+                />
+                <div className="flex-1 h-10 rounded border-2 transition-all"
+                  style={{ backgroundColor: categoryForm.color }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCategoryModal(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveCategory} disabled={saving || !categoryForm.name.trim()}>
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Crear Categoría
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -127,8 +127,16 @@ function formatTime24to12(time24: string): { formatted: string; period: 'AM' | '
 
 export const getPrograms = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { status, activityTypeId, from, to, limit = '50', page = '1' } = req.query;
-    const filter: any = { churchId: req.churchId };
+    const { status, activityTypeId, from, to, limit = '50', page = '1', church } = req.query;
+    const churchId = req.churchId || church;
+    
+    const filter: any = {};
+    
+    // Solo filtrar por iglesia si se proporciona
+    if (churchId) {
+      filter.churchId = churchId;
+    }
+    
     if (status) filter.status = status;
     if (activityTypeId) filter['activityType.id'] = activityTypeId;
     if (from || to) {

@@ -28,6 +28,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Badge } from '../../components/ui/badge'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
+import { BadgeNew } from '../../components/onboarding'
+import { useOnboarding } from '../../hooks/useOnboarding'
 import {
   Select,
   SelectContent,
@@ -82,6 +84,7 @@ const FinanceReportsPage = () => {
   const [loading, setLoading] = useState(false)
   const [activeReport, setActiveReport] = useState('monthly')
   const printRef = useRef<HTMLDivElement>(null)
+  const { markFeatureAsExplored, isFeatureNew } = useOnboarding()
   
   // Filtros
   const [year, setYear] = useState(new Date().getFullYear())
@@ -192,6 +195,76 @@ const FinanceReportsPage = () => {
     printWindow.print()
   }
 
+  // Descargar PDF del reporte mensual
+  const downloadMonthlyPDF = async () => {
+    if (activeReport !== 'monthly') {
+      toast.error('Esta opción solo está disponible para el reporte mensual')
+      return
+    }
+
+    try {
+      setLoading(true)
+      // Marcar como explorado
+      markFeatureAsExplored('monthly-pdf-report')
+      
+      const response = await financesApi.getMonthlyPDFReport({ month, year })
+      
+      // Crear blob desde la respuesta
+      const blob = new Blob([response.data], { type: 'application/pdf' })
+      const url = window.URL.createObjectURL(blob)
+      
+      // Crear elemento temporal para descargar
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `Reporte-Mensual-${format(new Date(year, month - 1), 'MMMM-yyyy', { locale: es })}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+      toast.success('Reporte PDF descargado exitosamente')
+    } catch (error: any) {
+      console.error('Error al descargar PDF:', error)
+      toast.error(error?.response?.data?.message || 'Error al generar el reporte PDF')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Descargar PDF del reporte anual del concilio
+  const downloadAnnualCouncilPDF = async () => {
+    if (activeReport !== 'monthly') {
+      toast.error('Esta opción solo está disponible para el reporte mensual')
+      return
+    }
+
+    try {
+      setLoading(true)
+      
+      const response = await financesApi.getAnnualCouncilReport(year)
+      
+      // Crear blob desde la respuesta
+      const blob = new Blob([response.data], { type: 'application/pdf' })
+      const url = window.URL.createObjectURL(blob)
+      
+      // Crear elemento temporal para descargar
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `Reporte-Concilio-Anual-${year}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+      toast.success('Reporte anual del concilio descargado exitosamente')
+    } catch (error: any) {
+      console.error('Error al descargar PDF:', error)
+      toast.error(error?.response?.data?.message || 'Error al generar el reporte anual')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // Exportar a CSV
   const exportToCSV = () => {
     let csvContent = ''
@@ -291,6 +364,27 @@ const FinanceReportsPage = () => {
             <Printer className="w-4 h-4 mr-2" />
             Imprimir
           </Button>
+          {activeReport === 'monthly' && (
+            <>
+              <Button onClick={downloadMonthlyPDF} disabled={loading} className="relative bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700">
+                <BadgeNew show={isFeatureNew('monthly-pdf-report')} position="top-right" />
+                {loading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <FileText className="w-4 h-4 mr-2" />
+                )}
+                Descargar PDF
+              </Button>
+              <Button onClick={downloadAnnualCouncilPDF} disabled={loading} className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800">
+                {loading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Church className="w-4 h-4 mr-2" />
+                )}
+                Reporte Anual Concilio
+              </Button>
+            </>
+          )}
           <Button onClick={exportToCSV} disabled={loading}>
             <Download className="w-4 h-4 mr-2" />
             Exportar CSV

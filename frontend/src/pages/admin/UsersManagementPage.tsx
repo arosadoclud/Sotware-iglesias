@@ -27,6 +27,7 @@ interface User {
   fullName: string
   role: string
   isActive: boolean
+  isSuperUser?: boolean
   permissions: string[]
   useCustomPermissions: boolean
   effectivePermissions: string[]
@@ -65,7 +66,7 @@ const roleNames: Record<string, string> = {
 // ── Main Component ────────────────────────────────────────────────────────────
 
 const UsersManagementPage = () => {
-  const { user: currentUser, isSuperAdmin } = useAuthStore()
+  const { user: currentUser, isSuperAdmin, canManagePermissions } = useAuthStore()
   
   // State
   const [loading, setLoading] = useState(true)
@@ -327,6 +328,18 @@ const UsersManagementPage = () => {
     }))
   }
 
+  const toggleAllPermissions = () => {
+    if (!permissionsData) return
+    
+    const allPermissions = permissionsData.permissions.map(p => p.value)
+    const allSelected = allPermissions.every(p => formData.permissions.includes(p))
+    
+    setFormData(prev => ({
+      ...prev,
+      permissions: allSelected ? [] : allPermissions,
+    }))
+  }
+
   // ── Render ──────────────────────────────────────────────────────────────────
   
   if (loading) {
@@ -431,6 +444,11 @@ const UsersManagementPage = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-neutral-900 truncate">{user.fullName}</span>
+                        {user.isSuperUser && (
+                          <Badge className="text-xs bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0">
+                            ⭐ Superusuario
+                          </Badge>
+                        )}
                         {user._id === currentUser?.id && (
                           <Badge variant="outline" className="text-xs">Tú</Badge>
                         )}
@@ -667,6 +685,18 @@ const UsersManagementPage = () => {
             
             {formData.useCustomPermissions && permissionsData && (
               <div className="space-y-4">
+                {/* Seleccionar todos */}
+                <div className="flex items-center gap-3 p-3 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                  <Checkbox
+                    id="selectAll"
+                    checked={permissionsData.permissions.every(p => formData.permissions.includes(p.value))}
+                    onCheckedChange={toggleAllPermissions}
+                  />
+                  <label htmlFor="selectAll" className="text-sm font-bold cursor-pointer text-blue-700">
+                    Seleccionar Todos los Permisos ({permissionsData.permissions.length})
+                  </label>
+                </div>
+                
                 {permissionsData.categories.map(category => (
                   <div key={category} className="border rounded-lg p-3">
                     <h4 className="font-semibold text-sm mb-2 text-neutral-700">{category}</h4>

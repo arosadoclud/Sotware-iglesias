@@ -22,6 +22,7 @@ import { Button } from '../ui/button'
 import { eventsApi } from '../../lib/api'
 import ImageModal from './ImageModal'
 import { toast } from 'sonner'
+import { useAuthStore } from '../../store/authStore'
 
 interface ImageSlide {
   id: string
@@ -127,18 +128,26 @@ export default function ImageSlider() {
   const [selectedType, setSelectedType] = useState<'all' | 'event' | 'flyer' | 'announcement'>('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { user } = useAuthStore()
 
   // Cargar eventos desde la API
   useEffect(() => {
     const loadEvents = async () => {
       setLoading(true)
       try {
-        const res = await eventsApi.getAll({
+        const params: any = {
           type: selectedType === 'all' ? undefined : selectedType,
           isActive: 'true',
           limit: 20,
           sort: '-order',
-        })
+        }
+        
+        // Incluir churchId si el usuario está autenticado
+        if (user?.churchId) {
+          params.church = user.churchId
+        }
+        
+        const res = await eventsApi.getAll(params)
         const events = res.data.data || res.data || []
         
         // Si no hay eventos de la API, usar demos como fallback
@@ -168,7 +177,7 @@ export default function ImageSlider() {
       setLoading(false)
     }
     loadEvents()
-  }, [selectedType])
+  }, [selectedType, user?.churchId])
 
   const resetTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current)
@@ -248,6 +257,37 @@ export default function ImageSlider() {
   const handleModalNext = () => {
     next()
     // No cerrar el modal, solo cambiar slide
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/50">
+        <div className="flex items-center justify-center h-[500px]">
+          <div className="text-center space-y-4">
+            <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary-500" />
+            <p className="text-neutral-500 font-medium">Cargando eventos...</p>
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
+  // Empty state
+  if (slides.length === 0) {
+    return (
+      <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/50">
+        <div className="flex items-center justify-center h-[500px]">
+          <div className="text-center space-y-4">
+            <ImageIcon className="w-16 h-16 mx-auto text-neutral-300" />
+            <div>
+              <p className="text-neutral-700 font-semibold text-lg">No hay eventos disponibles</p>
+              <p className="text-neutral-500 text-sm">Los eventos aparecerán aquí cuando se creen</p>
+            </div>
+          </div>
+        </div>
+      </Card>
+    )
   }
 
   const slide = slides[current]

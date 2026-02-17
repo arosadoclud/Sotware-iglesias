@@ -117,11 +117,37 @@ export const requireSuperAdmin = () => {
 };
 
 /**
+ * Middleware para verificar que es SuperUsuario (flag especial)
+ */
+export const requireSuperUser = () => {
+  return async (req: AuthRequest, _res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new ForbiddenError('Usuario no autenticado');
+      }
+
+      if (!req.isSuperUser) {
+        throw new ForbiddenError('Solo el superusuario puede realizar esta acción');
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+/**
  * Helper para obtener los permisos del usuario
  */
 function getUserPermissions(req: AuthRequest): string[] {
   const user = req.user;
   if (!user) return [];
+
+  // SuperUsuarios tienen todos los permisos
+  if (req.isSuperUser) {
+    return Object.values(Permission);
+  }
 
   // Si el usuario tiene permisos personalizados habilitados
   if (user.useCustomPermissions && user.permissions && user.permissions.length > 0) {

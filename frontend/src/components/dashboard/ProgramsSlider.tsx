@@ -26,6 +26,7 @@ import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { toast } from 'sonner'
 import { Card } from '../ui/card'
+import { useAuthStore } from '../../store/authStore'
 
 const DAYS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado']
 
@@ -87,13 +88,23 @@ export default function ProgramsSlider() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const x = useMotionValue(0)
   const dragProgress = useTransform(x, [-200, 0, 200], [1, 0, -1])
+  const { user } = useAuthStore()
 
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await programsApi.getAll({ status: 'PUBLISHED', limit: 20, sort: '-programDate' })
+        const params: any = { status: 'PUBLISHED', limit: 20, sort: '-programDate' }
+        const params2: any = { status: 'COMPLETED', limit: 5, sort: '-programDate' }
+        
+        // Incluir churchId si el usuario está autenticado
+        if (user?.churchId) {
+          params.church = user.churchId
+          params2.church = user.churchId
+        }
+        
+        const res = await programsApi.getAll(params)
         const list = res.data.data || res.data || []
-        const res2 = await programsApi.getAll({ status: 'COMPLETED', limit: 5, sort: '-programDate' })
+        const res2 = await programsApi.getAll(params2)
         const list2 = res2.data.data || res2.data || []
         setPrograms([...list, ...list2])
       } catch {
@@ -102,7 +113,7 @@ export default function ProgramsSlider() {
       setLoading(false)
     }
     load()
-  }, [])
+  }, [user?.churchId])
 
   // Auto-play slider con mejorado
   const resetTimer = useCallback(() => {

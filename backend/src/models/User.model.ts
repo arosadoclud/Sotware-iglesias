@@ -23,6 +23,7 @@ export interface IUser extends Document {
   role: UserRole;
   permissions: string[];           // Permisos personalizados
   useCustomPermissions: boolean;   // Si true, usa permissions; si false, usa los del rol
+  isSuperUser: boolean;            // Super usuario con todos los permisos (solo uno por iglesia)
   isActive: boolean;
   lastLogin?: Date;
   refreshToken?: string;
@@ -81,6 +82,11 @@ const UserSchema = new Schema<IUser>(
     useCustomPermissions: {
       type: Boolean,
       default: false,
+    },
+    isSuperUser: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
     isActive: {
       type: Boolean,
@@ -143,6 +149,7 @@ UserSchema.methods.getPublicProfile = function () {
     fullName: this.fullName,
     role: this.role,
     churchId: this.churchId,
+    isSuperUser: this.isSuperUser,
     isActive: this.isActive,
     lastLogin: this.lastLogin,
     permissions: this.getEffectivePermissions(),
@@ -153,6 +160,10 @@ UserSchema.methods.getPublicProfile = function () {
 
 // Método para obtener los permisos efectivos del usuario
 UserSchema.methods.getEffectivePermissions = function (): string[] {
+  // Si es super usuario, tiene todos los permisos
+  if (this.isSuperUser) {
+    return Object.values(Permission);
+  }
   // Si usa permisos personalizados, retornar esos
   if (this.useCustomPermissions && this.permissions && this.permissions.length > 0) {
     return this.permissions;

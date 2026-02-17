@@ -18,6 +18,11 @@ import {
 } from './program.controller';
 
 const router = Router();
+
+// Ruta pública para ver programas completados
+router.get('/', getPrograms);
+
+// Todas las demás rutas requieren autenticación
 router.use(authenticate, tenantGuard);
 
 router.get('/:id/flyer', rbac('programs', 'read'), require('./program.controller').downloadProgramFlyerPdf);

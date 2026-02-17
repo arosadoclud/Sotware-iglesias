@@ -26,6 +26,8 @@ export interface IFinanceTransaction extends Document {
   reconciledBy?: mongoose.Types.ObjectId
   // Usuario que registró
   createdBy: mongoose.Types.ObjectId
+  // Usuario que actualizó
+  updatedBy?: mongoose.Types.ObjectId
   // Metadatos
   notes?: string
   tags?: string[]
@@ -117,6 +119,10 @@ const FinanceTransactionSchema = new Schema<IFinanceTransaction>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    updatedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
     },
     notes: {
       type: String,

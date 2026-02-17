@@ -10,6 +10,7 @@ interface User {
   fullName: string
   role: UserRole
   churchId: string
+  isSuperUser?: boolean
   permissions: string[]
   useCustomPermissions?: boolean
 }
@@ -26,6 +27,8 @@ interface AuthState {
   hasAnyPermission: (...permissions: string[]) => boolean
   isAdmin: () => boolean
   isSuperAdmin: () => boolean
+  isSuperUser: () => boolean
+  canManagePermissions: () => boolean
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -59,8 +62,8 @@ export const useAuthStore = create<AuthState>()(
       hasPermission: (permission: string) => {
         const { user } = get()
         if (!user) return false
-        // SUPER_ADMIN siempre tiene todos los permisos
-        if (user.role === 'SUPER_ADMIN') return true
+        // SuperUsuarios y SUPER_ADMIN siempre tienen todos los permisos
+        if (user.isSuperUser || user.role === 'SUPER_ADMIN') return true
         return user.permissions?.includes(permission) ?? false
       },
 
@@ -68,7 +71,7 @@ export const useAuthStore = create<AuthState>()(
       hasAnyPermission: (...permissions: string[]) => {
         const { user } = get()
         if (!user) return false
-        if (user.role === 'SUPER_ADMIN') return true
+        if (user.isSuperUser || user.role === 'SUPER_ADMIN') return true
         return permissions.some(p => user.permissions?.includes(p))
       },
 
@@ -83,6 +86,20 @@ export const useAuthStore = create<AuthState>()(
       isSuperAdmin: () => {
         const { user } = get()
         return user?.role === 'SUPER_ADMIN'
+      },
+
+      // Verificar si es superusuario (flag especial)
+      isSuperUser: () => {
+        const { user } = get()
+        return user?.isSuperUser === true
+      },
+
+      // Verificar si puede gestionar permisos de otros usuarios
+      canManagePermissions: () => {
+        const { user } = get()
+        if (!user) return false
+        // Solo superusuarios pueden gestionar permisos
+        return user.isSuperUser === true
       },
     }),
     {

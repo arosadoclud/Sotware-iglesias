@@ -18,10 +18,14 @@ import {
   UserCog,
   DollarSign,
   UserPlus,
+  Image,
+  HelpCircle,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { toast } from 'react-hot-toast'
 import { P } from '../../constants/permissions'
+import { OnboardingTour } from '../onboarding'
+import { useOnboarding } from '../../hooks/useOnboarding'
 import { Avatar, AvatarFallback } from '../ui/avatar'
 import { Button } from '../ui/button'
 import {
@@ -39,6 +43,7 @@ interface NavItemProps {
     name: string
     href: string
     icon: any
+    className?: string
   }
   collapsed: boolean
   isActive: boolean
@@ -53,6 +58,8 @@ const NavItem = ({ item, collapsed, isActive }: NavItemProps) => {
         whileHover={{ scale: 1.02, x: 4 }}
         whileTap={{ scale: 0.98 }}
         className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+          item.className || ''
+        } ${
           isActive
             ? 'bg-primary-50 text-primary-700 shadow-sm'
             : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
@@ -98,31 +105,32 @@ const DashboardLayoutImproved = () => {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showLogoutSplash, setShowLogoutSplash] = useState(false)
+  const { restartTour } = useOnboarding()
 
   const handleLogout = () => {
     setShowLogoutSplash(true)
   }
 
   const handleLogoutComplete = () => {
-    // Navegar PRIMERO a /login, luego ejecutar logout
-    // Si logout() se ejecuta primero, ProtectedRoute desmonta el componente
-    // antes de que navigate() pueda ejecutarse
-    setShowLogoutSplash(false)
-    navigate('/login', { replace: true })
+    // Limpiar el estado de autenticación
     logout()
+    // Forzar navegación a nivel del navegador para asegurar que se complete
+    // Esto evita problemas de componentes desmontados prematuramente
+    window.location.href = '/login'
   }
 
   // Navegación filtrada por permisos del usuario
   const allNav = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard, show: true },
-    { name: 'Personas', href: '/persons', icon: Users, show: hasPermission(P.PERSONS_VIEW) },
-    { name: 'Actividades', href: '/activities', icon: Calendar, show: hasPermission(P.ACTIVITIES_VIEW) },
-    { name: 'Programas', href: '/programs', icon: FileText, show: hasPermission(P.PROGRAMS_VIEW) },
-    { name: 'Calendario', href: '/calendar', icon: CalendarDays, show: hasPermission(P.CALENDAR_VIEW) },
-    { name: 'Cartas Invitación', href: '/letters', icon: Mail, show: hasPermission(P.LETTERS_VIEW) },
-    { name: 'Nuevos Miembros', href: '/new-members', icon: UserPlus, show: hasPermission(P.PERSONS_VIEW) },
-    { name: 'Finanzas', href: '/finances', icon: DollarSign, show: hasPermission(P.FINANCES_VIEW) || isAdmin() },
-    { name: 'Configuración', href: '/settings', icon: Settings, show: hasPermission(P.SETTINGS_VIEW) || isAdmin() },
+    { name: 'Dashboard', href: '/', icon: LayoutDashboard, show: true, className: 'sidebar-dashboard' },
+    { name: 'Personas', href: '/persons', icon: Users, show: hasPermission(P.PERSONS_VIEW), className: 'sidebar-personas' },
+    { name: 'Actividades', href: '/activities', icon: Calendar, show: hasPermission(P.ACTIVITIES_VIEW), className: 'sidebar-activities' },
+    { name: 'Programas', href: '/programs', icon: FileText, show: hasPermission(P.PROGRAMS_VIEW), className: 'sidebar-programs' },
+    { name: 'Calendario', href: '/calendar', icon: CalendarDays, show: hasPermission(P.CALENDAR_VIEW), className: 'sidebar-calendar' },
+    { name: 'Eventos', href: '/events', icon: Image, show: true, className: 'sidebar-events' },
+    { name: 'Cartas Invitación', href: '/letters', icon: Mail, show: hasPermission(P.LETTERS_VIEW), className: 'sidebar-letters' },
+    { name: 'Nuevos Miembros', href: '/new-members', icon: UserPlus, show: hasPermission(P.PERSONS_VIEW), className: 'sidebar-new-members' },
+    { name: 'Finanzas', href: '/finances', icon: DollarSign, show: hasPermission(P.FINANCES_VIEW) || isAdmin(), className: 'sidebar-finances' },
+    { name: 'Configuración', href: '/settings', icon: Settings, show: hasPermission(P.SETTINGS_VIEW) || isAdmin(), className: 'sidebar-settings' },
   ]
   const nav = allNav.filter(item => item.show)
 
@@ -264,7 +272,7 @@ const DashboardLayoutImproved = () => {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full flex items-center gap-3 p-2 hover:bg-white rounded-lg transition-all"
+                className="w-full flex items-center gap-3 p-2 hover:bg-white rounded-lg transition-all user-menu"
               >
                 <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-primary-600 text-white font-bold">
@@ -294,6 +302,10 @@ const DashboardLayoutImproved = () => {
               <DropdownMenuItem onClick={() => navigate('/settings')}>
                 <Settings className="mr-2 h-4 w-4" />
                 Configuración
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={restartTour}>
+                <HelpCircle className="mr-2 h-4 w-4" />
+                Ver tour de ayuda
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-danger-600">
@@ -398,6 +410,9 @@ const DashboardLayoutImproved = () => {
           <Outlet />
         </div>
       </main>
+
+      {/* Onboarding Tour */}
+      <OnboardingTour />
     </div>
   )
 }

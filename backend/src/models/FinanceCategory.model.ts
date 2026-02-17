@@ -77,10 +77,9 @@ export const DEFAULT_INCOME_CATEGORIES = [
 ]
 
 export const DEFAULT_EXPENSE_CATEGORIES = [
-  { code: 'GAS-01', name: 'Nómina/Honorarios', description: 'Salarios del pastor, músicos, personal', color: '#ef4444', icon: 'users' },
+  { code: 'GAS-01', name: 'Pago del Local Iglesia', description: 'Alquiler o pago del templo/local de la iglesia', color: '#ef4444', icon: 'home' },
   { code: 'GAS-02', name: 'Servicios Básicos', description: 'Luz, agua, teléfono, internet', color: '#f97316', icon: 'zap' },
   { code: 'GAS-03', name: 'Mantenimiento', description: 'Reparaciones, limpieza, jardinería', color: '#84cc16', icon: 'wrench' },
   { code: 'GAS-04', name: 'Ministerios', description: 'Escuela dominical, jóvenes, damas, caballeros', color: '#06b6d4', icon: 'book-open' },
-  { code: 'GAS-05', name: 'Aportación Concilio', description: 'Porcentaje mensual a la denominación', color: '#6366f1', icon: 'building' },
-  { code: 'GAS-06', name: 'Otros Gastos', description: 'Eventos, suministros, gastos varios', color: '#a855f7', icon: 'more-horizontal' },
+  { code: 'GAS-05', name: 'Otros Gastos', description: 'Eventos, suministros, gastos varios', color: '#a855f7', icon: 'more-horizontal' },
 ]

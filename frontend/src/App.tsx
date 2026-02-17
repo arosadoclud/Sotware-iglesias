@@ -26,6 +26,7 @@ import LetterWizardPage from './pages/letters/LetterWizardPage'
 import { FinancesPage, FinanceReportsPage } from './pages/finances'
 import SettingsPage from './pages/SettingsPage'
 import NewMembersPage from './pages/new-members/NewMembersPage'
+import EventsManagementPage from './pages/events/EventsManagementPage'
 import UsersManagementPage from './pages/admin/UsersManagementPage'
 import AuditLogsPage from './pages/admin/AuditLogsPage'
 
@@ -86,6 +87,9 @@ const AnimatedRoutes = () => {
           } />
           <Route path="/calendar" element={
             <PageTransition><CalendarPage /></PageTransition>
+          } />
+          <Route path="/events" element={
+            <PageTransition><EventsManagementPage /></PageTransition>
           } />
           <Route path="/new-members" element={
             <PageTransition><NewMembersPage /></PageTransition>

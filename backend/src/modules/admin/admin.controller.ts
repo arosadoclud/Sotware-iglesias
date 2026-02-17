@@ -145,6 +145,16 @@ export const updateUser = async (req: AuthRequest, res: Response, next: NextFunc
       throw new NotFoundError('Usuario no encontrado');
     }
 
+    // Solo superusuarios pueden modificar permisos
+    if ((permissions !== undefined || useCustomPermissions !== undefined) && !req.isSuperUser) {
+      throw new ForbiddenError('Solo el superusuario puede gestionar permisos de otros usuarios');
+    }
+
+    // No permitir editar otro superusuario a menos que seas superusuario
+    if (user.isSuperUser && !req.isSuperUser) {
+      throw new ForbiddenError('No puede modificar un superusuario');
+    }
+
     // No permitir editar SUPER_ADMIN a menos que seas SUPER_ADMIN
     if (user.role === UserRole.SUPER_ADMIN && req.userRole !== UserRole.SUPER_ADMIN) {
       throw new ForbiddenError('No puede modificar un Super Admin');
@@ -168,8 +178,8 @@ export const updateUser = async (req: AuthRequest, res: Response, next: NextFunc
     if (fullName) user.fullName = fullName;
     if (role && req.userRole === UserRole.SUPER_ADMIN) user.role = role;
     if (isActive !== undefined) user.isActive = isActive;
-    if (permissions !== undefined) user.permissions = permissions;
-    if (useCustomPermissions !== undefined) user.useCustomPermissions = useCustomPermissions;
+    if (permissions !== undefined && req.isSuperUser) user.permissions = permissions;
+    if (useCustomPermissions !== undefined && req.isSuperUser) user.useCustomPermissions = useCustomPermissions;
 
     await user.save();
 
@@ -210,9 +220,19 @@ export const updateUserPermissions = async (req: AuthRequest, res: Response, nex
     const { id } = req.params;
     const { permissions, useCustomPermissions } = req.body;
 
+    // Solo superusuarios pueden gestionar permisos
+    if (!req.isSuperUser) {
+      throw new ForbiddenError('Solo el superusuario puede gestionar permisos de otros usuarios');
+    }
+
     const user = await User.findOne({ _id: id, churchId: req.churchId });
     if (!user) {
       throw new NotFoundError('Usuario no encontrado');
+    }
+
+    // No permitir editar permisos de otro superusuario
+    if (user.isSuperUser && user._id.toString() !== req.userId) {
+      throw new ForbiddenError('No puede modificar permisos de otro superusuario');
     }
 
     // No permitir editar permisos de SUPER_ADMIN

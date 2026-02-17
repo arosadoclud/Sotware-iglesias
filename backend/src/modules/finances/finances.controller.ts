@@ -1,3 +1,43 @@
+// Endpoint: GET /finances/tithes-details?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+export const getMonthlyTithesDetails = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const churchId = req.churchId
+    const { startDate, endDate } = req.query
+    if (!startDate || !endDate) {
+      throw new AppError('startDate y endDate son requeridos', 400)
+    }
+    // Buscar la categoría de diezmos
+    const tithesCategory = await FinanceCategory.findOne({
+      church: churchId,
+      code: 'ING-01',
+      type: 'INCOME',
+    })
+    if (!tithesCategory) {
+      return res.json({ success: true, data: [] })
+    }
+    // Buscar transacciones de diezmo aprobadas en el rango
+    const tithes = await FinanceTransaction.find({
+      church: churchId,
+      category: tithesCategory._id,
+      type: 'INCOME',
+      approvalStatus: 'APPROVED',
+      date: { $gte: new Date(startDate as string), $lte: new Date(endDate as string) },
+    })
+      .populate('person', 'fullName')
+      .sort({ date: 1 })
+    // Mapear desglose
+    const details = tithes.map(t => ({
+      date: t.date,
+      personName: t.person ? (t.person as any).fullName : 'Anónimo',
+      amount: t.amount,
+      councilAmount: t.amount * 0.10,
+      churchAmount: t.amount * 0.90,
+    }))
+    res.json({ success: true, data: details })
+  } catch (error) {
+    next(error)
+  }
+}
 import { Response, NextFunction } from 'express'
 import { AuthRequest } from '../../middleware/auth.middleware'
 import { 
@@ -11,6 +51,10 @@ import {
 } from '../../models'
 import { AppError } from '../../utils/errors'
 import mongoose from 'mongoose'
+import { Church } from '../../models'
+import { generateMonthlyReportPDF, generateAnnualCouncilReportPDF } from './generateFinanceReport'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 // ============================================
 // CATEGORÍAS
@@ -423,6 +467,121 @@ export const deleteTransaction = async (req: AuthRequest, res: Response, next: N
     res.json({
       success: true,
       message: 'Transacción eliminada correctamente',
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Actualizar una transacción existente
+export const updateTransaction = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const churchId = req.churchId
+    const userId = req.userId
+    const { id } = req.params
+    const { 
+      type, 
+      category, 
+      fund, 
+      amount, 
+      date, 
+      description, 
+      person,
+      paymentMethod,
+      reference,
+      notes,
+    } = req.body
+
+    // Buscar la transacción existente
+    const transaction = await FinanceTransaction.findOne({ _id: id, church: churchId })
+    if (!transaction) {
+      throw new AppError('Transacción no encontrada', 404)
+    }
+
+    // No permitir editar transacciones aprobadas de gastos
+    if (transaction.type === 'EXPENSE' && transaction.approvalStatus === 'APPROVED') {
+      throw new AppError('No se puede editar una transacción de gasto ya aprobada', 400)
+    }
+
+    // Guardar valores antiguos para revertir balance
+    const oldAmount = transaction.amount
+    const oldType = transaction.type
+    const oldFund = transaction.fund
+    const oldApprovalStatus = transaction.approvalStatus
+
+    // Verificar nueva categoría si se cambió
+    if (category && category !== transaction.category.toString()) {
+      const categoryDoc = await FinanceCategory.findOne({ _id: category, church: churchId })
+      if (!categoryDoc) {
+        throw new AppError('Categoría no encontrada', 404)
+      }
+      if (type && categoryDoc.type !== type) {
+        throw new AppError(`La categoría seleccionada no es de tipo ${type}`, 400)
+      }
+      transaction.category = category
+    }
+
+    // Verificar nuevo fondo si se cambió
+    if (fund && fund !== transaction.fund.toString()) {
+      const fundDoc = await Fund.findOne({ _id: fund, church: churchId })
+      if (!fundDoc) {
+        throw new AppError('Fondo no encontrado', 404)
+      }
+      transaction.fund = fund
+    }
+
+    // Actualizar campos
+    if (type) transaction.type = type
+    if (amount !== undefined) transaction.amount = amount
+    if (date) transaction.date = new Date(date)
+    if (description !== undefined) transaction.description = description
+    if (person !== undefined) transaction.person = person || undefined
+    if (paymentMethod) transaction.paymentMethod = paymentMethod
+    if (reference !== undefined) transaction.reference = reference
+    if (notes !== undefined) transaction.notes = notes
+
+    // Recalcular si requiere aprobación
+    if (transaction.type === 'EXPENSE' && transaction.amount >= APPROVAL_THRESHOLDS.NO_APPROVAL) {
+      if (!transaction.approvalRequired) {
+        transaction.approvalRequired = true
+        transaction.approvalStatus = 'PENDING'
+      }
+    } else if (transaction.type === 'EXPENSE') {
+      transaction.approvalRequired = false
+      transaction.approvalStatus = 'NOT_REQUIRED'
+    }
+
+    // Actualizar quien modificó
+    transaction.updatedBy = userId
+
+    // Revertir balance anterior
+    if (oldType === 'INCOME' || (oldType === 'EXPENSE' && oldApprovalStatus !== 'PENDING')) {
+      const revertChange = oldType === 'INCOME' ? -oldAmount : oldAmount
+      await Fund.findByIdAndUpdate(oldFund, { $inc: { balance: revertChange } })
+    }
+
+    // Aplicar nuevo balance
+    if (transaction.type === 'INCOME' || 
+        (transaction.type === 'EXPENSE' && transaction.approvalStatus === 'NOT_REQUIRED')) {
+      const newChange = transaction.type === 'INCOME' ? transaction.amount : -transaction.amount
+      await Fund.findByIdAndUpdate(transaction.fund, { $inc: { balance: newChange } })
+    }
+
+    await transaction.save()
+
+    // Poblar datos para respuesta
+    await transaction.populate([
+      { path: 'category', select: 'name code type color' },
+      { path: 'fund', select: 'name code color' },
+      { path: 'person', select: 'fullName' },
+      { path: 'createdBy', select: 'firstName lastName' },
+      { path: 'updatedBy', select: 'firstName lastName' },
+    ])
+
+    res.json({
+      success: true,
+      data: transaction,
+      message: 'Transacción actualizada correctamente',
     })
   } catch (error) {
     next(error)
@@ -1140,6 +1299,338 @@ export const getDetailedTransactions = async (req: AuthRequest, res: Response, n
         },
       },
     })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// ============================================
+// REPORTE PDF MENSUAL CON CÁLCULO DE CONCILIO
+// ============================================
+
+export const generateMonthlyPDFReport = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const churchId = req.churchId
+    const userId = req.userId
+    const { month, year } = req.query
+
+    if (!month || !year) {
+      throw new AppError('Mes y año son requeridos', 400)
+    }
+
+    // Obtener información de la iglesia
+    const church = await Church.findById(churchId)
+    if (!church) {
+      throw new AppError('Iglesia no encontrada', 404)
+    }
+
+    // Calcular fechas del período
+    const startDate = new Date(Number(year), Number(month) - 1, 1)
+    const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59, 999)
+
+    // Agregar ingresos por categoría
+    const incomeByCategory = await FinanceTransaction.aggregate([
+      {
+        $match: {
+          church: new mongoose.Types.ObjectId(churchId as string),
+          type: 'INCOME',
+          approvalStatus: 'APPROVED',
+          date: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: '$category',
+          total: { $sum: '$amount' },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $lookup: {
+          from: 'financecategories',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'categoryInfo',
+        },
+      },
+      {
+        $unwind: '$categoryInfo',
+      },
+      {
+        $project: {
+          name: '$categoryInfo.name',
+          code: '$categoryInfo.code',
+          total: 1,
+          count: 1,
+        },
+      },
+      {
+        $sort: { code: 1 },
+      },
+    ])
+
+    // Agregar gastos por categoría
+    const expenseByCategory = await FinanceTransaction.aggregate([
+      {
+        $match: {
+          church: new mongoose.Types.ObjectId(churchId as string),
+          type: 'EXPENSE',
+          approvalStatus: 'APPROVED',
+          date: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: '$category',
+          total: { $sum: '$amount' },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $lookup: {
+          from: 'financecategories',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'categoryInfo',
+        },
+      },
+      {
+        $unwind: '$categoryInfo',
+      },
+      {
+        $project: {
+          name: '$categoryInfo.name',
+          code: '$categoryInfo.code',
+          total: 1,
+          count: 1,
+        },
+      },
+      {
+        $sort: { code: 1 },
+      },
+    ])
+
+    // Calcular totales
+    const totalIncome = incomeByCategory.reduce((sum, cat) => sum + cat.total, 0)
+    const totalExpense = expenseByCategory.reduce((sum, cat) => sum + cat.total, 0)
+
+    // Obtener desglose individual de diezmos con información de persona
+    const tithesCategoryDoc = await FinanceCategory.findOne({ 
+      church: churchId, 
+      code: 'ING-01',
+      type: 'INCOME'
+    })
+    
+    let tithesDetails = []
+    let totalTithes = 0
+    let councilDeduction = 0
+    
+    if (tithesCategoryDoc) {
+      const tithesTransactions = await FinanceTransaction.find({
+        church: churchId,
+        category: tithesCategoryDoc._id,
+        type: 'INCOME',
+        approvalStatus: 'APPROVED',
+        date: { $gte: startDate, $lte: endDate },
+      })
+      .populate('person', 'fullName')
+      .sort({ date: 1 })
+
+      totalTithes = tithesTransactions.reduce((sum, t) => sum + t.amount, 0)
+      councilDeduction = totalTithes * 0.10
+
+      tithesDetails = tithesTransactions.map(t => ({
+        date: t.date,
+        personName: t.person ? (t.person as any).fullName : 'Anónimo',
+        amount: t.amount,
+        councilAmount: t.amount * 0.10,
+        churchAmount: t.amount * 0.90,
+      }))
+    }
+
+    // Calcular balance neto (ingreso - gastos)
+    const netBalance = totalIncome - totalExpense
+
+    // Obtener información del usuario que genera el reporte
+    const user = await mongoose.model('User').findById(userId)
+    const generatedBy = user ? `${user.firstName} ${user.lastName}` : 'Sistema'
+
+    // Generar datos para el reporte
+    const reportData = {
+      church: {
+        name: church.name,
+        logoUrl: church.logoUrl,
+        location: church.address || '',
+        phone: church.phone || '',
+      },
+      period: {
+        month: format(startDate, 'MMMM', { locale: es }),
+        year: Number(year),
+        startDate,
+        endDate,
+      },
+      incomeByCategory: incomeByCategory.map(cat => ({
+        name: cat.name,
+        code: cat.code,
+        total: cat.total,
+        count: cat.count,
+      })),
+      expenseByCategory: expenseByCategory.map(cat => ({
+        name: cat.name,
+        code: cat.code,
+        total: cat.total,
+        count: cat.count,
+      })),
+      summary: {
+        totalIncome,
+        totalExpense,
+        totalTithes,
+        councilDeduction,
+        netBalance,
+      },
+      tithesDetails, // Desglose individual de diezmos con 10% concilio
+      generatedBy,
+      generatedAt: new Date(),
+    }
+
+    // Generar PDF
+    const pdfBuffer = await generateMonthlyReportPDF(reportData)
+
+    // Enviar PDF como respuesta
+    const fileName = `Reporte-${church.name.replace(/\s+/g, '-')}-${format(startDate, 'MMMM-yyyy', { locale: es })}.pdf`
+    
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
+    res.setHeader('Content-Length', pdfBuffer.length)
+    
+    res.send(pdfBuffer)
+  } catch (error) {
+    next(error)
+  }
+}
+
+// ============================================
+// REPORTE ANUAL PARA EL CONCILIO (10% DE DIEZMOS)
+// ============================================
+
+export const generateAnnualCouncilReport = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const churchId = req.churchId
+    const userId = req.userId
+    const { year } = req.query
+
+    if (!year) {
+      throw new AppError('Año es requerido', 400)
+    }
+
+    // Obtener información de la iglesia
+    const church = await Church.findById(churchId)
+    if (!church) {
+      throw new AppError('Iglesia no encontrada', 404)
+    }
+
+    // Calcular fechas del período anual
+    const startDate = new Date(Number(year), 0, 1) // 1 de enero
+    const endDate = new Date(Number(year), 11, 31, 23, 59, 59, 999) // 31 de diciembre
+
+    // Buscar la categoría de Diezmos (ING-01)
+    const tithesCategory = await FinanceCategory.findOne({ 
+      church: churchId, 
+      code: 'ING-01',
+      type: 'INCOME'
+    })
+
+    if (!tithesCategory) {
+      throw new AppError('Categoría de Diezmos (ING-01) no encontrada', 404)
+    }
+
+    // Obtener todas las transacciones de diezmos del año con información de persona
+    const tithesTransactions = await FinanceTransaction.find({
+      church: churchId,
+      category: tithesCategory._id,
+      type: 'INCOME',
+      approvalStatus: 'APPROVED',
+      date: { $gte: startDate, $lte: endDate },
+    })
+    .populate('person', 'fullName')
+    .sort({ date: 1 })
+
+    // Calcular total de diezmos del año
+    const totalTithesYear = tithesTransactions.reduce((sum, t) => sum + t.amount, 0)
+
+    // Calcular el 10% para el concilio
+    const councilAmount = totalTithesYear * 0.10
+    const churchRetention = totalTithesYear * 0.90
+
+    // Crear desglose individual de cada diezmo con información de persona
+    const tithesDetails = tithesTransactions.map(t => ({
+      date: t.date,
+      personName: t.person ? (t.person as any).fullName : 'Anónimo',
+      amount: t.amount,
+      councilAmount: t.amount * 0.10,
+      councilPercentage: 10,
+      churchAmount: t.amount * 0.90,
+      churchPercentage: 90,
+    }))
+
+    // Agrupar por mes para mostrar en el reporte
+    const monthlyBreakdown = []
+    for (let month = 0; month < 12; month++) {
+      const monthStart = new Date(Number(year), month, 1)
+      const monthEnd = new Date(Number(year), month + 1, 0, 23, 59, 59, 999)
+      
+      const monthTransactions = tithesTransactions.filter(t => 
+        t.date >= monthStart && t.date <= monthEnd
+      )
+      
+      const monthTotal = monthTransactions.reduce((sum, t) => sum + t.amount, 0)
+      
+      monthlyBreakdown.push({
+        month: format(monthStart, 'MMMM', { locale: es }),
+        monthNumber: month + 1,
+        total: monthTotal,
+        count: monthTransactions.length,
+      })
+    }
+
+    // Obtener información del usuario
+    const user = await mongoose.model('User').findById(userId)
+    const generatedBy = user ? `${user.firstName} ${user.lastName}` : 'Sistema'
+
+    // Generar datos para el reporte
+    const reportData = {
+      church: {
+        name: church.name,
+        logoUrl: church.logoUrl,
+        location: church.address || '',
+        phone: church.phone || '',
+      },
+      year: Number(year),
+      monthlyBreakdown,
+      tithesDetails, // Desglose individual de cada diezmo del año
+      summary: {
+        totalTithesYear,
+        councilAmount,
+        councilPercentage: 10,
+        churchRetention,
+        churchPercentage: 90,
+        transactionCount: tithesTransactions.length,
+      },
+      generatedBy,
+      generatedAt: new Date(),
+    }
+
+    // Generar PDF
+    const pdfBuffer = await generateAnnualCouncilReportPDF(reportData)
+
+    // Enviar PDF como respuesta
+    const fileName = `Reporte-Concilio-${church.name.replace(/\s+/g, '-')}-${year}.pdf`
+    
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
+    res.setHeader('Content-Length', pdfBuffer.length)
+    
+    res.send(pdfBuffer)
   } catch (error) {
     next(error)
   }

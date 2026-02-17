@@ -1,3 +1,6 @@
+import { getMonthlyTithesDetails } from './finances.controller'
+// DESGLOSE DE DIEZMOS (para vista web)
+router.get('/tithes-details', rbac('finances', 'read'), getMonthlyTithesDetails)
 import { Router } from 'express'
 import { authenticate } from '../../middleware/auth.middleware'
 import { tenantGuard } from '../../middleware/tenant.middleware'
@@ -14,6 +17,7 @@ import {
   // Transacciones
   getTransactions,
   createTransaction,
+  updateTransaction,
   approveTransaction,
   deleteTransaction,
   // Reportes
@@ -24,6 +28,8 @@ import {
   getMonthlyComparison,
   getAnnualReport,
   getDetailedTransactions,
+  generateMonthlyPDFReport,
+  generateAnnualCouncilReport,
 } from './finances.controller'
 
 const router = Router()
@@ -50,6 +56,7 @@ router.post('/funds', rbac('finances', 'create'), createFund)
 // ============================================
 router.get('/transactions', rbac('finances', 'read'), getTransactions)
 router.post('/transactions', rbac('finances', 'create'), createTransaction)
+router.put('/transactions/:id', rbac('finances', 'update'), updateTransaction)
 router.patch('/transactions/:id/approve', rbac('finances', 'update'), approveTransaction)
 router.delete('/transactions/:id', rbac('finances', 'delete'), deleteTransaction)
 
@@ -63,5 +70,7 @@ router.get('/reports/offerings', rbac('finances', 'read'), getOfferingsReport)
 router.get('/reports/monthly-comparison', rbac('finances', 'read'), getMonthlyComparison)
 router.get('/reports/annual', rbac('finances', 'read'), getAnnualReport)
 router.get('/reports/transactions', rbac('finances', 'read'), getDetailedTransactions)
+router.get('/reports/monthly-pdf', rbac('finances', 'read'), generateMonthlyPDFReport)
+router.get('/reports/council-annual', rbac('finances', 'read'), generateAnnualCouncilReport)
 
 export default router

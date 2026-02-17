@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate } from '../../middleware/auth.middleware';
-import { requirePermission, requireAdmin, Permission } from '../../middleware/permission.middleware';
+import { requirePermission, requireAdmin, requireSuperUser, Permission } from '../../middleware/permission.middleware';
 import {
   getUsers,
   getUserById,
@@ -37,8 +37,8 @@ router.post('/users', requirePermission(Permission.USERS_CREATE), createUser);
 // Actualizar usuario
 router.put('/users/:id', requirePermission(Permission.USERS_EDIT), updateUser);
 
-// Actualizar permisos de usuario
-router.put('/users/:id/permissions', requirePermission(Permission.USERS_MANAGE_PERMISSIONS), updateUserPermissions);
+// Actualizar permisos de usuario (solo superusuarios)
+router.put('/users/:id/permissions', requireSuperUser(), updateUserPermissions);
 
 // Resetear contraseña de usuario
 router.post('/users/:id/reset-password', requireAdmin(), resetUserPassword);

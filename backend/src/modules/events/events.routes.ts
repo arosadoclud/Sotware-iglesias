@@ -8,17 +8,17 @@ import {
   reorderEvents,
 } from './events.controller'
 import { upload, uploadEventImage, deleteEventImage } from './upload.controller'
-import { protect } from '../../middleware/auth.middleware'
-import { requireChurch } from '../../middleware/tenant.middleware'
+import { authenticate } from '../../middleware/auth.middleware'
+import { tenantGuard } from '../../middleware/tenant.middleware'
 
 const router = Router()
 
-// Rutas públicas
-router.get('/', requireChurch, getEvents)
+// Rutas públicas (sin autenticación requerida)
+router.get('/', getEvents)
 router.get('/:id', getEvent)
 
-// Rutas protegidas
-router.use(protect, requireChurch)
+// Rutas protegidas (requieren autenticación)
+router.use(authenticate, tenantGuard)
 
 router.post('/', createEvent)
 router.put('/reorder', reorderEvents)
