@@ -241,7 +241,7 @@ const FinanceReportsPage = () => {
     try {
       setLoading(true)
       
-      const response = await financesApi.getAnnualCouncilReport(year)
+      const response = await financesApi.getAnnualCouncilReport({ year })
       
       // Crear blob desde la respuesta
       const blob = new Blob([response.data], { type: 'application/pdf' })

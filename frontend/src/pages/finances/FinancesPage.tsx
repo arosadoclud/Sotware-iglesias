@@ -1,22 +1,3 @@
-import { tithesApi } from '../../lib/tithesApi'
-  // Estado para desglose de diezmos
-  const [tithesDetails, setTithesDetails] = useState<any[]>([])
-  const [tithesLoading, setTithesLoading] = useState(false)
-  // Cargar desglose de diezmos para el período
-  const loadTithesDetails = async () => {
-    setTithesLoading(true)
-    try {
-      const res = await tithesApi.getMonthlyTithesDetails({ startDate: dateRange.start, endDate: dateRange.end })
-      setTithesDetails(res.data.data)
-    } catch {
-      setTithesDetails([])
-    }
-    setTithesLoading(false)
-  }
-
-  useEffect(() => {
-    loadTithesDetails()
-  }, [dateRange])
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { 
@@ -53,6 +34,7 @@ import {
   BarChart3,
 } from 'lucide-react'
 import { financesApi, personsApi } from '../../lib/api'
+import { tithesApi } from '../../lib/tithesApi'
 import { useAuthStore } from '../../store/authStore'
 import { P } from '../../constants/permissions'
 import { toast } from 'sonner'
@@ -211,6 +193,10 @@ const FinancesPage = () => {
     icon: 'circle',
   })
 
+  // Estado para desglose de diezmos
+  const [tithesDetails, setTithesDetails] = useState<any[]>([])
+  const [tithesLoading, setTithesLoading] = useState(false)
+
   // Cargar datos iniciales
   const loadData = async () => {
     setLoading(true)
@@ -249,6 +235,22 @@ const FinancesPage = () => {
   useEffect(() => {
     loadData()
   }, [dateRange, filterType])
+
+  // Cargar desglose de diezmos para el período
+  const loadTithesDetails = async () => {
+    setTithesLoading(true)
+    try {
+      const res = await tithesApi.getMonthlyTithesDetails({ startDate: dateRange.start, endDate: dateRange.end })
+      setTithesDetails(res.data.data)
+    } catch {
+      setTithesDetails([])
+    }
+    setTithesLoading(false)
+  }
+
+  useEffect(() => {
+    loadTithesDetails()
+  }, [dateRange])
 
   // Abrir modal
   const openModal = (type: 'INCOME' | 'EXPENSE') => {
@@ -311,7 +313,6 @@ const FinancesPage = () => {
         type: categoryType,
         description: categoryForm.description,
         color: categoryForm.color,
-        icon: categoryForm.icon,
       })
 
       toast.success('Categoría creada exitosamente')
@@ -349,7 +350,7 @@ const FinancesPage = () => {
       person: transaction.person?._id || '',
       paymentMethod: transaction.paymentMethod || 'CASH',
       reference: transaction.reference || '',
-      notes: transaction.notes || '',
+      notes: '',
       serviceType: serviceType,
     })
     setShowModal(true)
