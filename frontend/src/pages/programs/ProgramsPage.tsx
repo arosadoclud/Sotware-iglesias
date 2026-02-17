@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Wand2, Loader2, FileText, Trash2, Download, Send, Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Edit, Calendar, Sparkles, MessageCircle } from 'lucide-react'
+import { Wand2, Loader2, FileText, Trash2, Download, Send, Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Edit, Calendar, Sparkles, MessageCircle, Zap } from 'lucide-react'
 import { programsApi } from '../../lib/api'
+import { sharePdfViaWhatsApp } from '../../lib/shareWhatsApp'
+import { safeDateParse, toDateStr } from '../../lib/utils'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { QuickEditDrawer } from '../../components/programs/QuickEditDrawer'
+import { useAuthStore } from '../../store/authStore'
+import { P } from '../../constants/permissions'
 
 const DAYS: Record<number,string> = {0:'Domingo',1:'Lunes',2:'Martes',3:'Miércoles',4:'Jueves',5:'Viernes',6:'Sábado'}
 
@@ -23,6 +28,11 @@ const NEXT_STATUS: Record<string, { label: string; value: string }> = {
 }
 
 const ProgramsPage = () => {
+  const { hasPermission } = useAuthStore()
+  const canCreate = hasPermission(P.PROGRAMS_CREATE)
+  const canEdit = hasPermission(P.PROGRAMS_EDIT)
+  const canDelete = hasPermission(P.PROGRAMS_DELETE)
+
   const [programs, setPrograms] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState('')
@@ -30,10 +40,12 @@ const ProgramsPage = () => {
   const [total, setTotal] = useState(0)
   const [updatingStatus, setUpdatingStatus] = useState<string|null>(null)
   const [downloadingPdf, setDownloadingPdf] = useState<string|null>(null)
+  const [sharingWhatsApp, setSharingWhatsApp] = useState<string|null>(null)
   const [deletingAll, setDeletingAll] = useState(false)
   const [publishingAll, setPublishingAll] = useState(false)
   const [downloadingAllPdf, setDownloadingAllPdf] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [quickEditId, setQuickEditId] = useState<string | null>(null)
   const LIMIT = 20
 
   const load = async () => {
@@ -109,7 +121,7 @@ const ProgramsPage = () => {
       const url = window.URL.createObjectURL(new Blob([res.data]))
       const a = document.createElement('a')
       a.href = url
-      const dateStr = format(new Date(prog.programDate), 'yyyy-MM-dd')
+      const dateStr = toDateStr(prog.programDate)
       a.download = `${prog.activityType?.name?.replace(/\s+/g, '-') || 'programa'}-${dateStr}.pdf`
       a.click()
       window.URL.revokeObjectURL(url)
@@ -145,7 +157,7 @@ const ProgramsPage = () => {
         const url = window.URL.createObjectURL(new Blob([res.data]))
         const a = document.createElement('a')
         a.href = url
-        const dateStr = format(new Date(prog.programDate), 'yyyy-MM-dd')
+        const dateStr = toDateStr(prog.programDate)
         a.download = `${prog.activityType?.name?.replace(/\s+/g, '-') || 'programa'}-${dateStr}.pdf`
         a.click()
         window.URL.revokeObjectURL(url)
@@ -239,6 +251,7 @@ const ProgramsPage = () => {
                     </>
                   )}
                 </motion.button>
+                {canEdit && (
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -260,6 +273,8 @@ const ProgramsPage = () => {
                   </>
                 )}
               </motion.button>
+              )}
+              {canDelete && (
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -281,8 +296,10 @@ const ProgramsPage = () => {
                   </>
                 )}
               </motion.button>
+              )}
             </>
           )}
+          {canCreate && (
           <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -293,6 +310,7 @@ const ProgramsPage = () => {
               <span className="sm:hidden">Nuevo</span>
             </Link>
           </motion.div>
+          )}
         </div>
       </div>
       </div>
@@ -365,7 +383,7 @@ const ProgramsPage = () => {
             </div>
             <div className="divide-y divide-gray-100">
               {programs.map((prog, index) => {
-                const date = new Date(prog.programDate)
+                const date = safeDateParse(prog.programDate)
                 const sc = STATUS_CONFIG[prog.status] || STATUS_CONFIG.DRAFT
                 const StatusIcon = sc.icon
                 const nextSt = NEXT_STATUS[prog.status]
@@ -410,7 +428,7 @@ const ProgramsPage = () => {
                     {/* Botones de acción */}
                     <div className="flex items-center gap-2 flex-wrap">
                       {/* Cambiar estado */}
-                      {nextSt && (
+                      {canEdit && nextSt && (
                         <button
                           onClick={() => handleStatusChange(prog._id, nextSt.value, prog.activityType?.name)}
                           disabled={updatingStatus === prog._id}
@@ -426,8 +444,19 @@ const ProgramsPage = () => {
                       
                       {/* Botones secundarios */}
                       <div className="flex gap-2">
+                        {/* Edición Rápida */}
+                        {canEdit && (
+                        <button
+                          onClick={() => setQuickEditId(prog._id)}
+                          className="p-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"
+                          title="Edición rápida"
+                        >
+                          <Zap className="w-5 h-5" />
+                        </button>
+                        )}
+                        
                         {/* Editar (solo DRAFT) */}
-                        {prog.status === 'DRAFT' && (
+                        {canEdit && prog.status === 'DRAFT' && (
                           <button
                             onClick={() => navigate(`/programs/${prog._id}/flyer`)}
                             className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
@@ -455,15 +484,31 @@ const ProgramsPage = () => {
                         {/* WhatsApp (programas publicados/completados) */}
                         {(prog.status === 'PUBLISHED' || prog.status === 'COMPLETED') && (
                           <button
-                            onClick={() => navigate(`/programs/share-whatsapp?ids=${prog._id}`)}
-                            className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Compartir por WhatsApp"
+                            onClick={async () => {
+                              setSharingWhatsApp(prog._id)
+                              try {
+                                await sharePdfViaWhatsApp(prog._id, {
+                                  activityName: prog.activityType?.name,
+                                  dateStr: toDateStr(prog.programDate),
+                                  churchName: prog.church?.name,
+                                })
+                              } finally {
+                                setSharingWhatsApp(null)
+                              }
+                            }}
+                            disabled={sharingWhatsApp === prog._id}
+                            className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                            title="Compartir PDF por WhatsApp"
                           >
-                            <MessageCircle className="w-5 h-5" />
+                            {sharingWhatsApp === prog._id
+                              ? <Loader2 className="w-5 h-5 animate-spin" />
+                              : <MessageCircle className="w-5 h-5" />
+                            }
                           </button>
                         )}
                         
                         {/* Eliminar */}
+                        {canDelete && (
                         <button
                           onClick={() => handleDelete(prog._id)}
                           className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -471,6 +516,7 @@ const ProgramsPage = () => {
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
+                        )}
                       </div>
                     </div>
                   </motion.div>
@@ -502,7 +548,7 @@ const ProgramsPage = () => {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {programs.map((prog, index) => {
-                  const date = new Date(prog.programDate)
+                  const date = safeDateParse(prog.programDate)
                   const sc = STATUS_CONFIG[prog.status] || STATUS_CONFIG.DRAFT
                   const StatusIcon = sc.icon
                   const nextSt = NEXT_STATUS[prog.status]
@@ -544,7 +590,7 @@ const ProgramsPage = () => {
                       <td className="py-3.5 px-4">
                         <div className="flex items-center justify-end gap-1">
                           {/* Cambiar estado */}
-                          {nextSt && (
+                          {canEdit && nextSt && (
                             <button
                               onClick={() => handleStatusChange(prog._id, nextSt.value, prog.activityType?.name)}
                               disabled={updatingStatus === prog._id}
@@ -558,15 +604,27 @@ const ProgramsPage = () => {
                               <span className="hidden lg:inline">{nextSt.label}</span>
                             </button>
                           )}
+                          {/* Edición Rápida */}
+                          {canEdit && (
+                          <button
+                            onClick={() => setQuickEditId(prog._id)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-200"
+                            title="Edición rápida"
+                          >
+                            <Zap className="w-3.5 h-3.5" />
+                            <span className="hidden lg:inline">Rápida</span>
+                          </button>
+                          )}
+                          
                           {/* Editar (solo DRAFT) */}
-                          {prog.status === 'DRAFT' && (
+                          {canEdit && prog.status === 'DRAFT' && (
                             <button
                               onClick={() => navigate(`/programs/${prog._id}/flyer`)}
                               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-200"
                               title="Editar programa"
                             >
                               <Edit className="w-3.5 h-3.5" />
-                              <span className="hidden lg:inline">Editar</span>
+                              <span className="hidden lg:inline">Editor</span>
                             </button>
                           )}
                           {/* Descargar PDF (programas publicados/completados) */}
@@ -587,15 +645,31 @@ const ProgramsPage = () => {
                           {/* Compartir WhatsApp (programas publicados/completados) */}
                           {(prog.status === 'PUBLISHED' || prog.status === 'COMPLETED') && (
                             <button
-                              onClick={() => navigate(`/programs/share-whatsapp?ids=${prog._id}`)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors border border-transparent hover:border-green-200"
-                              title="Compartir por WhatsApp"
+                              onClick={async () => {
+                                setSharingWhatsApp(prog._id)
+                                try {
+                                  await sharePdfViaWhatsApp(prog._id, {
+                                    activityName: prog.activityType?.name,
+                                    dateStr: toDateStr(prog.programDate),
+                                    churchName: prog.church?.name,
+                                  })
+                                } finally {
+                                  setSharingWhatsApp(null)
+                                }
+                              }}
+                              disabled={sharingWhatsApp === prog._id}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors border border-transparent hover:border-green-200 disabled:opacity-50"
+                              title="Compartir PDF por WhatsApp"
                             >
-                              <MessageCircle className="w-3.5 h-3.5" />
+                              {sharingWhatsApp === prog._id
+                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                : <MessageCircle className="w-3.5 h-3.5" />
+                              }
                               <span className="hidden lg:inline">WhatsApp</span>
                             </button>
                           )}
                           {/* Eliminar */}
+                          {canDelete && (
                           <button
                             onClick={() => handleDelete(prog._id)}
                             className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -603,6 +677,7 @@ const ProgramsPage = () => {
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
+                          )}
                         </div>
                       </td>
                     </motion.tr>
@@ -633,6 +708,14 @@ const ProgramsPage = () => {
           )}
         </motion.div>
       )}
+      
+      {/* Quick Edit Drawer */}
+      <QuickEditDrawer
+        programId={quickEditId}
+        open={quickEditId !== null}
+        onOpenChange={(open) => !open && setQuickEditId(null)}
+        onSaved={() => load()}
+      />
     </motion.div>
   )
 }

@@ -115,6 +115,8 @@ import pdfRoutes      from './modules/pdf/pdf.routes';       // PASO 5: PDF
 import letterRoutes   from './modules/letters/letter.routes';
 import adminRoutes    from './modules/admin/admin.routes';   // Admin & Auditoría
 import financesRoutes from './modules/finances/finances.routes'; // Módulo de Finanzas
+import bibleRoutes    from './modules/bible/bible.routes';    // Bible API proxy
+import newMemberRoutes from './modules/new-members/newMember.routes'; // Nuevos miembros
 
 app.use(`${API}/health`,    healthRoutes);  // Health check
 app.use(`${API}/auth`,      authRoutes);
@@ -129,6 +131,8 @@ app.use(`${API}/programs`,  pdfRoutes);     // PDF: GET /programs/:id/pdf
 app.use(`${API}/letters`,   letterRoutes);
 app.use(`${API}/admin`,     adminRoutes);   // Admin: usuarios y auditoría
 app.use(`${API}/finances`,  financesRoutes); // Finanzas
+app.use(`${API}/new-members`, newMemberRoutes); // Nuevos miembros
+app.use(`${API}/bible`,     bibleRoutes);    // Bible API proxy
 
 app.get('/api', (_req: Request, res: Response) => {
   res.json({
@@ -145,6 +149,7 @@ app.get('/api', (_req: Request, res: Response) => {
       `${API}/programs`,
       `${API}/letters`,
       `${API}/finances`,
+      `${API}/bible`,
     ],
   });
 });

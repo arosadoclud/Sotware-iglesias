@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { programsApi } from '../../lib/api';
+import { safeDateParse } from '../../lib/utils';
 import { toast } from 'sonner';
 import { Loader2, ArrowLeft, Save, Download, Eye, MessageCircle } from 'lucide-react';
 
@@ -19,6 +20,7 @@ const ProgramEditPage = () => {
   const [worshipType, setWorshipType] = useState('');
   const [programDate, setProgramDate] = useState('');
   const [programTime, setProgramTime] = useState('');
+  const [timePeriod, setTimePeriod] = useState<'AM' | 'PM'>('PM');
   const [verse, setVerse] = useState('');
 
   useEffect(() => {
@@ -35,17 +37,30 @@ const ProgramEditPage = () => {
         setChurchName(prog.churchName || 'IGLESIA ARCA EVANGELICA DIOS FUERTE');
         setSubtitle(prog.subtitle || '');
         setWorshipType(prog.activityType?.name || 'CULTO DE JÓVENES');
-        setProgramDate(prog.programDate || '');
+        setProgramDate(prog.programDate ? prog.programDate.slice(0, 10) : '');
         
-        // Si programTime existe, usarlo, sino extraer de programDate
+        // Si programTime existe, usarlo, sino default
         if (prog.programTime) {
-          setProgramTime(prog.programTime);
+          const hasPM = /PM/i.test(prog.programTime);
+          const hasAM = /AM/i.test(prog.programTime);
+          if (hasPM || hasAM) {
+            // Ya viene en formato 12h "7:00 PM"
+            const clean = prog.programTime.replace(/\s*(AM|PM)\s*/gi, '').trim();
+            setProgramTime(clean);
+            setTimePeriod(hasPM ? 'PM' : 'AM');
+          } else {
+            // Formato 24h "19:00" → convertir a 12h
+            const parts = prog.programTime.split(':');
+            const h = parseInt(parts[0]);
+            const m = parts[1] || '00';
+            const isPM = h >= 12;
+            const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+            setProgramTime(`${h12}:${m}`);
+            setTimePeriod(isPM ? 'PM' : 'AM');
+          }
         } else {
-          // Extraer hora de programDate
-          const date = new Date(prog.programDate);
-          const hours = String(date.getHours()).padStart(2, '0');
-          const minutes = String(date.getMinutes()).padStart(2, '0');
-          setProgramTime(`${hours}:${minutes}`);
+          setProgramTime('7:00');
+          setTimePeriod('PM');
         }
         
         setVerse(prog.verse || '');
@@ -75,15 +90,8 @@ const ProgramEditPage = () => {
     if (!id) return;
     setSaving(true);
     try {
-      // Convertir hora de 24h a 12h con AM/PM
-      let formattedTime = programTime;
-      if (programTime && programTime.includes(':')) {
-        const [hours, minutes] = programTime.split(':');
-        const hour = parseInt(hours);
-        const isPM = hour >= 12;
-        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-        formattedTime = `${displayHour}:${minutes} ${isPM ? 'PM' : 'AM'}`;
-      }
+      // Convertir hora a formato guardado con AM/PM
+      const formattedTime = `${programTime} ${timePeriod}`;
 
       // Guardar con TODOS los datos exactos del preview
       await programsApi.update(id, {
@@ -92,7 +100,9 @@ const ProgramEditPage = () => {
         subtitle,        // ✅ Guardar subtítulo
         verse,           // ✅ Guardar versículo completo
         programTime: formattedTime,     // ✅ Guardar hora en formato "7:00 PM"
-        programDate,     // ✅ Guardar fecha
+        defaultTime: formattedTime,     // ✅ También guardar en defaultTime
+        ampm: timePeriod,               // ✅ Guardar período AM/PM
+        programDate: programDate ? `${programDate.slice(0, 10)}T12:00:00` : programDate,     // ✅ Guardar fecha
         activityType: {
           ...program.activityType,
           name: worshipType  // ✅ Guardar tipo de culto
@@ -130,28 +140,16 @@ const ProgramEditPage = () => {
   if (!program) return null;
 
   // Formatear fecha como en el preview
-  const formattedDate = new Date(programDate).toLocaleDateString('es-ES', {
+  const formattedDate = new Date(programDate + 'T12:00:00').toLocaleDateString('es-ES', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
-    year: 'numeric'
+    year: 'numeric',
+    timeZone: 'America/Santo_Domingo'
   });
 
-  // Formatear hora para el preview - convertir de 24h a 12h
-  let displayTime = '';
-  if (programTime && programTime.includes(':')) {
-    const [hours, minutes] = programTime.split(':');
-    const hour = parseInt(hours);
-    const isPM = hour >= 12;
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    displayTime = `${displayHour}:${minutes} ${isPM ? 'PM' : 'AM'}`;
-  } else {
-    displayTime = new Date(programDate).toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-  }
+  // Hora en formato 12h para el preview
+  const displayTime = programTime ? `${programTime} ${timePeriod}` : '';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -263,7 +261,7 @@ const ProgramEditPage = () => {
                     </label>
                     <input
                       type="date"
-                      value={programDate ? programDate.split('T')[0] : ''}
+                      value={programDate}
                       onChange={(e) => setProgramDate(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     />
@@ -272,12 +270,28 @@ const ProgramEditPage = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Hora
                     </label>
-                    <input
-                      type="time"
-                      value={programTime}
-                      onChange={(e) => setProgramTime(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={programTime}
+                        onChange={(e) => {
+                          let cleaned = e.target.value.replace(/[^0-9]/g, '');
+                          if (cleaned.length >= 2) cleaned = cleaned.slice(0, 2) + ':' + cleaned.slice(2, 4);
+                          if (cleaned.length > 5) cleaned = cleaned.slice(0, 5);
+                          setProgramTime(cleaned);
+                        }}
+                        placeholder="7:00"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      />
+                      <select
+                        value={timePeriod}
+                        onChange={(e) => setTimePeriod(e.target.value as 'AM' | 'PM')}
+                        className="w-20 px-2 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
+                      >
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
                 <div>

@@ -1,5 +1,7 @@
 import { Router } from 'express'
 import { authenticate } from '../../middleware/auth.middleware'
+import { tenantGuard } from '../../middleware/tenant.middleware'
+import { rbac } from '../../middleware/rbac.middleware'
 import {
   // Categorías
   getCategories,
@@ -26,40 +28,40 @@ import {
 
 const router = Router()
 
-// Todas las rutas requieren autenticación
-router.use(authenticate)
+// Todas las rutas requieren autenticación + tenant
+router.use(authenticate, tenantGuard)
 
 // ============================================
 // CATEGORÍAS
 // ============================================
-router.get('/categories', getCategories)
-router.post('/categories/seed', seedCategories)
-router.post('/categories', createCategory)
+router.get('/categories', rbac('finances', 'read'), getCategories)
+router.post('/categories/seed', rbac('finances', 'create'), seedCategories)
+router.post('/categories', rbac('finances', 'create'), createCategory)
 
 // ============================================
 // FONDOS
 // ============================================
-router.get('/funds', getFunds)
-router.post('/funds/seed', seedFunds)
-router.post('/funds', createFund)
+router.get('/funds', rbac('finances', 'read'), getFunds)
+router.post('/funds/seed', rbac('finances', 'create'), seedFunds)
+router.post('/funds', rbac('finances', 'create'), createFund)
 
 // ============================================
 // TRANSACCIONES
 // ============================================
-router.get('/transactions', getTransactions)
-router.post('/transactions', createTransaction)
-router.patch('/transactions/:id/approve', approveTransaction)
-router.delete('/transactions/:id', deleteTransaction)
+router.get('/transactions', rbac('finances', 'read'), getTransactions)
+router.post('/transactions', rbac('finances', 'create'), createTransaction)
+router.patch('/transactions/:id/approve', rbac('finances', 'update'), approveTransaction)
+router.delete('/transactions/:id', rbac('finances', 'delete'), deleteTransaction)
 
 // ============================================
 // REPORTES
 // ============================================
-router.get('/summary', getSummary)
-router.get('/reports/tithing', getTithingReport)
-router.get('/reports/council', getCouncilReport)
-router.get('/reports/offerings', getOfferingsReport)
-router.get('/reports/monthly-comparison', getMonthlyComparison)
-router.get('/reports/annual', getAnnualReport)
-router.get('/reports/transactions', getDetailedTransactions)
+router.get('/summary', rbac('finances', 'read'), getSummary)
+router.get('/reports/tithing', rbac('finances', 'read'), getTithingReport)
+router.get('/reports/council', rbac('finances', 'read'), getCouncilReport)
+router.get('/reports/offerings', rbac('finances', 'read'), getOfferingsReport)
+router.get('/reports/monthly-comparison', rbac('finances', 'read'), getMonthlyComparison)
+router.get('/reports/annual', rbac('finances', 'read'), getAnnualReport)
+router.get('/reports/transactions', rbac('finances', 'read'), getDetailedTransactions)
 
 export default router

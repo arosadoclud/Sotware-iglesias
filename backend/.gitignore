@@ -1,6 +1,11 @@
 # Environment variables
+.env
 .env.local
 .env.*.local
+
+# Permitir archivos de desarrollo (seguros para compartir)
+!.env.development
+!.env.example
 
 # Node modules
 node_modules/

@@ -23,14 +23,24 @@ export type Resource =
   | 'letters'
   | 'users'
   | 'churches'
+  | 'finances'
   | 'billing';
 
 // Acciones posibles sobre cada recurso
 export type Action = 'read' | 'create' | 'update' | 'delete';
 
-// Matriz de permisos por rol
-// Nota: MINISTRY_LEADER tiene restricción adicional de scope (solo su ministerio)
-//       que se maneja en el controller individual cuando sea necesario.
+// ────────────────────────────────────────────────────────────────────────────
+// Matriz de permisos por rol (alineada con permissions.ts)
+//
+// Jerarquía:  SUPER_ADMIN > PASTOR > ADMIN > MINISTRY_LEADER > EDITOR > VIEWER
+//
+// VIEWER  → Solo lectura: puede ver datos pero NO crear, editar ni eliminar nada
+// EDITOR  → Lectura + crear/editar (no borrar, no gestionar usuarios)
+// MINISTRY_LEADER → Como EDITOR + generar programas y cartas en su ámbito
+// ADMIN   → Casi todo excepto eliminar usuarios y configurar iglesia
+// PASTOR  → Todo excepto gestión de usuarios avanzada
+// SUPER_ADMIN → Sin restricciones
+// ────────────────────────────────────────────────────────────────────────────
 const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
   [UserRole.SUPER_ADMIN]: {
     persons:    ['read', 'create', 'update', 'delete'],
@@ -40,53 +50,59 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     letters:    ['read', 'create', 'update', 'delete'],
     users:      ['read', 'create', 'update', 'delete'],
     churches:   ['read', 'create', 'update', 'delete'],
+    finances:   ['read', 'create', 'update', 'delete'],
     billing:    ['read', 'create', 'update', 'delete'],
   },
 
   [UserRole.PASTOR]: {
-    persons:    ['read'],
-    programs:   ['read', 'update'],  // Puede aprobar/cambiar estado de programas
-    roles:      ['read'],
-    activities: ['read'],
-    letters:    ['read'],
-    users:      [],
-    churches:   ['read'],
-    billing:    [],
-  },
-
-  [UserRole.ADMIN]: {
     persons:    ['read', 'create', 'update', 'delete'],
     programs:   ['read', 'create', 'update', 'delete'],
     roles:      ['read', 'create', 'update', 'delete'],
     activities: ['read', 'create', 'update', 'delete'],
     letters:    ['read', 'create', 'update', 'delete'],
-    users:      ['read', 'create', 'update'],   // No puede eliminar usuarios
-    churches:   ['read', 'update'],             // No puede crear/eliminar iglesias
-    billing:    ['read'],                       // Solo lectura de billing
+    users:      ['read'],           // Solo ver usuarios
+    churches:   ['read', 'update'], // Puede editar su iglesia
+    finances:   ['read', 'create', 'update', 'delete'],
+    billing:    ['read'],
+  },
+
+  [UserRole.ADMIN]: {
+    persons:    ['read', 'create', 'update', 'delete'],
+    programs:   ['read', 'create', 'update', 'delete'],
+    roles:      ['read', 'create', 'update'],    // No puede eliminar roles
+    activities: ['read', 'create', 'update'],    // No puede eliminar actividades
+    letters:    ['read', 'create', 'update'],    // No puede eliminar cartas
+    users:      ['read', 'create', 'update'],    // No puede eliminar usuarios
+    churches:   ['read', 'update'],
+    finances:   ['read', 'create', 'update'],    // No puede eliminar finanzas
+    billing:    ['read'],
   },
 
   [UserRole.MINISTRY_LEADER]: {
-    persons:    ['read', 'create', 'update'],   // Solo de su ministerio (validado en controller)
-    programs:   ['read', 'create', 'update'],   // Solo de su área
+    persons:    ['read', 'update'],              // Editar personas de su área
+    programs:   ['read', 'create', 'update'],    // Crear/editar programas
     roles:      ['read'],
     activities: ['read'],
-    letters:    ['read', 'create', 'update'],
+    letters:    ['read', 'create'],              // Crear cartas
     users:      [],
     churches:   ['read'],
+    finances:   ['read'],                        // Solo ver finanzas
     billing:    [],
   },
 
   [UserRole.EDITOR]: {
-    persons:    ['read', 'create', 'update'],
-    programs:   ['read', 'create', 'update'],
+    persons:    ['read', 'update'],              // Editar personas
+    programs:   ['read', 'create', 'update'],    // Crear/editar programas
     roles:      ['read'],
     activities: ['read'],
-    letters:    ['read', 'create', 'update'],
+    letters:    ['read', 'create'],
     users:      [],
     churches:   ['read'],
+    finances:   ['read'],                        // Solo ver finanzas
     billing:    [],
   },
 
+  // ⚠️ VIEWER: Solo lectura — NO puede crear, editar ni eliminar NADA
   [UserRole.VIEWER]: {
     persons:    ['read'],
     programs:   ['read'],
@@ -95,6 +111,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     letters:    ['read'],
     users:      [],
     churches:   ['read'],
+    finances:   [],                              // Sin acceso a finanzas
     billing:    [],
   },
 };

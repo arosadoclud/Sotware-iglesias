@@ -429,7 +429,7 @@ const AuditLogsPage = () => {
                             {format(new Date(log.createdAt), 'dd MMM yyyy', { locale: es })}
                           </div>
                           <div className="text-xs text-neutral-500">
-                            {format(new Date(log.createdAt), 'HH:mm:ss')}
+                            {format(new Date(log.createdAt), 'hh:mm:ss a')}
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -523,7 +523,7 @@ const AuditLogsPage = () => {
                 <div>
                   <label className="text-xs text-neutral-500">Fecha y Hora</label>
                   <p className="font-medium">
-                    {format(new Date(selectedLog.createdAt), "dd 'de' MMMM yyyy, HH:mm:ss", { locale: es })}
+                    {format(new Date(selectedLog.createdAt), "dd 'de' MMMM yyyy, hh:mm:ss a", { locale: es })}
                   </p>
                 </div>
                 <div>

@@ -12,6 +12,10 @@ build/
 .env.local
 .env.*.local
 
+# Permitir archivos de desarrollo (seguros para compartir)
+!.env.development
+!.env.example
+
 # IDE
 .vscode/
 .idea/

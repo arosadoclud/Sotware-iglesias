@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { programsApi } from '../lib/api'
+import { safeDateParse } from '../lib/utils'
 import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -55,7 +56,7 @@ const CalendarPage = () => {
               {Array.from({ length: startDay }).map((_, i) => <div key={`e-${i}`} className="bg-white min-h-[80px] sm:min-h-[100px] md:min-h-[120px]" />)}
               {/* Días del mes */}
               {days.map(day => {
-                const dayPrograms = programs.filter(p => isSameDay(new Date(p.programDate), day))
+                const dayPrograms = programs.filter(p => isSameDay(safeDateParse(p.programDate), day))
                 const isToday = isSameDay(day, new Date())
                 return (
                   <div key={day.toISOString()} className={`bg-white min-h-[80px] sm:min-h-[100px] md:min-h-[120px] p-1.5 sm:p-2 border-l border-t border-gray-100 ${isToday ? 'ring-2 ring-primary-500 ring-inset bg-primary-50/30' : ''}`}>

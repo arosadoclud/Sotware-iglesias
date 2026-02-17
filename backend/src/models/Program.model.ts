@@ -56,6 +56,7 @@ export interface IProgram extends Document {
   defaultTime?: string;     // Hora por defecto
   ampm?: 'AM' | 'PM';       // AM/PM
   verse?: string;           // Versículo completo
+  verseText?: string;       // Texto del versículo (opcional)
 
   // ── CAMPOS PARA GRUPOS DE LIMPIEZA ──
   generationType?: 'standard' | 'cleaning_groups';
@@ -205,6 +206,12 @@ const ProgramSchema = new Schema<IProgram>(
       trim: true,
       required: false,
       maxlength: [500, 'El versículo no puede exceder 500 caracteres'],
+    },
+    verseText: {
+      type: String,
+      trim: true,
+      required: false,
+      maxlength: [1000, 'El texto del versículo no puede exceder 1000 caracteres'],
     },
     churchSub: {
       type: String,

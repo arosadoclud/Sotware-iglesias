@@ -2,6 +2,8 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import { authenticate } from '../../middleware/auth.middleware';
+import { tenantGuard } from '../../middleware/tenant.middleware';
+import { rbac } from '../../middleware/rbac.middleware';
 import { uploadLogo } from './logo.controller';
 
 const router = Router();
@@ -14,6 +16,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-router.post('/', authenticate, upload.single('logo'), uploadLogo);
+router.post('/', authenticate, tenantGuard, rbac('churches', 'update'), upload.single('logo'), uploadLogo);
 
 export default router;

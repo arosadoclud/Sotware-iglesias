@@ -82,17 +82,20 @@ export class PdfService {
 
       const verseSource = (program as any).verse || "";
 
-      // Formatear fecha IGUAL que el frontend (formatDateES con Intl es-DO)
-      const dateObj = new Date(program.programDate);
-      // Ajustar para evitar problemas de timezone (igual que frontend: dateStr + 'T12:00:00')
-      const dateForFormat = new Date(dateObj.toISOString().slice(0, 10) + "T12:00:00");
+      // Formatear fecha IGUAL que el frontend - usar fecha local para evitar desfase de timezone
+      const isoStr = program.programDate instanceof Date
+        ? program.programDate.toISOString()
+        : String(program.programDate);
+      const dateOnly = isoStr.slice(0, 10); // "2026-02-18"
+      const dateForFormat = new Date(dateOnly + 'T12:00:00');
       const dateOpts: Intl.DateTimeFormatOptions = {
         weekday: "long",
         day: "numeric",
         month: "long",
         year: "numeric",
+        timeZone: "America/Santo_Domingo",
       };
-      const rawDate = dateForFormat.toLocaleDateString("es-DO", dateOpts);
+      const rawDate = dateForFormat.toLocaleDateString("es-ES", dateOpts);
       const formattedDate = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
 
       // Formatear hora IGUAL que el frontend (formatTimeES con AM/PM)
@@ -190,8 +193,7 @@ export class PdfService {
         assignments,
         formattedDate,
         formattedTime,
-        verse: verseSource,
-        summary: (program as any).summary || "",
+        verse: verseSource,        verseText: (program as any).verseText || '',        summary: (program as any).summary || "",
         logoUrl,
       };
 
@@ -249,7 +251,7 @@ export class PdfService {
           ? Math.round((totalAssignments / program.assignments.length) * 100)
           : 0,
       programStatus: STATUS_LABELS[program.status] || program.status,
-      generatedAt: format(new Date(), "d MMM yyyy 'a las' HH:mm", {
+      generatedAt: format(new Date(), "d MMM yyyy 'a las' hh:mm a", {
         locale: es,
       }),
       generatedBy: (program as any).generatedBy,

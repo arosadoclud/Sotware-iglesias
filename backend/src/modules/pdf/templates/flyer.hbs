@@ -305,18 +305,14 @@
     margin: 0;
   }
 
-  /* ── Summary ── */
-  .flyer-summary {
-    text-align: center;
-    padding: 0.5rem 2.5rem 0.5rem;
-    margin: 0 2rem;
-  }
-
-  .flyer-summary p {
+  .flyer-verse cite {
     font-size: 0.85rem;
-    color: #6B7280;
-    line-height: 1.4;
-    margin: 0;
+    font-weight: 700;
+    color: #C8A84B;
+    font-style: normal;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-top: 4px;
   }
 
   /* ── Footer ── */
@@ -407,13 +403,10 @@
 
   {{#if verse}}
   <div class="flyer-verse">
-    <p>{{verse}}</p>
-  </div>
-  {{/if}}
-
-  {{#if summary}}
-  <div class="flyer-summary">
-    <p>{{summary}}</p>
+    {{#if verseText}}
+    <p>"{{verseText}}"</p>
+    {{/if}}
+    <cite>{{verse}}</cite>
   </div>
   {{/if}}
 

@@ -3,6 +3,8 @@ import { Plus, Edit, Trash2, Loader2, Calendar, Clock, Users, X } from 'lucide-r
 import { activitiesApi, rolesApi } from '../../lib/api'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuthStore } from '../../store/authStore'
+import { P } from '../../constants/permissions'
 
 import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'
@@ -123,6 +125,11 @@ const DAY_COLORS: Record<number, { bg: string; border: string; badge: string; pi
 }
 
 const ActivityTypesPage = () => {
+  const { hasPermission } = useAuthStore()
+  const canCreate = hasPermission(P.ACTIVITIES_CREATE)
+  const canEdit = hasPermission(P.ACTIVITIES_EDIT)
+  const canDelete = hasPermission(P.ACTIVITIES_DELETE)
+
   const [activities, setActivities] = useState<any[]>([])
   const [roles, setRoles] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -295,11 +302,13 @@ const ActivityTypesPage = () => {
             )}
           </p>
         </div>
+        {canCreate && (
         <Button onClick={openNew} size="lg" className="w-full sm:w-auto">
           <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
           <span className="hidden sm:inline">Nueva Actividad</span>
           <span className="sm:hidden">Nueva</span>
         </Button>
+        )}
       </div>
 
       {/* Content */}
@@ -372,6 +381,7 @@ const ActivityTypesPage = () => {
                           )}
                         </div>
                         <div className="flex gap-1 ml-2">
+                          {canEdit && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -380,6 +390,8 @@ const ActivityTypesPage = () => {
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
+                          )}
+                          {canDelete && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -388,6 +400,7 @@ const ActivityTypesPage = () => {
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
+                          )}
                         </div>
                       </div>
                     </CardHeader>

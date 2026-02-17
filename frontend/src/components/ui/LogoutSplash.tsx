@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
 import { LogOut, CheckCircle } from 'lucide-react'
-import { useAuthStore } from '../../store/authStore'
 
 interface LogoutSplashProps {
   userName?: string
@@ -11,10 +9,13 @@ interface LogoutSplashProps {
 const LogoutSplash = ({ userName, onComplete }: LogoutSplashProps) => {
   const [progress, setProgress] = useState(0)
   const [stage, setStage] = useState<'logout' | 'success' | 'redirect'>('logout')
-  const navigate = useNavigate()
-  const { logout } = useAuthStore()
+  // Ref para evitar que cambios en onComplete reinicien la secuencia
+  const onCompleteRef = useRef(onComplete)
+  onCompleteRef.current = onComplete
 
   useEffect(() => {
+    let cancelled = false
+
     // Animación de progreso
     const progressInterval = setInterval(() => {
       setProgress(prev => {
@@ -26,34 +27,33 @@ const LogoutSplash = ({ userName, onComplete }: LogoutSplashProps) => {
       })
     }, 30)
 
-    // Secuencia de logout
+    // Secuencia de animación (NO ejecuta logout, solo animación)
     const sequence = async () => {
-      // Etapa 1: Logout
+      // Etapa 1: Animación de cierre
       await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Ejecutar logout
-      logout()
+      if (cancelled) return
       
       // Etapa 2: Éxito
       setStage('success')
       await new Promise(resolve => setTimeout(resolve, 1500))
+      if (cancelled) return
       
       // Etapa 3: Redirigir
       setStage('redirect')
       await new Promise(resolve => setTimeout(resolve, 800))
+      if (cancelled) return
       
-      // Limpiar y redirigir
-      if (onComplete) {
-        onComplete()
-      } else {
-        navigate('/login', { replace: true })
-      }
+      // Notificar que la animación terminó
+      onCompleteRef.current?.()
     }
 
     sequence()
 
-    return () => clearInterval(progressInterval)
-  }, [logout, navigate, onComplete])
+    return () => {
+      cancelled = true
+      clearInterval(progressInterval)
+    }
+  }, []) // Sin dependencias - se ejecuta solo una vez
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900">

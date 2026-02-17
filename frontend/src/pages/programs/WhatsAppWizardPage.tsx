@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { programsApi, personsApi } from '@/lib/api'
+import { safeDateParse } from '@/lib/utils'
 
 // ── TYPES ─────────────────────────────────────────────────────────────────────
 
@@ -256,7 +257,7 @@ const WhatsAppWizardPage = () => {
       
       // Sort programs by date (newest first)
       const sortedPrograms = (progsRes.data.data || []).sort((a: Program, b: Program) => 
-        new Date(b.programDate).getTime() - new Date(a.programDate).getTime()
+        safeDateParse(b.programDate).getTime() - safeDateParse(a.programDate).getTime()
       )
       setPrograms(sortedPrograms)
       
@@ -386,7 +387,7 @@ const WhatsAppWizardPage = () => {
     const q = programFilter.toLowerCase()
     return programs.filter(p => 
       p.activityType?.name?.toLowerCase().includes(q) ||
-      new Date(p.programDate).toLocaleDateString('es-DO').includes(q)
+      safeDateParse(p.programDate).toLocaleDateString('es-DO', { timeZone: 'America/Santo_Domingo' }).includes(q)
     )
   }, [programs, programFilter])
 
@@ -514,11 +515,12 @@ const WhatsAppWizardPage = () => {
   // ── Format helpers ──────────────────────────────────────────────────────────
   
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('es-DO', {
+    return safeDateParse(date).toLocaleDateString('es-DO', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
-      year: 'numeric'
+      year: 'numeric',
+      timeZone: 'America/Santo_Domingo'
     })
   }
 
@@ -541,10 +543,11 @@ const WhatsAppWizardPage = () => {
     
     // Date formatting
     const formattedDate = mainProgram?.programDate 
-      ? new Date(mainProgram.programDate).toLocaleDateString('es-DO', {
+      ? safeDateParse(mainProgram.programDate).toLocaleDateString('es-DO', {
           weekday: 'long',
           day: 'numeric',
-          month: 'long'
+          month: 'long',
+          timeZone: 'America/Santo_Domingo'
         })
       : ''
     message = message.replace('{date}', formattedDate)

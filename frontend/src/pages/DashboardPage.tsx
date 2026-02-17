@@ -30,6 +30,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { programsApi } from '@/lib/api'
+import ProgramsSlider from '@/components/dashboard/ProgramsSlider'
 
 interface DashboardStats {
   totalPersons: number
@@ -241,6 +242,15 @@ const DashboardPage = () => {
           delay={0.15}
         />
       </div>
+
+      {/* ── Slider de Programas Publicados ─────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.18 }}
+      >
+        <ProgramsSlider />
+      </motion.div>
 
       {/* Gráficos: Tendencia + Distribución */}
       <div className="grid gap-4 sm:gap-5 lg:gap-6 grid-cols-1 lg:grid-cols-3">

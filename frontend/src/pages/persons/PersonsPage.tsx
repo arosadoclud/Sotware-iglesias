@@ -4,6 +4,8 @@ import { ColumnDef } from '@tanstack/react-table'
 import { personsApi, rolesApi, ministriesApi, personStatusesApi } from '../../lib/api'
 import { toast } from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuthStore } from '../../store/authStore'
+import { P } from '../../constants/permissions'
 
 import { Button } from '../../components/ui/button'
 import { Badge } from '../../components/ui/badge'
@@ -75,6 +77,11 @@ interface Person {
 }
 
 const PersonsPage = () => {
+  const { hasPermission } = useAuthStore()
+  const canCreate = hasPermission(P.PERSONS_CREATE)
+  const canEdit = hasPermission(P.PERSONS_EDIT)
+  const canDelete = hasPermission(P.PERSONS_DELETE)
+
   const [persons, setPersons] = useState<Person[]>([])
   const [roles, setRoles] = useState<any[]>([])
   const [ministries, setMinistries] = useState<Ministry[]>([])
@@ -216,10 +223,13 @@ const PersonsPage = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
+              {canEdit && (
               <DropdownMenuItem onClick={() => openEdit(person)} className="cursor-pointer">
                 <Edit className="mr-2 h-4 w-4" />
                 Editar
               </DropdownMenuItem>
+              )}
+              {canDelete && (
               <DropdownMenuItem
                 onClick={() => handleDelete(person._id, person.fullName)}
                 className="text-danger-600 cursor-pointer focus:text-danger-600 focus:bg-danger-50"
@@ -227,6 +237,7 @@ const PersonsPage = () => {
                 <Trash2 className="mr-2 h-4 w-4" />
                 Eliminar
               </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )
@@ -384,6 +395,7 @@ const PersonsPage = () => {
               </p>
             </div>
           </div>
+          {canCreate && (
           <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -394,6 +406,7 @@ const PersonsPage = () => {
               <span className="sm:inline">Nueva Persona</span>
             </Button>
           </motion.div>
+          )}
         </div>
       </div>
 

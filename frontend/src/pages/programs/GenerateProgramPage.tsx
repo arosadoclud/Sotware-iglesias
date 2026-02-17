@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { activitiesApi, programsApi } from '../../lib/api'
-import { toast } from 'react-hot-toast'
+import { safeDateParse } from '../../lib/utils'
+import { toast } from 'sonner'
 import {
   Loader2, Wand2, Calendar, ArrowLeft, CheckCircle,
   AlertTriangle, Download, Eye, Info, Users, BarChart2,
-  ChevronDown, ChevronUp, Sparkles, Clock, MapPin, FileText
+  ChevronDown, ChevronUp, Sparkles, Clock, MapPin, FileText,
+  XCircle, Edit, Trash2, ShieldAlert, Ban, X
 } from 'lucide-react'
 import { format, eachDayOfInterval, getDay } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -46,7 +48,7 @@ const ProgramPreviewCard = ({
   onEditFlyer?: (id: string) => void
 }) => {
   const [showScoring, setShowScoring] = useState(false)
-  const date = new Date(program.programDate)
+  const date = safeDateParse(program.programDate)
 
   const sections: Record<string, any[]> = {}
   ;(program.assignments || []).forEach((a: any) => {
@@ -284,6 +286,12 @@ const GenerateProgramPage = () => {
   const [preview, setPreview] = useState<any>(null)
   const [downloadingPdf, setDownloadingPdf] = useState<string | null>(null)
   const [numberOfGroups, setNumberOfGroups] = useState(4) // For cleaning groups
+  const [duplicateAlert, setDuplicateAlert] = useState<{
+    type: 'single' | 'batch'
+    message: string
+    dates: string[]
+    generatedCount?: number
+  } | null>(null)
 
   useEffect(() => {
     activitiesApi.getAll()
@@ -331,6 +339,7 @@ const GenerateProgramPage = () => {
     if (!selectedActivity) return toast.error('Selecciona una actividad')
     setGenerating(true)
     setResult(null)
+    setDuplicateAlert(null)
     try {
       if (mode === 'single') {
         if (!singleDate) {
@@ -367,16 +376,49 @@ const GenerateProgramPage = () => {
         
         // Mostrar errores si hubo fallos
         if (errors > 0) {
-          const errorMessages = batchData.results
-            ?.filter((r: any) => !r.success && r.error)
-            .map((r: any) => r.error)
-            .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i) // Unique
-            .slice(0, 3) || []
-          
-          if (errorMessages.length > 0) {
-            toast.error(`❌ ${errors} error${errors !== 1 ? 'es' : ''}: ${errorMessages.join(', ')}`)
-          } else {
-            toast.error(`❌ ${errors} programa${errors !== 1 ? 's' : ''} no se pudieron generar`)
+          const errorResults = batchData.results?.filter((r: any) => !r.success) || []
+          const duplicateErrors = errorResults.filter((r: any) => 
+            r.error?.toLowerCase().includes('ya existe')
+          )
+          const otherErrors = errorResults.filter((r: any) => 
+            !r.error?.toLowerCase().includes('ya existe')
+          )
+
+          if (duplicateErrors.length > 0) {
+            const fechasFormateadas = duplicateErrors.map((r: any) => {
+              try {
+                const d = new Date(r.date)
+                return format(d, "EEEE d 'de' MMMM", { locale: es })
+              } catch { return r.date }
+            })
+
+            // Alerta visual en la página
+            setDuplicateAlert({
+              type: 'batch',
+              message: `${duplicateErrors.length} programa${duplicateErrors.length !== 1 ? 's' : ''} no se generaron porque ya existen.`,
+              dates: fechasFormateadas,
+              generatedCount: gen
+            })
+
+            // Toast de advertencia con sonner
+            toast.warning(
+              `${duplicateErrors.length} programa${duplicateErrors.length !== 1 ? 's' : ''} ya existían y no fueron generados`,
+              {
+                description: `Fechas: ${fechasFormateadas.join(', ')}. Solo puede editar o eliminar los existentes.`,
+                duration: 8000
+              }
+            )
+          }
+
+          if (otherErrors.length > 0) {
+            const errorMessages = otherErrors
+              .map((r: any) => r.error)
+              .filter((v: string, i: number, a: string[]) => a.indexOf(v) === i)
+              .slice(0, 3)
+            toast.error(
+              `${otherErrors.length} error${otherErrors.length !== 1 ? 'es' : ''} al generar`,
+              { description: errorMessages.join('. '), duration: 6000 }
+            )
           }
         }
 
@@ -388,12 +430,47 @@ const GenerateProgramPage = () => {
         if (programIds.length > 0) {
           setTimeout(() => navigate(`/programs/batch-review?ids=${programIds.join(',')}`), 600)
         } else if (gen === 0 && errors > 0) {
-          toast('No se generaron programas. Revisa la configuración de la actividad.')
+          toast.info('No se generaron programas nuevos', {
+            description: 'Todos los programas para las fechas seleccionadas ya existen. Puede editarlos o eliminarlos desde la lista de programas.',
+            duration: 6000
+          })
         }
       }
     } catch (e: any) {
       console.error('❌ Error en generación:', e)
-      toast.error(e.response?.data?.message || 'Error al generar programa')
+      const status = e.response?.status
+      const message = e.response?.data?.message || ''
+
+      if (status === 409 || message.toLowerCase().includes('ya existe')) {
+        // Formatear la fecha para el mensaje
+        let fechaStr = ''
+        if (mode === 'single' && singleDate) {
+          try {
+            const d = new Date(singleDate + 'T12:00:00')
+            fechaStr = format(d, "EEEE d 'de' MMMM 'de' yyyy", { locale: es })
+          } catch { fechaStr = singleDate }
+        }
+
+        // Alerta visual en la página
+        setDuplicateAlert({
+          type: 'single',
+          message: `El programa del ${fechaStr || 'esta fecha'} ya se encuentra generado.`,
+          dates: [fechaStr || singleDate]
+        })
+
+        // Toast de advertencia con sonner (con color naranja/amber)
+        toast.warning(
+          'Programa duplicado detectado',
+          {
+            description: `El programa del ${fechaStr || 'esta fecha'} ya existe. Solo puede editar o eliminar el programa existente.`,
+            duration: 8000
+          }
+        )
+      } else {
+        toast.error('Error al generar programa', {
+          description: message || 'Ocurrió un error inesperado. Intente de nuevo.'
+        })
+      }
     }
     setGenerating(false)
   }
@@ -484,7 +561,7 @@ const GenerateProgramPage = () => {
                       ].map((m) => (
                         <button
                           key={m.id}
-                          onClick={() => { setMode(m.id as any); setResult(null); setPreview(null) }}
+                          onClick={() => { setMode(m.id as any); setResult(null); setPreview(null); setDuplicateAlert(null) }}
                           className={`p-4 rounded-xl border-2 transition-all ${
                             mode === m.id
                               ? 'border-primary-500 bg-primary-50 shadow-sm'
@@ -515,7 +592,7 @@ const GenerateProgramPage = () => {
                       {activities.map((a) => (
                         <button
                           key={a._id}
-                          onClick={() => { setSelectedActivity(a._id); setPreview(null); setResult(null) }}
+                          onClick={() => { setSelectedActivity(a._id); setPreview(null); setResult(null); setDuplicateAlert(null) }}
                           className={`p-4 rounded-xl border-2 text-left transition-all ${
                             selectedActivity === a._id
                               ? 'border-primary-500 bg-primary-50 shadow-sm'
@@ -560,7 +637,7 @@ const GenerateProgramPage = () => {
                         <input
                           type="date"
                           value={singleDate}
-                          onChange={(e) => { setSingleDate(e.target.value); setPreview(null); setResult(null) }}
+                          onChange={(e) => { setSingleDate(e.target.value); setPreview(null); setResult(null); setDuplicateAlert(null) }}
                           className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         />
                       </div>
@@ -662,6 +739,127 @@ const GenerateProgramPage = () => {
                   </Card>
                 </motion.div>
               )}
+
+              {/* ── ALERTA DE PROGRAMA DUPLICADO ──────────────────────────── */}
+              <AnimatePresence>
+                {duplicateAlert && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                  >
+                    <div className={`rounded-xl border-2 overflow-hidden shadow-lg ${
+                      duplicateAlert.type === 'single'
+                        ? 'border-amber-400 bg-gradient-to-r from-amber-50 to-orange-50'
+                        : 'border-orange-400 bg-gradient-to-r from-orange-50 to-red-50'
+                    }`}>
+                      {/* Header de la alerta */}
+                      <div className={`px-4 py-3 flex items-center justify-between ${
+                        duplicateAlert.type === 'single'
+                          ? 'bg-amber-100/80'
+                          : 'bg-orange-100/80'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            duplicateAlert.type === 'single'
+                              ? 'bg-amber-500'
+                              : 'bg-orange-500'
+                          }`}>
+                            <ShieldAlert className="w-4 h-4 text-white" />
+                          </div>
+                          <h3 className={`font-bold text-sm ${
+                            duplicateAlert.type === 'single'
+                              ? 'text-amber-900'
+                              : 'text-orange-900'
+                          }`}>
+                            {duplicateAlert.type === 'single'
+                              ? 'Programa Duplicado'
+                              : 'Programas Duplicados Detectados'}
+                          </h3>
+                        </div>
+                        <button
+                          onClick={() => setDuplicateAlert(null)}
+                          className="p-1 rounded-full hover:bg-black/10 transition-colors"
+                        >
+                          <X className="w-4 h-4 text-neutral-600" />
+                        </button>
+                      </div>
+
+                      {/* Cuerpo de la alerta */}
+                      <div className="px-4 py-4 space-y-3">
+                        <p className={`text-sm font-medium ${
+                          duplicateAlert.type === 'single' ? 'text-amber-800' : 'text-orange-800'
+                        }`}>
+                          {duplicateAlert.message}
+                        </p>
+
+                        {/* Lista de fechas duplicadas */}
+                        <div className="space-y-1.5">
+                          {duplicateAlert.dates.map((fecha, i) => (
+                            <div
+                              key={i}
+                              className={`flex items-center gap-2 text-sm px-3 py-2 rounded-lg ${
+                                duplicateAlert.type === 'single'
+                                  ? 'bg-amber-100/60 text-amber-700'
+                                  : 'bg-orange-100/60 text-orange-700'
+                              }`}
+                            >
+                              <Ban className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="capitalize">{fecha}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Mensaje informativo */}
+                        <div className={`flex items-start gap-2 text-xs p-2.5 rounded-lg ${
+                          duplicateAlert.type === 'single'
+                            ? 'bg-amber-200/40 text-amber-700'
+                            : 'bg-orange-200/40 text-orange-700'
+                        }`}>
+                          <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                          <span>
+                            {duplicateAlert.type === 'single'
+                              ? 'Este programa ya fue generado anteriormente. Para modificar las asignaciones, edite el programa existente. Si desea regenerarlo desde cero, elimínelo primero.'
+                              : `${duplicateAlert.generatedCount || 0} programa${(duplicateAlert.generatedCount || 0) !== 1 ? 's' : ''} se generaron correctamente. Los programas duplicados ya existentes no se sobreescribieron para proteger los datos.`
+                            }
+                          </span>
+                        </div>
+
+                        {/* Botones de acción */}
+                        <div className="flex gap-2 pt-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => navigate('/programs')}
+                            className={`gap-1.5 text-xs ${
+                              duplicateAlert.type === 'single'
+                                ? 'border-amber-400 text-amber-700 hover:bg-amber-100'
+                                : 'border-orange-400 text-orange-700 hover:bg-orange-100'
+                            }`}
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                            Ir a Editar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => navigate('/programs')}
+                            className={`gap-1.5 text-xs ${
+                              duplicateAlert.type === 'single'
+                                ? 'border-red-300 text-red-600 hover:bg-red-50'
+                                : 'border-red-300 text-red-600 hover:bg-red-50'
+                            }`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Ir a Eliminar
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Actions */}
               <motion.div

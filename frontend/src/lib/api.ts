@@ -22,7 +22,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       useAuthStore.getState().logout()
-      window.location.href = '/login'
+      // ProtectedRoute detectará isAuthenticated=false y redirigirá a /login
     }
     return Promise.reject(error)
   }
@@ -290,6 +290,22 @@ export const financesApi = {
     category?: string;
     fund?: string;
   }) => api.get('/finances/reports/transactions', { params }),
+}
+
+// ── NEW MEMBERS (Seguimiento) ─────────────────────────────────────────────────
+export const newMembersApi = {
+  getAll: (params?: any) => api.get('/new-members', { params }),
+  get: (id: string) => api.get(`/new-members/${id}`),
+  create: (data: any) => api.post('/new-members', data),
+  update: (id: string, data: any) => api.put(`/new-members/${id}`, data),
+  delete: (id: string) => api.delete(`/new-members/${id}`),
+  addFollowUp: (id: string, data: any) => api.post(`/new-members/${id}/follow-up`, data),
+  updatePhase: (id: string, phase: string) => api.patch(`/new-members/${id}/phase`, { phase }),
+  scheduleAlert: (id: string, data: any) => api.post(`/new-members/${id}/alerts`, data),
+  deleteAlert: (id: string, alertId: string) => api.delete(`/new-members/${id}/alerts/${alertId}`),
+  convertToPerson: (id: string, data?: any) => api.post(`/new-members/${id}/convert`, data || {}),
+  sendWhatsApp: (id: string, message: string) => api.post(`/new-members/${id}/whatsapp`, { message }),
+  getStats: () => api.get('/new-members/stats'),
 }
 
 export default api

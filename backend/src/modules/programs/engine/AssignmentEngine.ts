@@ -2,8 +2,21 @@ import mongoose from 'mongoose';
 import Person, { IPerson } from '../../../models/Person.model';
 import Program, { IProgram } from '../../../models/Program.model';
 import ActivityType, { IActivityType, IActivityRoleConfig } from '../../../models/ActivityType.model';
-import { HistoryAnalyzer } from './HistoryAnalyzer';
-import { FairnessCalculator, ScoringBreakdown } from './FairnessCalculator';
+import { getRandomVerse } from '../../bible/bible.service';
+
+// Interface simplificada para breakdown de puntuación
+interface ScoringBreakdown {
+  personId: string;
+  personName: string;
+  totalScore: number;
+  breakdown: {
+    participations: number;
+    avgParticipations: number;
+    weeksSinceLastRole: number | null;
+    neverHadRole: boolean;
+    consecutiveWeeks: number;
+  };
+}
 
 /**
  * ASSIGNMENT ENGINE — Paso 3: Motor de Asignación v2
@@ -78,10 +91,8 @@ export interface GenerationStats {
 }
 
 export class AssignmentEngine {
-  private calculator: FairnessCalculator;
-
   constructor(private rotationWeeks: number = 4) {
-    this.calculator = new FairnessCalculator(rotationWeeks);
+    // Rotación simple: solo evitar repeticiones semanales
   }
 
   /**
@@ -119,23 +130,7 @@ export class AssignmentEngine {
       throw new Error('Actividad no encontrada');
     }
 
-    // ─── INDEXADO EN MEMORIA: lookup en O(1) ─────────────────────────────────
-    const stats = HistoryAnalyzer.build(recentPrograms, targetDate);
-
-    // Índice de personas por roleId para evitar filter() repetitivo
-    const personsByRole = new Map<string, IPerson[]>();
-    for (const person of allPersons) {
-      for (const role of person.roles) {
-        if (!role || !role.roleId) continue; // Skip roles inválidos
-        const key = role.roleId.toString();
-        if (!personsByRole.has(key)) {
-          personsByRole.set(key, []);
-        }
-        personsByRole.get(key)!.push(person);
-      }
-    }
-
-    // ─── ALGORITMO DE ASIGNACIÓN ──────────────────────────────────────────────
+    // ─── ALGORITMO DE ROTACIÓN SIMPLE ────────────────────────────────────────
     const assignments: AssignmentResult[] = [];
     const warnings: GenerationWarning[] = [];
     const assignedIds = new Set<string>(); // Evitar doble asignación en un mismo programa
@@ -157,7 +152,13 @@ export class AssignmentEngine {
 
     for (const roleConfig of sortedRoleConfigs) {
       const roleId = roleConfig.role.id.toString();
-      const candidates = personsByRole.get(roleId) || [];
+      
+      // Encontrar personas que tienen este rol
+      const candidates = allPersons.filter(person => 
+        person.roles.some(role => 
+          role && role.roleId && role.roleId.toString() === roleId
+        )
+      );
 
       // Filtrar elegibles: disponibles en la fecha, no ya asignados en este programa
       let eligible = candidates.filter(
@@ -186,33 +187,56 @@ export class AssignmentEngine {
         });
       }
 
-      // Calcular score para cada candidato elegible
-      const scored = eligible
-        .map((person) => ({
-          person,
-          score: this.calculator.calculate(
-            person,
-            roleConfig.role.name,
-            targetDate,
-            stats
-          ),
-          breakdown: this.calculator.explain(
-            person,
-            roleConfig.role.name,
-            targetDate,
-            stats
-          ),
-        }))
-        .sort((a, b) => b.score - a.score); // Mayor score primero
+      // ROTACIÓN SIMPLE: todas las personas son iguales, solo evitar repetición semanal
+      // Filtrar personas que NO han sido asignadas en las últimas semanas del mes
+      const oneMonthAgo = new Date(targetDate);
+      oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
 
-      // Guardar breakdowns para debugging/UI
-      allBreakdowns.push(...scored.map((s) => s.breakdown));
+      const recentlyAssignedIds = new Set<string>();
+      
+      // Obtener personas asignadas en las últimas 4 semanas
+      for (const program of recentPrograms) {
+        if (program.programDate > oneMonthAgo) {
+          for (const assignment of program.assignments || []) {
+            if (assignment.person?.id) {
+              recentlyAssignedIds.add(assignment.person.id.toString());
+            }
+          }
+        }
+      }
 
-      // Seleccionar los N necesarios
-      const selected = scored.slice(0, roleConfig.peopleNeeded);
-      const backupCandidate = scored[roleConfig.peopleNeeded] || null;
+      // Priorizar personas que NO han participado recientemente
+      const freshCandidates = eligible.filter(p => !recentlyAssignedIds.has(p._id.toString()));
+      const availableCandidates = freshCandidates.length >= roleConfig.peopleNeeded 
+        ? freshCandidates 
+        : eligible; // Si no hay suficientes "frescas", usar todas
 
-      for (const { person, score } of selected) {
+      // Selección completamente aleatoria entre candidatos disponibles
+      const shuffled = [...availableCandidates];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+
+      const selected = shuffled.slice(0, roleConfig.peopleNeeded);
+      const backupCandidate = shuffled[roleConfig.peopleNeeded] || null;
+
+      // Generar breakdowns simples para UI
+      const simpleBreakdowns = selected.map(person => ({
+        personId: person._id.toString(),
+        personName: person.fullName,
+        totalScore: 1.0, // Score neutral para todos
+        breakdown: {
+          participations: 0,
+          avgParticipations: 0,
+          weeksSinceLastRole: null,
+          neverHadRole: false,
+          consecutiveWeeks: 0,
+        },
+      }));
+      allBreakdowns.push(...simpleBreakdowns);
+
+      for (const person of selected) {
         assignments.push({
           sectionName: roleConfig.sectionName,
           sectionOrder: roleConfig.sectionOrder,
@@ -224,13 +248,13 @@ export class AssignmentEngine {
           },
           backup: backupCandidate
             ? {
-                id: backupCandidate.person._id,
-                name: backupCandidate.person.fullName,
+                id: backupCandidate._id,
+                name: backupCandidate.fullName,
               }
             : null,
           isManual: false as false,
           assignedAt: new Date(),
-          fairnessScore: Math.round(score * 100) / 100,
+          fairnessScore: 1.0, // Score neutral para todos
         });
         assignedIds.add(person._id.toString());
       }
@@ -340,6 +364,9 @@ export class AssignmentEngine {
           if (a.person?.id) batchAssignedIds.add(a.person.id.toString());
         }
 
+        // Agregar versículo bíblico aleatorio
+        const randomVerse = getRandomVerse();
+
         const program = await Program.create({
           churchId: params.churchId,
           activityType: {
@@ -348,9 +375,12 @@ export class AssignmentEngine {
           },
           programDate: date,
           programTime: getTimeForDay(date), // Hora según el día de la semana
+          defaultTime: getTimeForDay(date), // También guardar en defaultTime
           status: 'DRAFT',
           assignments: generation.assignments,
           notes: `Generado en lote. Cobertura: ${generation.stats.coveragePercent}%`,
+          verse: randomVerse.verse,
+          verseText: randomVerse.verseText,
           generatedBy: params.generatedBy,
         });
 

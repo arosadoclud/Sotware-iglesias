@@ -17,9 +17,11 @@ import {
   Shield,
   UserCog,
   DollarSign,
+  UserPlus,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { toast } from 'react-hot-toast'
+import { P } from '../../constants/permissions'
 import { Avatar, AvatarFallback } from '../ui/avatar'
 import { Button } from '../ui/button'
 import {
@@ -92,7 +94,7 @@ const NavItem = ({ item, collapsed, isActive }: NavItemProps) => {
 const DashboardLayoutImproved = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, logout, isAdmin } = useAuthStore()
+  const { user, logout, isAdmin, hasPermission } = useAuthStore()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showLogoutSplash, setShowLogoutSplash] = useState(false)
@@ -102,20 +104,27 @@ const DashboardLayoutImproved = () => {
   }
 
   const handleLogoutComplete = () => {
+    // Navegar PRIMERO a /login, luego ejecutar logout
+    // Si logout() se ejecuta primero, ProtectedRoute desmonta el componente
+    // antes de que navigate() pueda ejecutarse
     setShowLogoutSplash(false)
     navigate('/login', { replace: true })
+    logout()
   }
 
-  const nav = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Personas', href: '/persons', icon: Users },
-    { name: 'Actividades', href: '/activities', icon: Calendar },
-    { name: 'Programas', href: '/programs', icon: FileText },
-    { name: 'Calendario', href: '/calendar', icon: CalendarDays },
-    { name: 'Cartas Invitación', href: '/letters', icon: Mail },
-    { name: 'Finanzas', href: '/finances', icon: DollarSign },
-    { name: 'Configuración', href: '/settings', icon: Settings },
+  // Navegación filtrada por permisos del usuario
+  const allNav = [
+    { name: 'Dashboard', href: '/', icon: LayoutDashboard, show: true },
+    { name: 'Personas', href: '/persons', icon: Users, show: hasPermission(P.PERSONS_VIEW) },
+    { name: 'Actividades', href: '/activities', icon: Calendar, show: hasPermission(P.ACTIVITIES_VIEW) },
+    { name: 'Programas', href: '/programs', icon: FileText, show: hasPermission(P.PROGRAMS_VIEW) },
+    { name: 'Calendario', href: '/calendar', icon: CalendarDays, show: hasPermission(P.CALENDAR_VIEW) },
+    { name: 'Cartas Invitación', href: '/letters', icon: Mail, show: hasPermission(P.LETTERS_VIEW) },
+    { name: 'Nuevos Miembros', href: '/new-members', icon: UserPlus, show: hasPermission(P.PERSONS_VIEW) },
+    { name: 'Finanzas', href: '/finances', icon: DollarSign, show: hasPermission(P.FINANCES_VIEW) || isAdmin() },
+    { name: 'Configuración', href: '/settings', icon: Settings, show: hasPermission(P.SETTINGS_VIEW) || isAdmin() },
   ]
+  const nav = allNav.filter(item => item.show)
 
   // Admin navigation items (only for admins)
   const adminNav = isAdmin() ? [

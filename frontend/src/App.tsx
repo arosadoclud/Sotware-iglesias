@@ -8,6 +8,8 @@ import DashboardLayout from './components/layout/DashboardLayout'
 import SplashScreen from './components/ui/SplashScreen'
 import PageTransition from './components/ui/PageTransition'
 import { ProtectedModuleRoute } from './components/ui/ProtectedModuleRoute'
+import { PermissionRoute } from './components/ui/PermissionRoute'
+import { P } from './constants/permissions'
 import LoginPage from './pages/auth/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import PersonsPage from './pages/persons/PersonsPage'
@@ -23,6 +25,7 @@ import CalendarPage from './pages/CalendarPage'
 import LetterWizardPage from './pages/letters/LetterWizardPage'
 import { FinancesPage, FinanceReportsPage } from './pages/finances'
 import SettingsPage from './pages/SettingsPage'
+import NewMembersPage from './pages/new-members/NewMembersPage'
 import UsersManagementPage from './pages/admin/UsersManagementPage'
 import AuditLogsPage from './pages/admin/AuditLogsPage'
 
@@ -61,22 +64,31 @@ const AnimatedRoutes = () => {
             <PageTransition><ProgramsPage /></PageTransition>
           } />
           <Route path="/programs/generate" element={
-            <PageTransition><GenerateProgramPage /></PageTransition>
+            <PermissionRoute permissions={[P.PROGRAMS_CREATE, P.PROGRAMS_GENERATE]}>
+              <PageTransition><GenerateProgramPage /></PageTransition>
+            </PermissionRoute>
           } />
           <Route path="/programs/:id/edit" element={
-            <PageTransition><ProgramEditPage /></PageTransition>
+            <PermissionRoute permissions={P.PROGRAMS_EDIT}>
+              <PageTransition><ProgramEditPage /></PageTransition>
+            </PermissionRoute>
           } />
           <Route path="/programs/:id/flyer" element={
             <PageTransition><FlyerPreviewPage /></PageTransition>
           } />
           <Route path="/programs/batch-review" element={
-            <PageTransition><BatchReviewPage /></PageTransition>
+            <PermissionRoute permissions={[P.PROGRAMS_CREATE, P.PROGRAMS_BATCH]}>
+              <PageTransition><BatchReviewPage /></PageTransition>
+            </PermissionRoute>
           } />
           <Route path="/programs/share-whatsapp" element={
             <PageTransition><WhatsAppWizardPage /></PageTransition>
           } />
           <Route path="/calendar" element={
             <PageTransition><CalendarPage /></PageTransition>
+          } />
+          <Route path="/new-members" element={
+            <PageTransition><NewMembersPage /></PageTransition>
           } />
           <Route path="/letters" element={
             <PageTransition><LetterWizardPage /></PageTransition>

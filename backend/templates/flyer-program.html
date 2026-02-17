@@ -318,10 +318,14 @@
         </div>
       {{/each}}
     </div>
+    {{#if verse}}
     <div class="flyer-verse">
-      <p style="font-family:'Cormorant Garamond',serif;font-size:0.88rem;font-style:italic;color:#6B7280;line-height:1.5;">{{verseText}}</p>
-      <cite style="font-size:0.72rem;font-weight:700;color:#C8A84B;font-style:normal;letter-spacing:0.05em;display:block;margin-top:3px;">{{verseRef}}</cite>
+      {{#if verseText}}
+      <p style="font-family:'Cormorant Garamond',serif;font-size:0.88rem;font-style:italic;color:#6B7280;line-height:1.5;">"{{verseText}}"</p>
+      {{/if}}
+      <cite style="font-size:0.72rem;font-weight:700;color:#C8A84B;font-style:normal;letter-spacing:0.05em;display:block;margin-top:3px;">{{verse}}</cite>
     </div>
+    {{/if}}
     <div class="flyer-footer">
       <span class="flyer-footer-text">{{churchNameUpper}}</span>
     </div>

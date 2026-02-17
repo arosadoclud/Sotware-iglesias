@@ -33,6 +33,8 @@ import {
   BarChart3,
 } from 'lucide-react'
 import { financesApi, personsApi } from '../../lib/api'
+import { useAuthStore } from '../../store/authStore'
+import { P } from '../../constants/permissions'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
@@ -138,6 +140,12 @@ interface Person {
 }
 
 const FinancesPage = () => {
+  // Permisos
+  const { hasPermission } = useAuthStore()
+  const canCreate = hasPermission(P.FINANCES_CREATE)
+  const canEdit   = hasPermission(P.FINANCES_EDIT)
+  const canDelete = hasPermission(P.FINANCES_DELETE)
+
   // Estado
   const [loading, setLoading] = useState(true)
   const [categories, setCategories] = useState<Category[]>([])
@@ -364,6 +372,7 @@ const FinancesPage = () => {
             <HelpCircle className="w-4 h-4 mr-2" />
             Ayuda
           </Button>
+          {canCreate && (
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button 
               onClick={() => openModal('EXPENSE')}
@@ -374,6 +383,8 @@ const FinancesPage = () => {
               Registrar Gasto
             </Button>
           </motion.div>
+          )}
+          {canCreate && (
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button 
               onClick={() => openModal('INCOME')}
@@ -383,6 +394,7 @@ const FinancesPage = () => {
               Registrar Ingreso
             </Button>
           </motion.div>
+          )}
         </div>
       </div>
 
@@ -682,6 +694,7 @@ const FinancesPage = () => {
                     <FileText className="w-8 h-8 text-gray-400" />
                   </div>
                   <p className="text-gray-500">No hay transacciones en este período</p>
+                  {canCreate && (
                   <Button 
                     variant="link" 
                     className="mt-2"
@@ -689,6 +702,7 @@ const FinancesPage = () => {
                   >
                     Registrar el primer ingreso
                   </Button>
+                  )}
                 </div>
               ) : (
                 <div className="divide-y">
@@ -769,7 +783,7 @@ const FinancesPage = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                {tx.approvalStatus === 'PENDING' && (
+                                {canEdit && tx.approvalStatus === 'PENDING' && (
                                   <>
                                     <DropdownMenuItem 
                                       onClick={() => handleApproval(tx._id, true)}
@@ -787,6 +801,7 @@ const FinancesPage = () => {
                                     </DropdownMenuItem>
                                   </>
                                 )}
+                                {canDelete && (
                                 <DropdownMenuItem 
                                   onClick={() => handleDelete(tx._id)}
                                   className="text-red-600"
@@ -794,6 +809,7 @@ const FinancesPage = () => {
                                   <Trash2 className="w-4 h-4 mr-2" />
                                   Eliminar
                                 </DropdownMenuItem>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>

@@ -48,8 +48,6 @@ export const useAuthStore = create<AuthState>()(
         })),
 
       logout: () => {
-        // Limpiar sessionStorage del splash
-        sessionStorage.removeItem('splashSeen')
         set({
           user: null,
           accessToken: null,

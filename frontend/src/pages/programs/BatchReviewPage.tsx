@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { programsApi, churchesApi } from '../../lib/api'
+import { shareMultiplePdfsViaWhatsApp } from '../../lib/shareWhatsApp'
+import { toDateStr, safeDateParse } from '../../lib/utils'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
@@ -69,15 +71,28 @@ const F = {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+function toLocalDateStr(dateVal: string): string {
+  if (!dateVal) return ''
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateVal)) return dateVal
+  if (dateVal.includes('T')) return dateVal.slice(0, 10)
+  const d = new Date(dateVal + 'T12:00:00')
+  if (isNaN(d.getTime())) return dateVal
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 function formatDateES(dateStr: string): string {
   if (!dateStr) return ''
-  // programDate puede venir como ISO completo (2026-02-21T04:00:00.000Z) o solo fecha (2026-02-21)
-  const dateOnly = dateStr.slice(0, 10) // Extraer solo YYYY-MM-DD
+  // Usar fecha LOCAL para evitar desfase de timezone (UTC vs local)
+  const dateOnly = dateStr.length > 10 ? toLocalDateStr(dateStr) : dateStr
   const d = new Date(dateOnly + 'T12:00:00')
   if (isNaN(d.getTime())) return dateStr // fallback si es inválida
-  return d.toLocaleDateString('es-DO', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  }).replace(/^./, c => c.toUpperCase())
+  
+  // Usar date-fns es-ES para consistencia con el resto de la app
+  const formatted = format(d, "EEEE d 'de' MMMM 'de' yyyy", { locale: es })
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1)
 }
 
 function formatTimeDisplay(prog: ProgramData): string {
@@ -234,6 +249,7 @@ const BatchReviewPage = () => {
   const [churchInfo, setChurchInfo] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [downloadingAll, setDownloadingAll] = useState(false)
+  const [sharingWhatsApp, setSharingWhatsApp] = useState(false)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -273,7 +289,7 @@ const BatchReviewPage = () => {
       const a = document.createElement('a')
       a.href = url
       const prog = programs.find(p => p._id === progId)
-      const dateStr = prog ? format(new Date(prog.programDate), 'yyyy-MM-dd') : progId
+      const dateStr = prog ? toDateStr(prog.programDate) : progId
       const actName = prog?.activityType?.name?.replace(/\s+/g, '-') || 'programa'
       a.download = `${actName}-${dateStr}.pdf`
       a.click()
@@ -294,7 +310,7 @@ const BatchReviewPage = () => {
         const url = window.URL.createObjectURL(new Blob([res.data]))
         const a = document.createElement('a')
         a.href = url
-        const dateStr = format(new Date(prog.programDate), 'yyyy-MM-dd')
+        const dateStr = toDateStr(prog.programDate)
         const actName = prog.activityType?.name?.replace(/\s+/g, '-') || 'programa'
         a.download = `${actName}-${dateStr}.pdf`
         a.click()
@@ -303,7 +319,7 @@ const BatchReviewPage = () => {
         // Small delay between downloads
         await new Promise(r => setTimeout(r, 500))
       } catch {
-        toast.error(`Error con programa del ${format(new Date(prog.programDate), "d MMM", { locale: es })}`)
+        toast.error(`Error con programa del ${format(safeDateParse(prog.programDate), "d MMM", { locale: es })}`)
       }
     }
     toast.success(`${success} PDF${success !== 1 ? 's' : ''} descargado${success !== 1 ? 's' : ''}`)
@@ -355,12 +371,32 @@ const BatchReviewPage = () => {
 
             <div className="flex gap-3">
               <Button
-                onClick={() => navigate(`/programs/share-whatsapp?ids=${programs.map(p => p._id).join(',')}`)}
+                onClick={async () => {
+                  setSharingWhatsApp(true)
+                  try {
+                    const cName = programs[0]?.church?.name || programs[0]?.churchName || churchInfo?.name
+                    await shareMultiplePdfsViaWhatsApp(
+                      programs.map(p => ({
+                        _id: p._id,
+                        activityType: p.activityType,
+                        programDate: p.programDate,
+                        churchName: p.church?.name || p.churchName || churchInfo?.name,
+                      })),
+                      cName
+                    )
+                  } finally {
+                    setSharingWhatsApp(false)
+                  }
+                }}
+                disabled={sharingWhatsApp}
                 variant="outline"
-                className="gap-2 text-green-600 border-green-200 hover:bg-green-50"
+                className="gap-2 text-green-600 border-green-200 hover:bg-green-50 disabled:opacity-50"
               >
-                <MessageCircle className="w-4 h-4" />
-                Compartir por WhatsApp
+                {sharingWhatsApp
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <MessageCircle className="w-4 h-4" />
+                }
+                Compartir PDFs por WhatsApp
               </Button>
               <Button
                 onClick={handleDownloadAll}

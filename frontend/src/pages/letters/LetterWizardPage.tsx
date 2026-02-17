@@ -19,6 +19,8 @@ import {
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { useAuthStore } from '../../store/authStore'
+import { P } from '../../constants/permissions'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -103,6 +105,10 @@ interface GeneratedLetter {
 }
 
 const LetterWizardPage = () => {
+  const { hasPermission } = useAuthStore()
+  const canCreate = hasPermission(P.LETTERS_CREATE)
+  const canDelete = hasPermission(P.LETTERS_DELETE)
+
   const [generated, setGenerated] = useState<GeneratedLetter[]>([])
   const [loading, setLoading] = useState(true)
   
@@ -937,15 +943,18 @@ const LetterWizardPage = () => {
           <h1 className="text-2xl font-bold text-neutral-800">Cartas de Iglesia</h1>
           <p className="text-neutral-500">Crea invitaciones, recomendaciones y más</p>
         </div>
+        {canCreate && (
         <Button onClick={openWizard} className="gap-2 bg-primary-600 hover:bg-primary-700">
           <Plus className="w-5 h-5" />
           Nueva Carta
         </Button>
+        )}
       </div>
 
       {/* Main Content - Create Card + History */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Create New Card */}
+        {canCreate && (
         <motion.div
           whileHover={{ scale: 1.01 }}
           className="cursor-pointer"
@@ -973,6 +982,7 @@ const LetterWizardPage = () => {
             </CardContent>
           </Card>
         </motion.div>
+        )}
 
         {/* History Section */}
         <Card>
@@ -1028,6 +1038,7 @@ const LetterWizardPage = () => {
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
+                      {canDelete && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -1037,6 +1048,7 @@ const LetterWizardPage = () => {
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
+                      )}
                     </div>
                   </div>
                 ))}

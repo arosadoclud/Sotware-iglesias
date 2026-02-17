@@ -5,13 +5,17 @@ export const downloadProgramFlyerPdf = async (req: AuthRequest, res: Response, n
     const program = await Program.findOne({ _id: req.params.id, churchId: req.churchId });
     if (!program) throw new NotFoundError('Programa no encontrado');
 
-    // Formatear fecha igual que el frontend
+    // Formatear fecha igual que el frontend - extraer YYYY-MM-DD del ISO para evitar desfase
     function formatDateES(dateObj: Date): string {
       if (!dateObj) return '—';
+      const isoStr = dateObj instanceof Date ? dateObj.toISOString() : String(dateObj);
+      const dateOnly = isoStr.slice(0, 10);
+      const safeDate = new Date(dateOnly + 'T12:00:00');
       const opts: Intl.DateTimeFormatOptions = {
         weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+        timeZone: 'America/Santo_Domingo',
       };
-      const formatted = dateObj.toLocaleDateString('es-DO', opts);
+      const formatted = safeDate.toLocaleDateString('es-ES', opts);
       return formatted.charAt(0).toUpperCase() + formatted.slice(1);
     }
 
@@ -67,6 +71,7 @@ export const downloadProgramFlyerPdf = async (req: AuthRequest, res: Response, n
       time: formatTimeES(hour, ampm),
       location: program.location || '',
       verse: program.verse || '',
+      verseText: (program as any).verseText || '',
       assignments: program.assignments.map(a => ({
         id: a.sectionOrder || a.id,
         name: a.roleName || a.sectionName || a.name,
@@ -76,9 +81,22 @@ export const downloadProgramFlyerPdf = async (req: AuthRequest, res: Response, n
     };
     // Generar PDF
     const pdfBuffer = await generateFlyerPdf(flyerData);
+    
+    // Generar nombre descriptivo
+    const dateStr = program.programDate.toISOString().split('T')[0];
+    const activitySlug = (program.activityType?.name || 'programa')
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+    const churchSlug = (program.churchName || 'iglesia')
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+    const filename = `${churchSlug}-${activitySlug}-${dateStr}.pdf`;
+    
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="flyer-programa-${program._id}.pdf"`,
+      'Content-Disposition': `attachment; filename="${filename}"`,
     });
     res.send(pdfBuffer);
   } catch (error) {
@@ -96,6 +114,16 @@ import { AssignmentEngine } from './engine/AssignmentEngine';
 import { NotFoundError, BadRequestError, ConflictError } from '../../utils/errors';
 import { notificationService } from '../notifications/notification.service';
 import { cache, CacheKeys, CacheTTL } from '../../infrastructure/cache/CacheAdapter';
+import { getRandomVerse } from '../bible/bible.service';
+
+// Helper: Convertir hora 24h "HH:mm" → "H:MM AM/PM"
+function formatTime24to12(time24: string): { formatted: string; period: 'AM' | 'PM' } {
+  if (!time24) return { formatted: '', period: 'AM' };
+  const [h, m] = time24.split(':').map(Number);
+  const period: 'AM' | 'PM' = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return { formatted: `${h12}:${(m || 0).toString().padStart(2, '0')} ${period}`, period };
+}
 
 export const getPrograms = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -140,8 +168,9 @@ export const generateProgram = async (req: AuthRequest, res: Response, next: Nex
     const { activityTypeId, programDate, notes, defaultTime, ampm } = req.body;
     if (!activityTypeId || !programDate) throw new BadRequestError('activityTypeId y programDate son requeridos');
 
-    const dateObj = new Date(programDate);
-    dateObj.setHours(0, 0, 0, 0);
+    // Extraer solo YYYY-MM-DD y crear Date al mediodía LOCAL para evitar desfase UTC
+    const dateOnly = String(programDate).slice(0, 10);
+    const dateObj = new Date(dateOnly + 'T12:00:00');
 
     const existing = await Program.findOne({ churchId: req.churchId, 'activityType.id': activityTypeId, programDate: dateObj });
     if (existing) throw new ConflictError('Ya existe un programa para esta actividad y fecha');
@@ -161,17 +190,27 @@ export const generateProgram = async (req: AuthRequest, res: Response, next: Nex
       generatedBy: { id: req.userId!, name: req.user?.fullName || 'Sistema' },
     });
 
+    // Agregar versículo bíblico aleatorio
+    const randomVerse = getRandomVerse();
+
+    // Obtener hora de la actividad según el día de la semana
+    const time24 = activity.getTimeForDay(dateObj.getDay());
+    const activityTime = formatTime24to12(time24);
+
     const program = await Program.create({
       churchId: req.churchId,
       churchName: 'IGLESIA ARCA EVANGELICA DIOS FUERTE',
       logoUrl: '/logo-arca.png',
       activityType: { id: activity._id, name: activity.name },
       programDate: dateObj,
-      defaultTime: defaultTime || '',
-      ampm: ampm || 'AM',
+      defaultTime: defaultTime || activityTime.formatted,
+      programTime: defaultTime || activityTime.formatted,
+      ampm: ampm || activityTime.period,
       status: ProgramStatus.DRAFT,
       assignments: generation.assignments,
       notes: notes || '',
+      verse: randomVerse.verse,
+      verseText: randomVerse.verseText,
       generatedBy: { id: req.userId, name: req.user?.fullName || 'Sistema' },
     });
 
@@ -214,7 +253,7 @@ export const generateBatchPrograms = async (req: AuthRequest, res: Response, nex
     while (cursor <= end) {
       if (daysSet.has(cursor.getDay())) {
         const d = new Date(cursor);
-        d.setHours(0, 0, 0, 0);
+        d.setHours(12, 0, 0, 0); // Usar mediodía para evitar desfase UTC vs local
         dates.push(d);
       }
       cursor.setDate(cursor.getDate() + 1);
@@ -280,6 +319,13 @@ export const generateBatchPrograms = async (req: AuthRequest, res: Response, nex
         }
 
         try {
+          // Agregar versículo bíblico aleatorio
+          const randomVerse = getRandomVerse();
+
+          // Obtener hora formateada para esta fecha
+          const cleaningTime24 = activity.getTimeForDay(date.getDay()) || activity.defaultTime || '10:00';
+          const cleaningTime = formatTime24to12(cleaningTime24);
+
           const program = await Program.create({
             churchId: req.churchId,
             activityType: { id: activity._id, name: activity.name },
@@ -294,7 +340,10 @@ export const generateBatchPrograms = async (req: AuthRequest, res: Response, nex
             churchSub: church?.subTitle || '',
             location: church?.location || '',
             logoUrl: church?.logoUrl || '',
-            programTime: activity.defaultTime || '',
+            programTime: cleaningTime.formatted,
+            defaultTime: cleaningTime.formatted,
+            verse: randomVerse.verse,
+            verseText: randomVerse.verseText,
             generatedBy: { id: req.userId!, name: req.user?.fullName || 'Sistema' },
             generatedAt: new Date(),
           });
@@ -367,14 +416,21 @@ export const generateBatchPrograms = async (req: AuthRequest, res: Response, nex
 export const updateProgram = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     delete req.body.churchId;
+    // Extraer AM/PM de programTime si no viene explícito
+    const rawTime = req.body.programTime || req.body.defaultTime || '';
+    let ampmValue = req.body.ampm || '';
+    if (!ampmValue && rawTime) {
+      if (/PM/i.test(rawTime)) ampmValue = 'PM';
+      else if (/AM/i.test(rawTime)) ampmValue = 'AM';
+    }
     const updateData = {
       ...req.body,
       churchName: req.body.church?.name || req.body.churchName || '',
       churchSub: req.body.church?.subTitle || req.body.churchSub || '',
       location: req.body.church?.location || req.body.location || '',
       logoUrl: req.body.logoUrl || req.body.church?.logoUrl || '',
-      ampm: req.body.ampm || 'AM',
-      programTime: req.body.defaultTime || req.body.programTime || '',
+      ampm: ampmValue || 'PM',
+      programTime: req.body.programTime || req.body.defaultTime || '',
     };
     const program = await Program.findOneAndUpdate({ _id: req.params.id, churchId: req.churchId }, updateData, { new: true, runValidators: true });
     if (!program) throw new NotFoundError('Programa no encontrado');
@@ -591,7 +647,7 @@ export const getProgramStats = async (req: AuthRequest, res: Response, next: Nex
       };
       const action = statusLabels[prog.status] || 'Programa actualizado';
       const progDate = new Date(prog.programDate);
-      const description = `${prog.activityType?.name || 'Actividad'} - ${progDate.toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+      const description = `${prog.activityType?.name || 'Actividad'} - ${progDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`;
       const createdAt = prog.createdAt || prog.programDate;
       const diffMs = now.getTime() - new Date(createdAt).getTime();
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
