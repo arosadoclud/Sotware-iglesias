@@ -160,6 +160,28 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-neutral-400;
 }
+
+/* Scrollbar thin para sliders y carruseles */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  @apply bg-neutral-300 rounded-full;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  @apply bg-neutral-400;
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
 /* Animación shimmer para barras de progreso */
 @keyframes shimmer {
   0% {
