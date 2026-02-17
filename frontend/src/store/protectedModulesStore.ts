@@ -54,7 +54,7 @@ export const useProtectedModulesStore = create<ProtectedModulesState>()(
   persist(
     (set, get) => ({
       config: {
-        enabled: true,
+        enabled: false, // Deshabilitado por defecto - el admin debe activarlo en Settings
         password: DEFAULT_PASSWORD_HASH,
         modules: ['finances', 'settings', 'audit', 'users'],
       },
