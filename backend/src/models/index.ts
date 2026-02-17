@@ -15,3 +15,9 @@ export { default as LoginAttempt, ILoginAttempt } from './LoginAttempt.model';
 export { FinanceCategory, IFinanceCategory, DEFAULT_INCOME_CATEGORIES, DEFAULT_EXPENSE_CATEGORIES } from './FinanceCategory.model';
 export { Fund, IFund, DEFAULT_FUNDS } from './Fund.model';
 export { FinanceTransaction, IFinanceTransaction, PAYMENT_METHODS, APPROVAL_THRESHOLDS } from './FinanceTransaction.model';
+
+// Módulo de Nuevos Miembros (CRM)
+export { default as NewMember, INewMember } from './NewMember.model';
+
+// Seguridad y Auditoría
+export { default as Ministry, IMinistry } from './Ministry.model';

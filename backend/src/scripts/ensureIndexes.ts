@@ -22,6 +22,16 @@ import '../models/User.model';
 import '../models/Church.model';
 import '../models/ActivityType.model';
 import '../models/Role.model';
+import '../models/LetterTemplate.model';
+import '../models/GeneratedLetter.model';
+import '../models/NewMember.model';
+import '../models/AuditLog.model';
+import '../models/LoginAttempt.model';
+import '../models/FinanceCategory.model';
+import '../models/Fund.model';
+import '../models/FinanceTransaction.model';
+import '../models/PersonStatus.model';
+import '../models/Ministry.model';
 
 async function ensureIndexes() {
   try {
@@ -40,12 +50,17 @@ async function ensureIndexes() {
     logger.info('✅ Todos los índices creados correctamente');
     logger.info('');
     logger.info('Índices críticos asegurados:');
-    logger.info('  Program:  { churchId, programDate, status }');
-    logger.info('  Program:  { churchId, activityType.id, programDate } (motor)');
-    logger.info('  Person:   { churchId, roles.roleId, status } (motor)');
-    logger.info('  Person:   { churchId, status, priority }');
-    logger.info('  User:     { email } unique');
-    logger.info('  User:     { churchId, role }');
+    logger.info('  Program:        { churchId, programDate, status }');
+    logger.info('  Program:        { churchId, activityType.id, programDate } (motor)');
+    logger.info('  Person:         { churchId, roles.roleId, status } (motor)');
+    logger.info('  Person:         { churchId, status, priority }');
+    logger.info('  User:           { email } unique');
+    logger.info('  User:           { churchId, role }');
+    logger.info('  NewMember:      { churchId, status, assignedTo }');
+    logger.info('  FinanceTransaction: { churchId, type, date }');
+    logger.info('  Fund:           { churchId, name }');
+    logger.info('  AuditLog:       { churchId, userId, action }');
+    logger.info('  LoginAttempt:   { userId, createdAt }');
 
     await mongoose.disconnect();
     process.exit(0);
