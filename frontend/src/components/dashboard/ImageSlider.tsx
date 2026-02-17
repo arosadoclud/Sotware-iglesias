@@ -13,10 +13,15 @@ import {
   Sparkles,
   Image as ImageIcon,
   ExternalLink,
+  Filter,
+  Loader2,
 } from 'lucide-react'
 import { Card } from '../ui/card'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
+import { eventsApi } from '../../lib/api'
+import ImageModal from './ImageModal'
+import { toast } from 'sonner'
 
 interface ImageSlide {
   id: string
@@ -114,12 +119,56 @@ const TYPE_STYLES = {
 }
 
 export default function ImageSlider() {
-  const [slides] = useState<ImageSlide[]>(DEMO_SLIDES)
+  const [slides, setSlides] = useState<ImageSlide[]>([])
+  const [loading, setLoading] = useState(true)
   const [current, setCurrent] = useState(0)
   const [isAutoPlay, setIsAutoPlay] = useState(true)
   const [direction, setDirection] = useState(0)
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [selectedType, setSelectedType] = useState<'all' | 'event' | 'flyer' | 'announcement'>('all')
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Cargar eventos desde la API
+  useEffect(() => {
+    const loadEvents = async () => {
+      setLoading(true)
+      try {
+        const res = await eventsApi.getAll({
+          type: selectedType === 'all' ? undefined : selectedType,
+          isActive: 'true',
+          limit: 20,
+          sort: '-order',
+        })
+        const events = res.data.data || res.data || []
+        
+        // Si no hay eventos de la API, usar demos como fallback
+        if (events.length === 0) {
+          setSlides(DEMO_SLIDES)
+        } else {
+          // Mapear eventos de la API al formato del slider
+          const mappedEvents = events.map((e: any) => ({
+            id: e._id || e.id,
+            url: e.imageUrl,
+            title: e.title,
+            description: e.description,
+            type: e.type,
+            date: e.date,
+            time: e.time,
+            location: e.location,
+            attendees: e.attendees,
+          }))
+          setSlides(mappedEvents)
+        }
+      } catch (error) {
+        console.error('Error loading events:', error)
+        // Usar demos como fallback en caso de error
+        setSlides(DEMO_SLIDES)
+        toast.error('No se pudieron cargar los eventos')
+      }
+      setLoading(false)
+    }
+    loadEvents()
+  }, [selectedType])
 
   const resetTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current)
@@ -165,8 +214,40 @@ export default function ImageSlider() {
     }
   }
 
-  if (slides.length === 0) {
-    return null
+  if (slides.length === 0 && !loading) {
+    return (
+      <Card className="relative overflow-hidden border-0 shadow-xl">
+        <div className="h-[420px] flex items-center justify-center bg-gradient-to-br from-neutral-50 via-white to-neutral-50">
+          <div className="flex flex-col items-center gap-4 text-neutral-400">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-2xl bg-neutral-100 flex items-center justify-center">
+                <ImageIcon className="w-10 h-10 opacity-40" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">
+                <Sparkles className="w-3 h-3 text-primary-600" />
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-semibold text-neutral-600">No hay eventos publicados</p>
+              <p className="text-sm text-neutral-400 mt-1">Los eventos aparecerán aquí cuando sean creados</p>
+            </div>
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
+  const openModal = () => setIsModalOpen(true)
+  const closeModal = () => setIsModalOpen(false)
+
+  const handleModalPrev = () => {
+    prev()
+    // No cerrar el modal, solo cambiar slide
+  }
+
+  const handleModalNext = () => {
+    next()
+    // No cerrar el modal, solo cambiar slide
   }
 
   const slide = slides[current]
@@ -241,12 +322,35 @@ export default function ImageSlider() {
                   </motion.div>
                 </h3>
                 <p className="text-sm text-neutral-500">
-                  {slides.length} imagen{slides.length !== 1 ? 'es' : ''} • Próximos eventos
+                  {slides.length} imagen{slides.length !== 1 ? 'es' : ''} • {selectedType === 'all' ? 'Todos los tipos' : TYPE_STYLES[selectedType].label}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
+              {/* Filtros */}
+              <div className="hidden sm:flex items-center gap-2">
+                <Filter className="w-4 h-4 text-neutral-500" />
+                {(['all', 'event', 'flyer', 'announcement'] as const).map((type) => (
+                  <motion.button
+                    key={type}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setSelectedType(type)
+                      setCurrent(0)
+                    }}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                      selectedType === type
+                        ? 'bg-primary-600 text-white shadow-md'
+                        : 'bg-white/60 text-neutral-600 hover:bg-white/80'
+                    }`}
+                  >
+                    {type === 'all' ? 'Todos' : TYPE_STYLES[type].label}
+                  </motion.button>
+                ))}
+              </div>
+
               {/* Play/Pause */}
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -261,11 +365,11 @@ export default function ImageSlider() {
                 )}
               </motion.button>
 
-              {/* Fullscreen */}
+              {/* Fullscreen/Modal */}
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => setIsFullscreen(!isFullscreen)}
+                onClick={openModal}
                 className="p-2 rounded-lg bg-white/60 hover:bg-white/80 backdrop-blur-sm border border-neutral-200/50 transition-all shadow-sm"
               >
                 <Maximize2 className="w-4 h-4 text-neutral-600" />
@@ -494,6 +598,21 @@ export default function ImageSlider() {
           </div>
         </div>
       </Card>
+
+      {/* Modal de galería */}
+      {slides.length > 0 && (
+        <ImageModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          slide={slide}
+          onPrev={slides.length > 1 ? handleModalPrev : undefined}
+          onNext={slides.length > 1 ? handleModalNext : undefined}
+          onShare={(platform) => {
+            console.log('Compartiendo en:', platform)
+            toast.success(`Compartido en ${platform}`)
+          }}
+        />
+      )}
     </div>
   )
 }

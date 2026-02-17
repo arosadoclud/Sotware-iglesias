@@ -19,5 +19,8 @@ export { FinanceTransaction, IFinanceTransaction, PAYMENT_METHODS, APPROVAL_THRE
 // Módulo de Nuevos Miembros (CRM)
 export { default as NewMember, INewMember } from './NewMember.model';
 
+// Módulo de Eventos e Imágenes
+export { default as Event, IEvent } from './Event.model';
+
 // Seguridad y Auditoría
 export { default as Ministry, IMinistry } from './Ministry.model';

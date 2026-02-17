@@ -117,6 +117,7 @@ import adminRoutes    from './modules/admin/admin.routes';   // Admin & Auditor�
 import financesRoutes from './modules/finances/finances.routes'; // Módulo de Finanzas
 import bibleRoutes    from './modules/bible/bible.routes';    // Bible API proxy
 import newMemberRoutes from './modules/new-members/newMember.routes'; // Nuevos miembros
+import eventRoutes    from './modules/events/events.routes';   // Eventos e imágenes
 
 app.use(`${API}/health`,    healthRoutes);  // Health check
 app.use(`${API}/auth`,      authRoutes);
@@ -132,6 +133,7 @@ app.use(`${API}/letters`,   letterRoutes);
 app.use(`${API}/admin`,     adminRoutes);   // Admin: usuarios y auditoría
 app.use(`${API}/finances`,  financesRoutes); // Finanzas
 app.use(`${API}/new-members`, newMemberRoutes); // Nuevos miembros
+app.use(`${API}/events`,    eventRoutes);    // Eventos e imágenes
 app.use(`${API}/bible`,     bibleRoutes);    // Bible API proxy
 
 app.get('/api', (_req: Request, res: Response) => {
@@ -149,6 +151,7 @@ app.get('/api', (_req: Request, res: Response) => {
       `${API}/programs`,
       `${API}/letters`,
       `${API}/finances`,
+      `${API}/events`,
       `${API}/bible`,
     ],
   });

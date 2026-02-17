@@ -308,4 +308,28 @@ export const newMembersApi = {
   getStats: () => api.get('/new-members/stats'),
 }
 
+// ── EVENTS (Imágenes y eventos) ───────────────────────────────────────────────
+export const eventsApi = {
+  getAll: (params?: {
+    type?: 'event' | 'flyer' | 'announcement' | 'all'
+    isActive?: string
+    limit?: number
+    sort?: string
+  }) => api.get('/events', { params }),
+  get: (id: string) => api.get(`/events/${id}`),
+  create: (data: any) => api.post('/events', data),
+  update: (id: string, data: any) => api.put(`/events/${id}`, data),
+  delete: (id: string) => api.delete(`/events/${id}`),
+  reorder: (events: { id: string; order: number }[]) => 
+    api.put('/events/reorder', { events }),
+  uploadImage: (file: File) => {
+    const formData = new FormData()
+    formData.append('image', file)
+    return api.post('/events/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+  deleteImage: (filename: string) => api.delete(`/events/upload/${filename}`),
+}
+
 export default api
