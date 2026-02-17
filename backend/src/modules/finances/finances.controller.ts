@@ -552,7 +552,7 @@ export const updateTransaction = async (req: AuthRequest, res: Response, next: N
     }
 
     // Actualizar quien modificó
-    transaction.updatedBy = userId
+    transaction.updatedBy = new mongoose.Types.ObjectId(userId as string)
 
     // Revertir balance anterior
     if (oldType === 'INCOME' || (oldType === 'EXPENSE' && oldApprovalStatus !== 'PENDING')) {
@@ -1460,7 +1460,7 @@ export const generateMonthlyPDFReport = async (req: AuthRequest, res: Response, 
       church: {
         name: church.name,
         logoUrl: church.logoUrl,
-        location: church.address || '',
+        location: typeof church.address === 'string' ? church.address : (church as any).getFullAddress?.() || '',
         phone: church.phone || '',
       },
       period: {
@@ -1602,7 +1602,7 @@ export const generateAnnualCouncilReport = async (req: AuthRequest, res: Respons
       church: {
         name: church.name,
         logoUrl: church.logoUrl,
-        location: church.address || '',
+        location: typeof church.address === 'string' ? church.address : (church as any).getFullAddress?.() || '',
         phone: church.phone || '',
       },
       year: Number(year),

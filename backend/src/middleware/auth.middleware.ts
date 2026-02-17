@@ -10,20 +10,7 @@ export interface AuthRequest extends Request {
   userRole?: string;
   isSuperUser?: boolean;
   churchId?: string;
-  // Añadido por tenantGuard (Paso 1) — plan de suscripción de la iglesia
   churchPlan?: 'FREE' | 'PRO' | 'ENTERPRISE';
-  // Express properties - declaradas explícitamente para TypeScript
-  body: any;
-  params: any;
-  query: any;
-  file?: any;
-  ip: string;
-  socket: any;
-  headers: any;
-  originalUrl: string;
-  method: string;
-  protocol: string;
-  get(name: string): string | undefined;
 }
 
 export const authenticate = async (
