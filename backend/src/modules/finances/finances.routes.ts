@@ -1,6 +1,3 @@
-import { getMonthlyTithesDetails } from './finances.controller'
-// DESGLOSE DE DIEZMOS (para vista web)
-router.get('/tithes-details', rbac('finances', 'read'), getMonthlyTithesDetails)
 import { Router } from 'express'
 import { authenticate } from '../../middleware/auth.middleware'
 import { tenantGuard } from '../../middleware/tenant.middleware'
@@ -30,6 +27,7 @@ import {
   getDetailedTransactions,
   generateMonthlyPDFReport,
   generateAnnualCouncilReport,
+  getMonthlyTithesDetails,
 } from './finances.controller'
 
 const router = Router()
@@ -72,5 +70,8 @@ router.get('/reports/annual', rbac('finances', 'read'), getAnnualReport)
 router.get('/reports/transactions', rbac('finances', 'read'), getDetailedTransactions)
 router.get('/reports/monthly-pdf', rbac('finances', 'read'), generateMonthlyPDFReport)
 router.get('/reports/council-annual', rbac('finances', 'read'), generateAnnualCouncilReport)
+
+// Desglose de diezmos (para vista web)
+router.get('/tithes-details', rbac('finances', 'read'), getMonthlyTithesDetails)
 
 export default router
