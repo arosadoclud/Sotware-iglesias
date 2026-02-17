@@ -358,7 +358,6 @@ export default function ProgramsSlider() {
               style={{ x }}
               className="cursor-grab active:cursor-grabbing"
             >
-            >
               {/* Card principal del programa */}
               <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl border border-white/50 shadow-2xl overflow-hidden">
                 {/* Barra de estado superior con gradiente */}
