@@ -11,6 +11,11 @@ export interface AuthRequest extends Request {
   isSuperUser?: boolean;
   churchId?: string;
   churchPlan?: 'FREE' | 'PRO' | 'ENTERPRISE';
+  body: any;
+  params: any;
+  query: any;
+  file?: any;
+  headers: any;
 }
 
 export const authenticate = async (
