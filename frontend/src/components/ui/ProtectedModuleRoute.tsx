@@ -45,20 +45,22 @@ export function ProtectedModuleRoute({ module, children }: ProtectedModuleRouteP
     // Module is now unlocked, children will render
   }
   
-  // If module needs unlock, show modal and don't render children
-  if (needsUnlock) {
-    return (
-      <ModuleUnlockModal
-        isOpen={showModal}
-        module={module}
-        onClose={handleClose}
-        onUnlock={handleUnlock}
-      />
-    )
-  }
-  
-  // Module is unlocked, render children
-  return <>{children}</>
+  // If module needs unlock, show modal
+  // Always render children to avoid re-mounting when unlocking
+  return (
+    <>
+      {needsUnlock && (
+        <ModuleUnlockModal
+          isOpen={showModal}
+          module={module}
+          onClose={handleClose}
+          onUnlock={handleUnlock}
+        />
+      )}
+      {/* Solo mostrar contenido cuando está desbloqueado */}
+      {!needsUnlock && children}
+    </>
+  )
 }
 
 export default ProtectedModuleRoute

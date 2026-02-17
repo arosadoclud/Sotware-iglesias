@@ -46,10 +46,10 @@ export function ModuleUnlockModal({ isOpen, module, onClose, onUnlock }: ModuleU
       // Desbloquear todos los módulos protegidos
       unlockAll()
       
-      // Pequeño delay para mostrar el éxito
+      // Cerrar inmediatamente para no bloquear navegación
       setTimeout(() => {
         onUnlock()
-      }, 500)
+      }, 150)
     } else {
       setAttempts(prev => prev + 1)
       setError('Contraseña incorrecta')
@@ -71,6 +71,7 @@ export function ModuleUnlockModal({ isOpen, module, onClose, onUnlock }: ModuleU
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={(e) => e.target === e.currentTarget && onClose()}
         >
