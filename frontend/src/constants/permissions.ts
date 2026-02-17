@@ -72,6 +72,8 @@ export const P = {
   FINANCES_CREATE: 'finances:create',
   FINANCES_EDIT: 'finances:edit',
   FINANCES_DELETE: 'finances:delete',
+  FINANCES_APPROVE: 'finances:approve',
+  FINANCES_REPORTS: 'finances:reports',
 } as const
 
 export type PermissionKey = (typeof P)[keyof typeof P]

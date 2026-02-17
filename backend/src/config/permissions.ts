@@ -65,6 +65,14 @@ export enum Permission {
   
   // ── WHATSAPP ────────────────────────────────────────────────────────────────
   WHATSAPP_SEND = 'whatsapp:send',
+  
+  // ── FINANZAS ────────────────────────────────────────────────────────────────
+  FINANCES_VIEW = 'finances:view',
+  FINANCES_CREATE = 'finances:create',
+  FINANCES_EDIT = 'finances:edit',
+  FINANCES_DELETE = 'finances:delete',
+  FINANCES_APPROVE = 'finances:approve',
+  FINANCES_REPORTS = 'finances:reports',
 }
 
 // Permisos por defecto según el rol
@@ -120,6 +128,13 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.CLEANING_MANAGE,
     // WhatsApp
     Permission.WHATSAPP_SEND,
+    // Finanzas (todos)
+    Permission.FINANCES_VIEW,
+    Permission.FINANCES_CREATE,
+    Permission.FINANCES_EDIT,
+    Permission.FINANCES_DELETE,
+    Permission.FINANCES_APPROVE,
+    Permission.FINANCES_REPORTS,
   ],
   
   ADMIN: [
@@ -165,6 +180,12 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.CLEANING_MANAGE,
     // WhatsApp
     Permission.WHATSAPP_SEND,
+    // Finanzas
+    Permission.FINANCES_VIEW,
+    Permission.FINANCES_CREATE,
+    Permission.FINANCES_EDIT,
+    Permission.FINANCES_APPROVE,
+    Permission.FINANCES_REPORTS,
   ],
   
   MINISTRY_LEADER: [
@@ -281,6 +302,14 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, { label: string; descri
   
   // WhatsApp
   [Permission.WHATSAPP_SEND]: { label: 'Enviar WhatsApp', description: 'Enviar mensajes por WhatsApp', category: 'WhatsApp' },
+  
+  // Finanzas
+  [Permission.FINANCES_VIEW]: { label: 'Ver finanzas', description: 'Ver transacciones y reportes financieros', category: 'Finanzas' },
+  [Permission.FINANCES_CREATE]: { label: 'Crear transacciones', description: 'Registrar ingresos y gastos', category: 'Finanzas' },
+  [Permission.FINANCES_EDIT]: { label: 'Editar transacciones', description: 'Modificar transacciones financieras', category: 'Finanzas' },
+  [Permission.FINANCES_DELETE]: { label: 'Eliminar transacciones', description: 'Eliminar transacciones financieras', category: 'Finanzas' },
+  [Permission.FINANCES_APPROVE]: { label: 'Aprobar transacciones', description: 'Aprobar/rechazar transacciones que requieren aprobación', category: 'Finanzas' },
+  [Permission.FINANCES_REPORTS]: { label: 'Reportes financieros', description: 'Acceder a reportes y análisis financieros', category: 'Finanzas' },
 };
 
 // Agrupar permisos por categoría para la UI
@@ -296,6 +325,7 @@ export const PERMISSION_CATEGORIES = [
   'Auditoría',
   'Limpieza',
   'WhatsApp',
+  'Finanzas',
 ];
 
 // Helper para verificar si un usuario tiene un permiso
