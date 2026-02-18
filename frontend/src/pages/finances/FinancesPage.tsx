@@ -32,6 +32,7 @@ import {
   Wrench,
   BookOpen,
   BarChart3,
+  Calendar,
 } from 'lucide-react'
 import { financesApi, personsApi } from '../../lib/api'
 import { tithesApi } from '../../lib/tithesApi'
@@ -641,46 +642,122 @@ const FinancesPage = () => {
           Cargando desglose de diezmos...
         </div>
       ) : tithesDetails.length > 0 ? (
-        <div className="overflow-x-auto my-8">
-          <div className="mb-2 font-semibold text-amber-700 text-lg flex items-center gap-2">
+        <div className="my-8">
+          <div className="mb-4 font-semibold text-amber-700 text-lg flex items-center gap-2">
             <Heart className="w-5 h-5 text-pink-500" />
             Desglose de Diezmos y 10% Concilio
           </div>
-          <table className="min-w-[600px] w-full border rounded-lg overflow-hidden text-sm">
-            <thead>
-              <tr className="bg-amber-100 text-amber-900">
-                <th className="py-2 px-3 text-left">Fecha</th>
-                <th className="py-2 px-3 text-left">Diezmador</th>
-                <th className="py-2 px-3 text-right">Monto</th>
-                <th className="py-2 px-3 text-right">10% Concilio</th>
-                <th className="py-2 px-3 text-right">90% Iglesia</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tithesDetails.map((t, i) => (
-                <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-amber-50'}>
-                  <td className="py-2 px-3">{format(new Date(t.date), 'dd/MM/yyyy', { locale: es })}</td>
-                  <td className="py-2 px-3">{t.personName}</td>
-                  <td className="py-2 px-3 text-right text-green-700 font-semibold">RD$ {t.amount.toLocaleString()}</td>
-                  <td className="py-2 px-3 text-right text-amber-700 font-bold">RD$ {t.councilAmount.toLocaleString()}</td>
-                  <td className="py-2 px-3 text-right text-green-700">RD$ {t.churchAmount.toLocaleString()}</td>
+
+          {/* Vista Mobile: Cards */}
+          <div className="block md:hidden space-y-3">
+            {tithesDetails.map((t, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200 p-4 shadow-sm"
+              >
+                <div className="flex items-center justify-between mb-3 pb-3 border-b border-amber-200">
+                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {format(new Date(t.date), 'dd/MM/yyyy', { locale: es })}
+                  </div>
+                  <div className="text-sm font-semibold text-gray-800">
+                    {t.personName}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">💰 Monto Total</span>
+                    <span className="text-lg font-bold text-green-700">
+                      RD$ {t.amount.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center bg-orange-100 rounded-lg px-3 py-2">
+                    <span className="text-xs font-medium text-orange-800">🏛️ 10% Concilio</span>
+                    <span className="text-sm font-bold text-orange-700">
+                      RD$ {t.councilAmount.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center bg-green-100 rounded-lg px-3 py-2">
+                    <span className="text-xs font-medium text-green-800">⛪ 90% Iglesia</span>
+                    <span className="text-sm font-bold text-green-700">
+                      RD$ {t.churchAmount.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+
+            {/* Totales Mobile */}
+            <div className="bg-gradient-to-r from-amber-200 to-orange-200 rounded-xl border-2 border-amber-300 p-4 shadow-md mt-4">
+              <div className="text-center font-bold text-amber-900 text-sm mb-3">
+                TOTALES:
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-semibold text-gray-800">Total Diezmos</span>
+                  <span className="text-lg font-bold text-green-800">
+                    RD$ {tithesDetails.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-gray-700">10% Concilio</span>
+                  <span className="text-base font-bold text-orange-800">
+                    RD$ {tithesDetails.reduce((sum, t) => sum + t.councilAmount, 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-gray-700">90% Iglesia</span>
+                  <span className="text-base font-bold text-green-800">
+                    RD$ {tithesDetails.reduce((sum, t) => sum + t.churchAmount, 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Vista Desktop: Tabla */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full border rounded-lg overflow-hidden text-sm">
+              <thead>
+                <tr className="bg-amber-100 text-amber-900">
+                  <th className="py-2 px-3 text-left">Fecha</th>
+                  <th className="py-2 px-3 text-left">Diezmador</th>
+                  <th className="py-2 px-3 text-right">Monto</th>
+                  <th className="py-2 px-3 text-right">10% Concilio</th>
+                  <th className="py-2 px-3 text-right">90% Iglesia</th>
                 </tr>
-              ))}
-              <tr className="bg-amber-200 font-bold">
-                <td colSpan={2} className="py-2 px-3 text-right">TOTALES:</td>
-                <td className="py-2 px-3 text-right text-green-800">
-                  RD$ {tithesDetails.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
-                </td>
-                <td className="py-2 px-3 text-right text-amber-900">
-                  RD$ {tithesDetails.reduce((sum, t) => sum + t.councilAmount, 0).toLocaleString()}
-                </td>
-                <td className="py-2 px-3 text-right text-green-800">
-                  RD$ {tithesDetails.reduce((sum, t) => sum + t.churchAmount, 0).toLocaleString()}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div className="mt-2 text-xs text-amber-700 bg-amber-50 rounded p-2">
+              </thead>
+              <tbody>
+                {tithesDetails.map((t, i) => (
+                  <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-amber-50'}>
+                    <td className="py-2 px-3">{format(new Date(t.date), 'dd/MM/yyyy', { locale: es })}</td>
+                    <td className="py-2 px-3">{t.personName}</td>
+                    <td className="py-2 px-3 text-right text-green-700 font-semibold">RD$ {t.amount.toLocaleString()}</td>
+                    <td className="py-2 px-3 text-right text-amber-700 font-bold">RD$ {t.councilAmount.toLocaleString()}</td>
+                    <td className="py-2 px-3 text-right text-green-700">RD$ {t.churchAmount.toLocaleString()}</td>
+                  </tr>
+                ))}
+                <tr className="bg-amber-200 font-bold">
+                  <td colSpan={2} className="py-2 px-3 text-right">TOTALES:</td>
+                  <td className="py-2 px-3 text-right text-green-800">
+                    RD$ {tithesDetails.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
+                  </td>
+                  <td className="py-2 px-3 text-right text-amber-900">
+                    RD$ {tithesDetails.reduce((sum, t) => sum + t.councilAmount, 0).toLocaleString()}
+                  </td>
+                  <td className="py-2 px-3 text-right text-green-800">
+                    RD$ {tithesDetails.reduce((sum, t) => sum + t.churchAmount, 0).toLocaleString()}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-3 text-xs text-amber-700 bg-amber-50 rounded-lg p-3">
             <strong>Nota:</strong> El 10% de cada diezmo se acumula para el concilio y se remite al finalizar el año.
           </div>
         </div>
