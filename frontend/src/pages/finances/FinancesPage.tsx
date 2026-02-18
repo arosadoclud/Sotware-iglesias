@@ -977,7 +977,7 @@ const FinancesPage = () => {
                                     </DropdownMenuItem>
                                   </>
                                 )}
-                                {canEdit && (tx.type === 'INCOME' || tx.approvalStatus === 'PENDING') && (
+                                {canEdit && (
                                   <DropdownMenuItem 
                                     onClick={() => handleEdit(tx)}
                                     className="text-blue-600"
