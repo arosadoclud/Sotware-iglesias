@@ -4,14 +4,13 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'react-hot-toast'
-import { LogIn, Mail, Lock, Church, AlertCircle, Loader2, Info, Eye, EyeOff, Sparkles } from 'lucide-react'
+import { LogIn, Mail, Lock, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../../store/authStore'
-import api from '../../lib/api'
+import api, { BACKEND_URL } from '../../lib/api'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card'
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -20,25 +19,7 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>
 
-// Floating particles animation
-const FloatingParticle = ({ delay, duration, size, left, top }: any) => (
-  <motion.div
-    className="absolute rounded-full bg-primary-400/20"
-    style={{ width: size, height: size, left: `${left}%`, top: `${top}%` }}
-    animate={{
-      y: [0, -30, 0],
-      x: [0, 15, 0],
-      opacity: [0.3, 0.6, 0.3],
-      scale: [1, 1.2, 1],
-    }}
-    transition={{
-      duration,
-      delay,
-      repeat: Infinity,
-      ease: "easeInOut"
-    }}
-  />
-)
+const LOGO_URL = `${BACKEND_URL}/uploads/logo.png`
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -83,231 +64,202 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-primary-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-600/10 rounded-full blur-3xl" />
+    <div className="min-h-screen flex">
+      {/* Left panel - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-[#0f2b46] relative overflow-hidden flex-col items-center justify-center p-12">
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
         
-        {/* Floating particles */}
-        <FloatingParticle delay={0} duration={6} size={8} left={10} top={20} />
-        <FloatingParticle delay={1} duration={7} size={6} left={80} top={15} />
-        <FloatingParticle delay={2} duration={8} size={10} left={70} top={60} />
-        <FloatingParticle delay={3} duration={6} size={5} left={20} top={70} />
-        <FloatingParticle delay={4} duration={9} size={7} left={50} top={30} />
-        <FloatingParticle delay={5} duration={7} size={9} left={30} top={85} />
-        <FloatingParticle delay={1.5} duration={8} size={6} left={85} top={80} />
-        <FloatingParticle delay={2.5} duration={6} size={8} left={15} top={45} />
-      </div>
+        {/* Glow effects */}
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md relative z-10"
-      >
-        {/* Logo grande centrado */}
-        <div className="text-center mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          className="relative z-10 text-center max-w-md"
+        >
+          {/* Logo */}
           <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
-            className="relative w-20 h-20 mx-auto mb-6"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", bounce: 0.4, duration: 0.8 }}
+            className="mb-8"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl rotate-6 opacity-50" />
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl flex items-center justify-center shadow-2xl shadow-primary-500/50">
-              <Church className="w-10 h-10 text-white" />
-            </div>
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="absolute -inset-1 border-2 border-dashed border-primary-400/30 rounded-2xl"
+            <img 
+              src={LOGO_URL} 
+              alt="Logo de la Iglesia" 
+              className="w-36 h-36 mx-auto object-contain rounded-2xl shadow-2xl shadow-black/30 bg-white/10 p-2"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
+                target.style.display = 'none'
+              }}
             />
           </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="inline-flex items-center gap-2 px-3 py-1 bg-primary-500/20 rounded-full mb-4"
-          >
-            <Sparkles className="w-4 h-4 text-primary-300" />
-            <span className="text-sm text-primary-200">Sistema de Gestión</span>
-          </motion.div>
-          
+
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="text-4xl font-bold text-white mb-2"
+            transition={{ delay: 0.3 }}
+            className="text-2xl font-extrabold text-white leading-tight mb-4 tracking-wide"
           >
-            Bienvenido
+            IGLESIA EVANGÉLICA<br />DIOS FUERTE ARCA EVANGÉLICA
           </motion.h1>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="w-16 h-0.5 bg-white/30 mx-auto mb-4"
+          />
+
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="text-primary-200"
+            className="text-white/60 text-sm leading-relaxed"
           >
-            Programa de Oportunidades
+            C/ Principal No. 168, Manoguayabo<br />
+            Santo Domingo Oeste, después del Mercado
           </motion.p>
-        </div>
 
-        {/* Card con formulario */}
-        <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.5, type: "spring", bounce: 0.3 }}
-        >
-          <Card className="backdrop-blur-xl bg-white/95 border-0 shadow-2xl">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xl">Iniciar Sesión</CardTitle>
-              <CardDescription>Ingresa tus credenciales para continuar</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                {/* Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="email">Correo electrónico</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-                    <Input
-                      id="email"
-                      type="email"
-                      className="pl-10"
-                      placeholder="pastor@iglesia.com"
-                      {...register('email')}
-                    />
-                    {errors.email && (
-                      <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-danger-500" />
-                    )}
-                  </div>
-                  <AnimatePresence>
-                    {errors.email && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        className="text-sm text-danger-600 flex items-center gap-2"
-                      >
-                        <AlertCircle className="w-4 h-4" />
-                        {errors.email.message}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                {/* Password */}
-                <div className="space-y-2">
-                  <Label htmlFor="password">Contraseña</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 z-10" />
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      className="pl-10 pr-12"
-                      placeholder="••••••••"
-                      {...register('password')}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors focus:outline-none"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                  <AnimatePresence>
-                    {errors.password && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        className="text-sm text-danger-600 flex items-center gap-2"
-                      >
-                        <AlertCircle className="w-4 h-4" />
-                        {errors.password.message}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                {/* Submit Button */}
-                <motion.div
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                >
-                  <Button
-                    type="submit"
-                    className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-lg hover:shadow-xl transition-all duration-200"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                        Iniciando sesión...
-                      </>
-                    ) : (
-                      <>
-                        <LogIn className="w-5 h-5 mr-2" />
-                        Iniciar Sesión
-                      </>
-                    )}
-                  </Button>
-                </motion.div>
-              </form>
-
-              {/* Demo credentials */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-                className="mt-6 p-4 bg-gradient-to-r from-primary-50 to-purple-50 border border-primary-200/50 rounded-xl"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-primary-100 rounded-lg">
-                    <Info className="h-4 w-4 text-primary-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-primary-900 mb-2">
-                      Credenciales de prueba
-                    </p>
-                    <div className="space-y-2 text-sm text-primary-700">
-                      <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-primary-500" />
-                        <code className="bg-white/80 px-2 py-1 rounded font-mono text-xs">
-                          admin@iglesia.com
-                        </code>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Lock className="w-4 h-4 text-primary-500" />
-                        <code className="bg-white/80 px-2 py-1 rounded font-mono text-xs">
-                          password123
-                        </code>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </CardContent>
-          </Card>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="mt-10 pt-8 border-t border-white/10"
+          >
+            <p className="text-white/40 text-xs uppercase tracking-widest">Sistema de Gestión Eclesiástica</p>
+          </motion.div>
         </motion.div>
+      </div>
 
-        {/* Footer */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7, duration: 0.5 }}
-          className="text-center text-sm text-primary-200/60 mt-8"
+      {/* Right panel - Login form */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-gray-50">
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md"
         >
-          © 2024 Sistema de Gestión de Programas. Todos los derechos reservados.
-        </motion.p>
-      </motion.div>
+          {/* Mobile logo (visible on small screens) */}
+          <div className="lg:hidden text-center mb-8">
+            <img 
+              src={LOGO_URL} 
+              alt="Logo de la Iglesia" 
+              className="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg mb-4"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
+                target.style.display = 'none'
+              }}
+            />
+            <h2 className="text-lg font-bold text-[#0f2b46]">IGLESIA EVANGÉLICA DIOS FUERTE ARCA EVANGÉLICA</h2>
+            <p className="text-xs text-gray-500 mt-1">C/ Principal No. 168, Manoguayabo, Santo Domingo Oeste</p>
+          </div>
+
+          {/* Form header */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">Iniciar Sesión</h2>
+            <p className="text-gray-500 mt-2">Ingresa tus credenciales para continuar</p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">Correo electrónico</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  id="email"
+                  type="email"
+                  className="pl-10 h-12 bg-white border-gray-300 focus:border-[#0f2b46] focus:ring-[#0f2b46]/20 rounded-lg"
+                  placeholder="correo@iglesia.com"
+                  {...register('email')}
+                />
+                {errors.email && (
+                  <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />
+                )}
+              </div>
+              <AnimatePresence>
+                {errors.email && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="text-sm text-red-600 flex items-center gap-2"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.email.message}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Password */}
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium text-gray-700">Contraseña</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="pl-10 pr-12 h-12 bg-white border-gray-300 focus:border-[#0f2b46] focus:ring-[#0f2b46]/20 rounded-lg"
+                  placeholder="••••••••"
+                  {...register('password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              <AnimatePresence>
+                {errors.password && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="text-sm text-red-600 flex items-center gap-2"
+                  >
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.password.message}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Submit */}
+            <motion.div whileTap={{ scale: 0.99 }}>
+              <Button
+                type="submit"
+                className="w-full h-12 text-base font-semibold bg-[#0f2b46] hover:bg-[#1a3d5c] shadow-lg hover:shadow-xl transition-all duration-200 rounded-lg"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                    Iniciando sesión...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="w-5 h-5 mr-2" />
+                    Iniciar Sesión
+                  </>
+                )}
+              </Button>
+            </motion.div>
+          </form>
+
+          {/* Footer */}
+          <p className="text-center text-xs text-gray-400 mt-10">
+            © {new Date().getFullYear()} Sistema de Gestión Eclesiástica. Todos los derechos reservados.
+          </p>
+        </motion.div>
+      </div>
     </div>
   )
 }

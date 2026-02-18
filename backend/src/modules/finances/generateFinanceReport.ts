@@ -394,9 +394,10 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
     ${logoUrl ? `<div class="logo-container"><img src="${logoUrl}" class="logo" alt="Logo" onerror="this.parentElement.style.display='none'"></div>` : ''}
     <div class="header-text">
       <div class="church-name">${data.church.name.toUpperCase()}</div>
-      <div class="church-address">${data.church.location || ''}</div>
+      <div class="church-address">${data.church.location || 'C/ Principal No. 168. Manoguayabo, Santo Domingo Oeste, después del Mercado'}</div>
       ${data.church.phone ? `<div class="church-phone">Tel: ${data.church.phone}</div>` : ''}
     </div>
+    ${logoUrl ? `<div style="width:70px; flex-shrink:0;"></div>` : ''}
   </div>
   
   <!-- Title Bar -->
@@ -690,22 +691,26 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
       padding-bottom: 18px;
       border-bottom: 3px solid #0f2b46;
       margin-bottom: 5px;
+      position: relative;
     }
     .logo-container {
-      width: 75px;
-      height: 75px;
-      margin-right: 18px;
+      width: 70px;
+      height: 70px;
       flex-shrink: 0;
     }
     .logo {
-      width: 75px;
-      height: 75px;
+      width: 70px;
+      height: 70px;
       object-fit: contain;
       border-radius: 6px;
     }
-    .header-text { flex: 1; }
+    .header-text {
+      flex: 1;
+      text-align: center;
+      padding: 0 10px;
+    }
     .church-name {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 800;
       color: #0f2b46;
       text-transform: uppercase;
@@ -713,12 +718,12 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
       margin-bottom: 3px;
     }
     .church-address {
-      font-size: 11px;
+      font-size: 10.5px;
       color: #4a5568;
       line-height: 1.5;
     }
     .church-phone {
-      font-size: 11px;
+      font-size: 10.5px;
       color: #4a5568;
       margin-top: 2px;
     }
@@ -922,11 +927,10 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
     ${logoUrl ? `<div class="logo-container"><img src="${logoUrl}" class="logo" alt="Logo" onerror="this.parentElement.style.display='none'"></div>` : ''}
     <div class="header-text">
       <div class="church-name">${data.church.name.toUpperCase()}</div>
-      <div class="church-address">
-        ${data.church.location ? data.church.location : ''}
-      </div>
+      <div class="church-address">${data.church.location || 'C/ Principal No. 168. Manoguayabo, Santo Domingo Oeste, después del Mercado'}</div>
       ${data.church.phone ? `<div class="church-phone">Tel: ${data.church.phone}</div>` : ''}
     </div>
+    ${logoUrl ? `<div style="width:70px; flex-shrink:0;"></div>` : ''}
   </div>
 
   <!-- Title -->
