@@ -26,19 +26,19 @@ import { es } from 'date-fns/locale'
 const LOGO_LOCAL = '/logo.png'
 const LOGO_BACKEND = `${BACKEND_URL}/uploads/logo.png`
 
-/** Shared report header with logo + centered church name */
+/** Shared report header with logo left + church name & report title right */
 const ReportCardHeader = ({ title, subtitle, icon: Icon, iconColor = 'text-primary-600' }: {
   title: string
   subtitle?: string
   icon?: any
   iconColor?: string
 }) => (
-  <div className="text-center border-b px-6 py-5">
-    <div className="flex flex-col items-center gap-3">
+  <div className="border-b px-6 py-5">
+    <div className="flex items-center gap-4">
       <img
         src={LOGO_LOCAL}
         alt="Logo"
-        className="w-16 h-16 object-contain rounded-full border border-gray-200 shadow-sm bg-white p-1"
+        className="w-16 h-16 object-contain rounded-full border border-gray-200 shadow-sm bg-white p-1 flex-shrink-0"
         onError={(e) => {
           const img = e.target as HTMLImageElement
           if (!img.src.includes(BACKEND_URL)) {
@@ -48,9 +48,9 @@ const ReportCardHeader = ({ title, subtitle, icon: Icon, iconColor = 'text-prima
           }
         }}
       />
-      <div className="text-center">
+      <div className="flex-1 min-w-0">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Iglesia Dios Fuerte Arca Evangélica</p>
-        <h2 className="text-lg font-bold text-gray-800 flex items-center justify-center gap-2">
+        <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
           {Icon && <Icon className={`w-5 h-5 ${iconColor}`} />}
           {title}
         </h2>
