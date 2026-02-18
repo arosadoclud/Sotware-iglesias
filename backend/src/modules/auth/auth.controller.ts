@@ -38,11 +38,18 @@ export const register = async (req: Request, res: Response) => {
     // Verificar si el usuario ya existe
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
-      console.log('[REGISTER] Usuario ya existe:', email);
-      return res.status(400).json({ success: false, message: 'El usuario ya existe' });
+      // Si el usuario existe pero NO está verificado, permitir re-registro (eliminar el usuario anterior)
+      if (!existingUser.isEmailVerified) {
+        console.log('[REGISTER] Usuario existe pero no verificado, eliminando registro anterior:', email);
+        await User.deleteOne({ _id: existingUser._id });
+        console.log('[REGISTER] Usuario anterior eliminado, procediendo con nuevo registro...');
+      } else {
+        console.log('[REGISTER] Usuario ya existe y está verificado:', email);
+        return res.status(400).json({ success: false, message: 'El usuario ya existe' });
+      }
+    } else {
+      console.log('[REGISTER] Usuario nuevo, procediendo a crear...');
     }
-
-    console.log('[REGISTER] Usuario nuevo, procediendo a crear...');
 
     // Determinar el rol: si no se especifica, usar VIEWER (registros públicos)
     // Solo permitir especificar rol diferente si viene de un admin autenticado
