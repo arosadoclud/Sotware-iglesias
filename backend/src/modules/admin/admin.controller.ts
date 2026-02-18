@@ -177,7 +177,18 @@ export const updateUser = async (req: AuthRequest, res: Response, next: NextFunc
 
     // Actualizar campos
     if (fullName) user.fullName = fullName;
-    if (role && req.userRole === UserRole.SUPER_ADMIN) user.role = role;
+    
+    // Si cambia el rol
+    if (role && req.userRole === UserRole.SUPER_ADMIN) {
+      const roleChanged = role !== user.role;
+      user.role = role;
+      
+      // Si no tiene permisos personalizados, actualizar permisos según el nuevo rol
+      if (roleChanged && !user.useCustomPermissions) {
+        user.permissions = DEFAULT_ROLE_PERMISSIONS[role] || [];
+      }
+    }
+    
     if (isActive !== undefined) user.isActive = isActive;
     if (permissions !== undefined && req.isSuperUser) user.permissions = permissions;
     if (useCustomPermissions !== undefined && req.isSuperUser) user.useCustomPermissions = useCustomPermissions;

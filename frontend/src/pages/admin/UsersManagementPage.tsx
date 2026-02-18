@@ -190,13 +190,31 @@ const UsersManagementPage = () => {
   const handleUpdate = async () => {
     if (!selectedUser) return
     
+    // Si cambió el rol y no tiene permisos personalizados, actualizar permisos automáticamente
+    const roleChanged = formData.role !== selectedUser.role
+    const hasCustomPermissions = selectedUser.useCustomPermissions
+    
+    if (roleChanged && !hasCustomPermissions && permissionsData) {
+      const newRolePermissions = permissionsData.defaultRolePermissions[formData.role] || []
+      
+      // Confirmar el cambio
+      if (!confirm(
+        `Al cambiar el rol a "${roleNames[formData.role]}", se actualizarán automáticamente los permisos del usuario con los permisos por defecto de este rol (${newRolePermissions.length} permisos).\n\n¿Desea continuar?`
+      )) {
+        return
+      }
+    }
+    
     setSaving(true)
     try {
       await adminApi.updateUser(selectedUser._id, {
         fullName: formData.fullName,
         role: formData.role,
       })
-      toast.success('Usuario actualizado')
+      toast.success(roleChanged && !hasCustomPermissions 
+        ? `Usuario actualizado. Los permisos se han ajustado al rol ${roleNames[formData.role]}`
+        : 'Usuario actualizado'
+      )
       setShowEditModal(false)
       loadUsers()
     } catch (e: any) {

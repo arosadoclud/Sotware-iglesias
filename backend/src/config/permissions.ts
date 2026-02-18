@@ -189,51 +189,70 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
   ],
   
   MINISTRY_LEADER: [
+    // Personas (ver, crear, editar, asignar roles)
     Permission.PERSONS_VIEW,
+    Permission.PERSONS_CREATE,
     Permission.PERSONS_EDIT,
     Permission.PERSONS_ASSIGN_ROLES,
+    // Programas (todos excepto batch)
     Permission.PROGRAMS_VIEW,
     Permission.PROGRAMS_CREATE,
     Permission.PROGRAMS_EDIT,
     Permission.PROGRAMS_GENERATE,
     Permission.PROGRAMS_DOWNLOAD_PDF,
+    // Actividades (ver, crear, editar)
     Permission.ACTIVITIES_VIEW,
+    Permission.ACTIVITIES_CREATE,
+    Permission.ACTIVITIES_EDIT,
+    // Roles (ver)
     Permission.ROLES_VIEW,
+    // Cartas (ver, crear, editar, generar PDF)
     Permission.LETTERS_VIEW,
     Permission.LETTERS_CREATE,
+    Permission.LETTERS_EDIT,
     Permission.LETTERS_GENERATE_PDF,
+    // Calendario (ver, gestionar)
     Permission.CALENDAR_VIEW,
+    Permission.CALENDAR_MANAGE,
+    // Limpieza (ver, generar, gestionar)
     Permission.CLEANING_VIEW,
     Permission.CLEANING_GENERATE,
+    Permission.CLEANING_MANAGE,
+    // WhatsApp
     Permission.WHATSAPP_SEND,
   ],
   
   EDITOR: [
+    // Personas (ver, crear, editar)
     Permission.PERSONS_VIEW,
+    Permission.PERSONS_CREATE,
     Permission.PERSONS_EDIT,
+    // Programas (ver, crear, editar, generar, descargar)
     Permission.PROGRAMS_VIEW,
     Permission.PROGRAMS_CREATE,
     Permission.PROGRAMS_EDIT,
     Permission.PROGRAMS_GENERATE,
     Permission.PROGRAMS_DOWNLOAD_PDF,
+    // Actividades (ver)
     Permission.ACTIVITIES_VIEW,
+    // Roles (ver)
     Permission.ROLES_VIEW,
+    // Cartas (ver, crear, generar PDF)
     Permission.LETTERS_VIEW,
     Permission.LETTERS_CREATE,
     Permission.LETTERS_GENERATE_PDF,
+    // Calendario (ver)
     Permission.CALENDAR_VIEW,
+    // Limpieza (ver)
     Permission.CLEANING_VIEW,
   ],
   
   VIEWER: [
+    // Dashboard: acceso implícito (no requiere permiso específico)
+    // Panel de Miembros nuevos
     Permission.PERSONS_VIEW,
-    Permission.PROGRAMS_VIEW,
-    Permission.PROGRAMS_DOWNLOAD_PDF,
-    Permission.ACTIVITIES_VIEW,
-    Permission.ROLES_VIEW,
+    // Cartas de invitación
     Permission.LETTERS_VIEW,
-    Permission.CALENDAR_VIEW,
-    Permission.CLEANING_VIEW,
   ],
 };
 
