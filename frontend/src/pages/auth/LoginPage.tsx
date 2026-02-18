@@ -16,7 +16,9 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>
 
-const LOGO_URL = `${BACKEND_URL}/uploads/logo.png`
+// Logo: primero intenta desde el frontend public/, si falla usa el backend
+const LOGO_LOCAL = '/logo.png'
+const LOGO_BACKEND = `${BACKEND_URL}/uploads/logo.png`
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -701,11 +703,16 @@ const LoginPage = () => {
 
             <div className="logo-ring">
               <img
-                src={LOGO_URL}
+                src={LOGO_LOCAL}
                 alt="Logo"
                 className="logo-img"
                 onError={(e) => {
-                  ;(e.target as HTMLImageElement).style.display = 'none'
+                  const img = e.target as HTMLImageElement
+                  if (img.src !== LOGO_BACKEND) {
+                    img.src = LOGO_BACKEND
+                  } else {
+                    img.style.display = 'none'
+                  }
                 }}
               />
             </div>
