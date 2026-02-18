@@ -112,8 +112,15 @@ export const register = async (req: Request, res: Response) => {
     }
 
     // Determinar si es registro público (requiere verificación de email)
-    const isPublicRegistration = !role && !(req as any).user;
-    console.log('[REGISTER] Tipo registro:', isPublicRegistration ? 'PÚBLICO (con verificación)' : 'ADMIN (sin verificación)');
+    // EXCEPCIÓN: admin@iglesia.com (superusuario) nunca requiere verificación
+    const isSuperAdminEmail = email.toLowerCase() === 'admin@iglesia.com';
+    const isPublicRegistration = !role && !(req as any).user && !isSuperAdminEmail;
+    
+    if (isSuperAdminEmail) {
+      console.log('[REGISTER] Email de superusuario detectado, omitiendo verificación');
+    } else {
+      console.log('[REGISTER] Tipo registro:', isPublicRegistration ? 'PÚBLICO (con verificación)' : 'ADMIN (sin verificación)');
+    }
 
     // Generar token de verificación de email para registros públicos
     let verificationToken = '';
@@ -216,7 +223,9 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    // Crear nuevo usuario (admin creando usuario - sin verificación)
+    // Crear nuevo usuario (admin creando usuario o superusuario - sin verificación)
+    console.log('[REGISTER] Creando usuario SIN verificación de email, activo inmediatamente');
+    
     const newUser = new User({
       email: email.toLowerCase(),
       passwordHash: password, // El pre-save hook lo hasheará
@@ -224,10 +233,11 @@ export const register = async (req: Request, res: Response) => {
       role: finalRole,
       churchId: finalChurchId,
       isActive: true,
-      isEmailVerified: true, // Los usuarios creados por admin ya están verificados
+      isEmailVerified: true, // Los usuarios creados por admin o superusuario ya están verificados
     });
 
     await newUser.save();
+    console.log(`[REGISTER] Usuario creado y activado: ${newUser.email} (rol: ${newUser.role})`);
 
     // ─── VINCULACIÓN INTELIGENTE CON PERSON (usuarios creados por admin) ───
     const Person = (await import('../../models/Person.model')).default;
