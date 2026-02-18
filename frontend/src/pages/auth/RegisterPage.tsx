@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -29,6 +29,7 @@ const RegisterPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [serverError, setServerError] = useState<string>('');
 
   const {
     register,
@@ -40,6 +41,15 @@ const RegisterPage: React.FC = () => {
   });
 
   const password = watch('password');
+  const email = watch('email');
+  const name = watch('name');
+
+  // Limpiar error del servidor cuando el usuario empiece a escribir
+  useEffect(() => {
+    if (serverError) {
+      setServerError('');
+    }
+  }, [email, password, name]);
 
   // Validaciones de contraseña
   const passwordRequirements = [
@@ -50,6 +60,7 @@ const RegisterPage: React.FC = () => {
 
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
+    setServerError(''); // Limpiar error anterior
     try {
       const response = await authApi.register({
         email: data.email,
@@ -75,6 +86,7 @@ const RegisterPage: React.FC = () => {
       }
     } catch (error: any) {
       const message = error.response?.data?.message || 'Error al registrar usuario';
+      setServerError(message); // Mostrar error en el formulario
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -301,6 +313,21 @@ const RegisterPage: React.FC = () => {
                 </p>
               )}
             </div>
+
+            {/* Server Error Message */}
+            {serverError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start gap-3"
+              >
+                <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-red-800">Error al registrar</p>
+                  <p className="text-sm text-red-700 mt-1">{serverError}</p>
+                </div>
+              </motion.div>
+            )}
 
             {/* Submit Button */}
             <motion.button
