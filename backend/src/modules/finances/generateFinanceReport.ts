@@ -392,7 +392,7 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
         ${data.church.phone || ''}
       </div>
     </div>
-    ${data.church.logoUrl ? `<img src="${data.church.logoUrl}" class="logo" alt="Logo">` : ''}
+    ${data.church.logoUrl ? `<img src="${data.church.logoUrl.startsWith('http') ? data.church.logoUrl : `https://sotware-iglesias-backend.onrender.com${data.church.logoUrl}`}" class="logo" alt="Logo" onerror="this.style.display='none'">` : ''}
   </div>
   
   <!-- Report Title -->
@@ -578,10 +578,10 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
   <!-- Signature Section -->
   <div class="signature-section">
     <div class="signature-box">
-      <div class="signature-line">Pastor / Tesorero</div>
+      <div class="signature-line">Pastor</div>
     </div>
     <div class="signature-box">
-      <div class="signature-line">Secretario</div>
+      <div class="signature-line">Tesorero/a</div>
     </div>
   </div>
   
@@ -938,7 +938,7 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
         ${data.church.phone ? `📞 ${data.church.phone}` : ''}
       </div>
     </div>
-    ${data.church.logoUrl ? `<img src="${data.church.logoUrl}" alt="Logo" class="logo" />` : ''}
+    ${data.church.logoUrl ? `<img src="${data.church.logoUrl.startsWith('http') ? data.church.logoUrl : `https://sotware-iglesias-backend.onrender.com${data.church.logoUrl}`}" alt="Logo" class="logo" onerror="this.style.display='none'" />` : ''}
   </div>
 
   <!-- Title -->
@@ -1111,10 +1111,10 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
   <!-- Signature Section -->
   <div class="signature-section">
     <div class="signature-box">
-      <div class="signature-line">Pastor / Tesorero</div>
+      <div class="signature-line">Pastor</div>
     </div>
     <div class="signature-box">
-      <div class="signature-line">Secretario</div>
+      <div class="signature-line">Tesorero/a</div>
     </div>
   </div>
   
