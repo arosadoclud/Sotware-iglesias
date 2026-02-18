@@ -681,7 +681,7 @@ const FinancesPage = () => {
             </tbody>
           </table>
           <div className="mt-2 text-xs text-amber-700 bg-amber-50 rounded p-2">
-            <strong>Nota:</strong> El 10% de cada diezmo se acumula para el concilio y se remite al finalizar el año fiscal.
+            <strong>Nota:</strong> El 10% de cada diezmo se acumula para el concilio y se remite al finalizar el año.
           </div>
         </div>
       ) : null}

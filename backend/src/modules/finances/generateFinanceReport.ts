@@ -914,7 +914,7 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
   <!-- Title -->
   <div class="title-bar">
     <h1>REPORTE ANUAL DEL CONCILIO</h1>
-    <p>Año Fiscal ${data.year}</p>
+    <p>Año ${data.year}</p>
   </div>
 
   <!-- Info -->
