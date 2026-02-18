@@ -44,37 +44,29 @@ export const register = async (req: Request, res: Response) => {
       finalRole = role;
     }
 
-    // Para SUPER_ADMIN o cuando se crea el primer usuario, crear iglesia por defecto
+    // Para SUPER_ADMIN o ADMIN, crear iglesia por defecto si no se proporciona
     let finalChurchId = churchId;
-    if ((finalRole === 'SUPER_ADMIN' || !finalChurchId) && (finalRole === 'ADMIN' || finalRole === 'SUPER_ADMIN')) {
+    if ((finalRole === 'SUPER_ADMIN' || finalRole === 'ADMIN') && !finalChurchId) {
       // Importar Church model
       const Church = (await import('../../models/Church.model')).default;
       
-      // Verificar si ya existe alguna iglesia para usuarios VIEWER
-      if (finalRole === 'VIEWER') {
-        const defaultChurch = await Church.findOne({ isActive: true }).limit(1);
-        if (defaultChurch) {
-          finalChurchId = defaultChurch._id;
-        }
-      } else {
-        // Crear iglesia por defecto para admin
-        const defaultChurch = new Church({
-          name: 'Iglesia Principal',
-          address: { city: 'Ciudad', country: 'País' },
-          settings: {
-            timezone: 'America/New_York',
-            rotationWeeks: 4,
-            allowRepetitions: false,
-            dateFormat: 'DD/MM/YYYY',
-            whatsappEnabled: true,
-          },
-          plan: 'PRO',
-          isActive: true,
-        });
-        
-        await defaultChurch.save();
-        finalChurchId = defaultChurch._id;
-      }
+      // Crear iglesia por defecto para admin
+      const defaultChurch = new Church({
+        name: 'Iglesia Principal',
+        address: { city: 'Ciudad', country: 'País' },
+        settings: {
+          timezone: 'America/New_York',
+          rotationWeeks: 4,
+          allowRepetitions: false,
+          dateFormat: 'DD/MM/YYYY',
+          whatsappEnabled: true,
+        },
+        plan: 'PRO',
+        isActive: true,
+      });
+      
+      await defaultChurch.save();
+      finalChurchId = defaultChurch._id;
     }
 
     // Si es VIEWER y no hay churchId, asignar la primera iglesia activa disponible
