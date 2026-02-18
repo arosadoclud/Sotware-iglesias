@@ -13,11 +13,21 @@ import { LoginSecurityService } from '../../services/loginSecurity.service';
 export const register = async (req: Request, res: Response) => {
   try {
     const { email, password, name, role, churchId } = req.body;
+    
+    // Normalizar email (trim y lowercase) para comparaciones consistentes
+    const normalizedEmail = email ? email.trim().toLowerCase() : '';
 
-    console.log('[REGISTER] Intento de registro:', { email, hasPassword: !!password, name, role, churchId });
+    console.log('[REGISTER] Intento de registro:', { 
+      emailOriginal: email,
+      emailNormalizado: normalizedEmail, 
+      hasPassword: !!password, 
+      name, 
+      role, 
+      churchId 
+    });
 
     // Validar email
-    const emailValidation = LoginSecurityService.validateEmail(email);
+    const emailValidation = LoginSecurityService.validateEmail(normalizedEmail);
     if (!emailValidation.valid) {
       console.log('[REGISTER] Validación email falló:', emailValidation.message);
       return res.status(400).json({ success: false, message: emailValidation.message });
@@ -36,7 +46,7 @@ export const register = async (req: Request, res: Response) => {
     }
 
     // Verificar si el usuario ya existe
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       // Si el usuario existe pero NO está verificado, permitir re-registro (eliminar el usuario anterior)
       if (!existingUser.isEmailVerified) {
@@ -113,11 +123,11 @@ export const register = async (req: Request, res: Response) => {
 
     // Determinar si es registro público (requiere verificación de email)
     // EXCEPCIÓN: admin@iglesia.com (superusuario) nunca requiere verificación
-    const isSuperAdminEmail = email.toLowerCase() === 'admin@iglesia.com';
+    const isSuperAdminEmail = normalizedEmail === 'admin@iglesia.com';
     const isPublicRegistration = !role && !(req as any).user && !isSuperAdminEmail;
     
     if (isSuperAdminEmail) {
-      console.log('[REGISTER] Email de superusuario detectado, omitiendo verificación');
+      console.log('[REGISTER] ✅ SUPERUSUARIO DETECTADO: admin@iglesia.com - OMITIENDO VERIFICACIÓN DE EMAIL');
     } else {
       console.log('[REGISTER] Tipo registro:', isPublicRegistration ? 'PÚBLICO (con verificación)' : 'ADMIN (sin verificación)');
     }
@@ -132,7 +142,7 @@ export const register = async (req: Request, res: Response) => {
 
       // Crear nuevo usuario (inactivo hasta verificar email)
       const newUser = new User({
-        email: email.toLowerCase(),
+        email: normalizedEmail,
         passwordHash: password, // El pre-save hook lo hasheará
         fullName: name,
         role: finalRole,
@@ -224,10 +234,11 @@ export const register = async (req: Request, res: Response) => {
     }
 
     // Crear nuevo usuario (admin creando usuario o superusuario - sin verificación)
-    console.log('[REGISTER] Creando usuario SIN verificación de email, activo inmediatamente');
+    console.log('[REGISTER] ⚡ Creando usuario SIN verificación de email, activo inmediatamente');
+    console.log('[REGISTER] Es superadmin:', isSuperAdminEmail);
     
     const newUser = new User({
-      email: email.toLowerCase(),
+      email: normalizedEmail,
       passwordHash: password, // El pre-save hook lo hasheará
       fullName: name,
       role: finalRole,

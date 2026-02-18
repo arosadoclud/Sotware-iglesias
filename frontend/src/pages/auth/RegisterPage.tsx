@@ -23,8 +23,8 @@ const COMMON_PASSWORDS = [
 ];
 
 const registerSchema = z.object({
-  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  email: z.string().email('Email inválido'),
+  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres').transform(val => val.trim()),
+  email: z.string().email('Email inválido').transform(val => val.trim().toLowerCase()),
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
   confirmPassword: z.string().min(8, 'Confirma tu contraseña'),
 }).refine((data) => data.password === data.confirmPassword, {
