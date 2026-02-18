@@ -61,13 +61,16 @@ const LoginPage = () => {
           <img
             src={LOGO_URL}
             alt="Logo"
-            className="w-14 h-14 mx-auto mb-5 rounded-xl object-contain"
+            className="w-14 h-14 mx-auto mb-4 rounded-xl object-contain"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
-          <h1 className="text-xl font-semibold text-gray-900">
-            Inicia sesión en tu cuenta
+          <h1 className="text-lg font-bold text-gray-900 tracking-tight">
+            IGLESIA DIOS FUERTE ARCA EVANGÉLICA
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 mt-2">
+            Inicia sesión en tu cuenta
+          </p>
+          <p className="text-xs text-gray-400 mt-0.5">
             Church Program Manager
           </p>
         </div>
