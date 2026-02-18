@@ -504,19 +504,19 @@ export default function ProgramsSlider() {
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.4 + i * 0.05 }}
-                            className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-neutral-50 to-neutral-100/50 rounded-lg border border-neutral-200/50 hover:border-primary-200 hover:shadow-sm transition-all group"
+                            className="flex items-center gap-2.5 px-3 py-2.5 bg-gradient-to-r from-neutral-50 to-neutral-100/50 rounded-lg border border-neutral-200/50 hover:border-primary-200 hover:shadow-sm transition-all group"
                           >
-                            <div className="w-7 h-7 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-200 transition-colors">
-                              <span className="text-xs font-bold text-primary-700">
+                            <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-200 transition-colors">
+                              <span className="text-sm font-bold text-primary-700">
                                 {(a.person?.name || a.name || '?')[0].toUpperCase()}
                               </span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium text-neutral-500 truncate">
-                                {a.roleName || a.sectionName}
-                              </p>
-                              <p className="text-sm font-semibold text-neutral-800 truncate">
+                              <p className="text-sm font-semibold text-neutral-800 truncate leading-snug">
                                 {a.person?.name || a.name || '—'}
+                              </p>
+                              <p className="text-xs font-medium text-neutral-500 truncate mt-0.5">
+                                {a.roleName || a.sectionName}
                               </p>
                             </div>
                           </motion.div>
