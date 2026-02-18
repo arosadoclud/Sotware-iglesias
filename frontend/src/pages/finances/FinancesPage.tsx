@@ -344,7 +344,7 @@ const FinancesPage = () => {
     setForm({
       category: transaction.category?._id || '',
       fund: transaction.fund?._id || '',
-      amount: transaction.amount.toString(),
+      amount: transaction.amount.toLocaleString('en-US'),
       date: format(new Date(transaction.date), 'yyyy-MM-dd'),
       description: description,
       person: transaction.person?._id || '',
@@ -358,8 +358,9 @@ const FinancesPage = () => {
 
   // Guardar transacción
   const handleSave = async () => {
-    if (!form.category || !form.fund || !form.amount) {
-      toast.error('Completa los campos requeridos')
+    const cleanAmount = form.amount.replace(/,/g, '')
+    if (!form.category || !form.fund || !cleanAmount || isNaN(parseFloat(cleanAmount)) || parseFloat(cleanAmount) <= 0) {
+      toast.error('Completa los campos requeridos (monto debe ser mayor a 0)')
       return
     }
 
@@ -383,7 +384,7 @@ const FinancesPage = () => {
         type: modalType,
         category: form.category,
         fund: form.fund,
-        amount: parseFloat(form.amount),
+        amount: parseFloat(form.amount.replace(/,/g, '')),
         date: form.date,
         description: description || undefined,
         person: form.person || undefined,
@@ -1114,11 +1115,22 @@ const FinancesPage = () => {
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type="text"
+                    inputMode="decimal"
                     value={form.amount}
-                    onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                    onChange={(e) => {
+                      // Permitir solo dígitos, comas y punto decimal
+                      const raw = e.target.value.replace(/[^0-9.,]/g, '')
+                      // Limpiar y formatear con comas como separadores de miles
+                      const cleaned = raw.replace(/,/g, '')
+                      if (cleaned === '' || cleaned === '.') {
+                        setForm({ ...form, amount: cleaned })
+                        return
+                      }
+                      const parts = cleaned.split('.')
+                      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                      setForm({ ...form, amount: parts.join('.') })
+                    }}
                     className="pl-9"
                     placeholder="0.00"
                   />
