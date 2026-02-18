@@ -82,6 +82,8 @@ const REPORT_TYPES = [
 
 const FinanceReportsPage = () => {
   const [loading, setLoading] = useState(false)
+  const [loadingMonthlyPDF, setLoadingMonthlyPDF] = useState(false)
+  const [loadingAnnualPDF, setLoadingAnnualPDF] = useState(false)
   const [activeReport, setActiveReport] = useState('monthly')
   const printRef = useRef<HTMLDivElement>(null)
   const { markFeatureAsExplored, isFeatureNew } = useOnboarding()
@@ -203,7 +205,7 @@ const FinanceReportsPage = () => {
     }
 
     try {
-      setLoading(true)
+      setLoadingMonthlyPDF(true)
       // Marcar como explorado
       markFeatureAsExplored('monthly-pdf-report')
       
@@ -227,7 +229,7 @@ const FinanceReportsPage = () => {
       console.error('Error al descargar PDF:', error)
       toast.error(error?.response?.data?.message || 'Error al generar el reporte PDF')
     } finally {
-      setLoading(false)
+      setLoadingMonthlyPDF(false)
     }
   }
 
@@ -239,7 +241,7 @@ const FinanceReportsPage = () => {
     }
 
     try {
-      setLoading(true)
+      setLoadingAnnualPDF(true)
       
       const response = await financesApi.getAnnualCouncilReport({ year })
       
@@ -261,7 +263,7 @@ const FinanceReportsPage = () => {
       console.error('Error al descargar PDF:', error)
       toast.error(error?.response?.data?.message || 'Error al generar el reporte anual')
     } finally {
-      setLoading(false)
+      setLoadingAnnualPDF(false)
     }
   }
 
@@ -373,17 +375,17 @@ const FinanceReportsPage = () => {
           </Button>
           {activeReport === 'monthly' && (
             <>
-              <Button onClick={downloadMonthlyPDF} disabled={loading} className="relative bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700">
+              <Button onClick={downloadMonthlyPDF} disabled={loadingMonthlyPDF} className="relative bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700">
                 <BadgeNew show={isFeatureNew('monthly-pdf-report')} position="top-right" />
-                {loading ? (
+                {loadingMonthlyPDF ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
                   <FileText className="w-4 h-4 mr-2" />
                 )}
                 Descargar PDF
               </Button>
-              <Button onClick={downloadAnnualCouncilPDF} disabled={loading} className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800">
-                {loading ? (
+              <Button onClick={downloadAnnualCouncilPDF} disabled={loadingAnnualPDF} className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800">
+                {loadingAnnualPDF ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
                   <Church className="w-4 h-4 mr-2" />

@@ -61,20 +61,22 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
     }
     
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding: 40px;
-      background: #ffffff;
-      color: #1a1a1a;
-      line-height: 1.6;
+      font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 35px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+      color: #1e293b;
+      line-height: 1.7;
     }
     
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 3px solid #6366f1;
-      padding-bottom: 20px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      padding: 25px;
+      border-radius: 16px;
       margin-bottom: 30px;
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);
     }
     
     .header-content {
@@ -82,238 +84,300 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
     }
     
     .church-name {
-      font-size: 24px;
-      font-weight: bold;
-      color: #6366f1;
-      margin-bottom: 5px;
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
     }
     
     .church-details {
-      font-size: 11px;
-      color: #666;
-      line-height: 1.4;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.6;
+      font-weight: 500;
     }
     
     .logo {
-      width: 80px;
-      height: 80px;
+      width: 90px;
+      height: 90px;
       object-fit: contain;
+      border-radius: 12px;
+      background: white;
+      padding: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     
     .report-title {
       text-align: center;
-      margin: 30px 0;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      margin: 25px 0 30px;
+      background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
       color: white;
-      padding: 20px;
-      border-radius: 8px;
+      padding: 28px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
     }
     
     .report-title h1 {
-      font-size: 22px;
-      margin-bottom: 5px;
+      font-size: 26px;
+      margin-bottom: 8px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .report-title .period {
-      font-size: 14px;
+      font-size: 16px;
       opacity: 0.95;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
     
     .section {
-      margin: 30px 0;
+      margin: 25px 0;
+      page-break-inside: avoid;
     }
     
     .section-title {
-      background: #f3f4f6;
-      padding: 12px 15px;
-      border-left: 4px solid #6366f1;
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 15px;
-      color: #374151;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      padding: 16px 20px;
+      border-left: 5px solid #6366f1;
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: #1e293b;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     
     .table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       margin-bottom: 20px;
-      font-size: 11px;
+      font-size: 12px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
     
     .table th {
-      background: #f9fafb;
-      color: #374151;
-      font-weight: 600;
-      padding: 10px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      font-weight: 700;
+      padding: 14px 12px;
       text-align: left;
-      border-bottom: 2px solid #e5e7eb;
+      border: none;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     
     .table td {
-      padding: 10px;
-      border-bottom: 1px solid #f3f4f6;
+      padding: 14px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      background: white;
     }
     
-    .table tr:hover {
-      background: #f9fafb;
+    .table tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+    
+    .table tr:hover td {
+      background: #f1f5f9;
+    }
+    
+    .table tr:last-child td {
+      border-bottom: none;
     }
     
     .amount {
       text-align: right;
-      font-family: 'Courier New', monospace;
-      font-weight: 500;
+      font-family: 'Courier New', 'SF Mono', Monaco, monospace;
+      font-weight: 700;
+      font-size: 13px;
     }
     
     .income-amount {
       color: #10b981;
+      text-shadow: 0 1px 2px rgba(16, 185, 129, 0.1);
     }
     
     .expense-amount {
       color: #ef4444;
+      text-shadow: 0 1px 2px rgba(239, 68, 68, 0.1);
     }
     
     .council-box {
-      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-      border: 2px solid #f59e0b;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 25px 0;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fcd34d 100%);
+      border: 3px solid #f59e0b;
+      border-radius: 16px;
+      padding: 24px;
+      margin: 30px 0;
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25);
     }
     
     .council-box-title {
-      font-size: 16px;
-      font-weight: bold;
+      font-size: 18px;
+      font-weight: 800;
       color: #92400e;
-      margin-bottom: 15px;
+      margin-bottom: 18px;
       display: flex;
       align-items: center;
+      letter-spacing: -0.3px;
     }
     
     .council-box-title::before {
       content: '🏛️';
-      margin-right: 8px;
-      font-size: 20px;
+      margin-right: 10px;
+      font-size: 24px;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
     }
     
     .council-row {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
-      font-size: 13px;
+      padding: 10px 0;
+      font-size: 14px;
+      color: #78350f;
+      font-weight: 600;
     }
     
     .council-row.highlight {
-      font-size: 16px;
-      font-weight: bold;
+      font-size: 17px;
+      font-weight: 800;
       color: #92400e;
-      padding-top: 12px;
-      margin-top: 12px;
+      padding-top: 15px;
+      margin-top: 15px;
       border-top: 2px dashed #f59e0b;
     }
     
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      margin: 25px 0;
+      gap: 20px;
+      margin: 30px 0;
     }
     
     .summary-card {
       background: white;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 15px;
+      border: 3px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
     }
     
     .summary-card.income {
       border-color: #10b981;
-      background: #f0fdf4;
+      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
     }
     
     .summary-card.expense {
       border-color: #ef4444;
-      background: #fef2f2;
+      background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
     }
     
     .summary-card.balance {
       border-color: #6366f1;
-      background: #eef2ff;
+      background: linear-gradient(135deg, #eef2ff 0%, #ddd6fe 100%);
     }
     
     .summary-card-label {
-      font-size: 11px;
-      color: #6b7280;
+      font-size: 12px;
+      color: #64748b;
       text-transform: uppercase;
-      margin-bottom: 5px;
-      font-weight: 600;
+      margin-bottom: 8px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
     }
     
     .summary-card-value {
-      font-size: 24px;
-      font-weight: bold;
+      font-size: 28px;
+      font-weight: 900;
       font-family: 'Courier New', monospace;
+      letter-spacing: -1px;
     }
     
     .summary-card.income .summary-card-value {
-      color: #10b981;
+      color: #059669;
+      text-shadow: 0 2px 4px rgba(5, 150, 105, 0.15);
     }
     
     .summary-card.expense .summary-card-value {
-      color: #ef4444;
+      color: #dc2626;
+      text-shadow: 0 2px 4px rgba(220, 38, 38, 0.15);
     }
     
     .summary-card.balance .summary-card-value {
-      color: #6366f1;
+      color: #4f46e5;
+      text-shadow: 0 2px 4px rgba(79, 70, 229, 0.15);
     }
     
     .footer {
       margin-top: 50px;
-      padding-top: 20px;
-      border-top: 2px solid #e5e7eb;
-      font-size: 10px;
-      color: #6b7280;
+      padding-top: 25px;
+      border-top: 3px solid #e2e8f0;
+      font-size: 11px;
+      color: #64748b;
     }
     
     .signature-section {
       display: flex;
       justify-content: space-around;
-      margin: 40px 0 20px;
+      margin: 50px 0 25px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 12px;
     }
     
     .signature-box {
       text-align: center;
-      width: 200px;
+      width: 240px;
     }
     
     .signature-line {
-      border-top: 1px solid #000;
-      margin-top: 50px;
-      padding-top: 5px;
-      font-size: 11px;
-      font-weight: 600;
+      border-top: 2px solid #334155;
+      margin-top: 60px;
+      padding-top: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #1e293b;
     }
     
     .disclaimer {
-      background: #f9fafb;
-      padding: 12px;
-      border-radius: 6px;
-      font-size: 9px;
-      color: #6b7280;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      padding: 16px;
+      border-radius: 10px;
+      font-size: 10px;
+      color: #475569;
       text-align: center;
-      margin-top: 20px;
+      margin-top: 25px;
+      border: 2px solid #cbd5e1;
+      font-weight: 500;
     }
     
     .page-number {
       position: fixed;
-      bottom: 20px;
+      bottom: 25px;
       right: 40px;
-      font-size: 10px;
-      color: #9ca3af;
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 600;
+      background: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
     
     @media print {
       body {
         padding: 20px;
+        background: white;
+      }
+      .summary-card, .council-box, .table {
+        break-inside: avoid;
       }
     }
   </style>
