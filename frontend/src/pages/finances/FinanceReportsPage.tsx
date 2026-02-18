@@ -17,11 +17,48 @@ import {
   Filter,
   Church,
 } from 'lucide-react'
-import { financesApi } from '../../lib/api'
+import { financesApi, BACKEND_URL } from '../../lib/api'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { format, subMonths } from 'date-fns'
 import { es } from 'date-fns/locale'
+
+const LOGO_LOCAL = '/logo.png'
+const LOGO_BACKEND = `${BACKEND_URL}/uploads/logo.png`
+
+/** Shared report header with logo + centered church name */
+const ReportCardHeader = ({ title, subtitle, icon: Icon, iconColor = 'text-primary-600' }: {
+  title: string
+  subtitle?: string
+  icon?: any
+  iconColor?: string
+}) => (
+  <div className="text-center border-b px-6 py-5">
+    <div className="flex flex-col items-center gap-3">
+      <img
+        src={LOGO_LOCAL}
+        alt="Logo"
+        className="w-16 h-16 object-contain rounded-full border border-gray-200 shadow-sm bg-white p-1"
+        onError={(e) => {
+          const img = e.target as HTMLImageElement
+          if (!img.src.includes(BACKEND_URL)) {
+            img.src = LOGO_BACKEND
+          } else {
+            img.style.display = 'none'
+          }
+        }}
+      />
+      <div className="text-center">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Iglesia Dios Fuerte Arca Evangélica</p>
+        <h2 className="text-lg font-bold text-gray-800 flex items-center justify-center gap-2">
+          {Icon && <Icon className={`w-5 h-5 ${iconColor}`} />}
+          {title}
+        </h2>
+        {subtitle && <p className="text-sm text-gray-500 mt-0.5 capitalize">{subtitle}</p>}
+      </div>
+    </div>
+  </div>
+)
 
 import { Button } from '../../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card'
@@ -523,15 +560,11 @@ const FinanceReportsPage = () => {
             {/* Reporte Mensual para Concilio */}
             {activeReport === 'monthly' && councilReport && (
               <Card>
-                <CardHeader className="text-center border-b">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Church className="w-6 h-6 text-primary-600" />
-                  </div>
-                  <CardTitle>Reporte Financiero Mensual</CardTitle>
-                  <CardDescription className="text-lg font-medium capitalize">
-                    {councilReport.period.label}
-                  </CardDescription>
-                </CardHeader>
+                <ReportCardHeader
+                  title="Reporte Financiero Mensual"
+                  subtitle={councilReport.period.label}
+                  icon={Church}
+                />
                 <CardContent className="pt-6">
                   <div className="grid md:grid-cols-2 gap-8">
                     {/* Ingresos */}
@@ -653,13 +686,12 @@ const FinanceReportsPage = () => {
             {/* Reporte de Diezmos */}
             {activeReport === 'tithing' && tithingReport && (
               <Card>
-                <CardHeader className="text-center border-b">
-                  <CardTitle className="flex items-center justify-center gap-2">
-                    <Heart className="w-5 h-5 text-pink-500" />
-                    Registro de Diezmos
-                  </CardTitle>
-                  <CardDescription>Año {tithingReport.year}</CardDescription>
-                </CardHeader>
+                <ReportCardHeader
+                  title="Registro de Diezmos"
+                  subtitle={`Año ${tithingReport.year}`}
+                  icon={Heart}
+                  iconColor="text-pink-500"
+                />
                 <CardContent className="pt-6">
                   <Table>
                     <TableHeader>
@@ -699,16 +731,12 @@ const FinanceReportsPage = () => {
             {/* Reporte de Ofrendas por Culto */}
             {activeReport === 'offerings' && offeringsReport && (
               <Card>
-                <CardHeader className="text-center border-b">
-                  <CardTitle className="flex items-center justify-center gap-2">
-                    <Gift className="w-5 h-5 text-amber-500" />
-                    Ofrendas por Tipo de Culto
-                  </CardTitle>
-                  <CardDescription>
-                    {format(new Date(offeringsReport.period.start), "d 'de' MMMM", { locale: es })} - 
-                    {format(new Date(offeringsReport.period.end), " d 'de' MMMM, yyyy", { locale: es })}
-                  </CardDescription>
-                </CardHeader>
+                <ReportCardHeader
+                  title="Ofrendas por Tipo de Culto"
+                  subtitle={`${format(new Date(offeringsReport.period.start), "d 'de' MMMM", { locale: es })} - ${format(new Date(offeringsReport.period.end), "d 'de' MMMM, yyyy", { locale: es })}`}
+                  icon={Gift}
+                  iconColor="text-amber-500"
+                />
                 <CardContent className="pt-6">
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                     {offeringsReport.byServiceType.map((service: any) => (
@@ -747,12 +775,11 @@ const FinanceReportsPage = () => {
             {/* Comparativo Mensual */}
             {activeReport === 'comparison' && comparisonReport && (
               <Card>
-                <CardHeader className="text-center border-b">
-                  <CardTitle className="flex items-center justify-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-indigo-500" />
-                    Comparativo Últimos 12 Meses
-                  </CardTitle>
-                </CardHeader>
+                <ReportCardHeader
+                  title="Comparativo Últimos 12 Meses"
+                  icon={BarChart3}
+                  iconColor="text-indigo-500"
+                />
                 <CardContent className="pt-6">
                   {/* Gráfico simple con barras */}
                   <div className="mb-8">
@@ -853,12 +880,11 @@ const FinanceReportsPage = () => {
             {/* Reporte Anual */}
             {activeReport === 'annual' && annualReport && (
               <Card>
-                <CardHeader className="text-center border-b">
-                  <CardTitle className="flex items-center justify-center gap-2">
-                    <PieChart className="w-5 h-5 text-purple-500" />
-                    Reporte Anual {annualReport.year}
-                  </CardTitle>
-                </CardHeader>
+                <ReportCardHeader
+                  title={`Reporte Anual ${annualReport.year}`}
+                  icon={PieChart}
+                  iconColor="text-purple-500"
+                />
                 <CardContent className="pt-6">
                   {/* Resumen General */}
                   <div className="grid md:grid-cols-3 gap-4 mb-8">

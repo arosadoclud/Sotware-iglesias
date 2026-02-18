@@ -89,7 +89,11 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
       object-fit: contain;
       border-radius: 6px;
     }
-    .header-text { flex: 1; }
+    .header-text {
+      flex: 1;
+      text-align: center;
+      padding: 0 10px;
+    }
     .church-name {
       font-size: 18px;
       font-weight: 800;
