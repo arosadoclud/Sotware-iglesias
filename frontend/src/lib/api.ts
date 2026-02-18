@@ -31,6 +31,7 @@ api.interceptors.response.use(
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 export const authApi = {
   login: (data: { email: string; password: string }) => api.post('/auth/login', data),
+  register: (data: { email: string; password: string; name: string; churchId?: string }) => api.post('/auth/register', data),
   logout: () => api.post('/auth/logout'),
   refresh: () => api.post('/auth/refresh'),
   me: () => api.get('/auth/me'),

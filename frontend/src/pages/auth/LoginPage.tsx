@@ -984,6 +984,26 @@ const LoginPage = () => {
                   >
                     ¿Olvidaste tu contraseña?
                   </button>
+
+                  {/* Register link */}
+                  <div style={{ textAlign: 'center', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>
+                      ¿No tienes cuenta?{' '}
+                    </span>
+                    <a
+                      href="/register"
+                      style={{ 
+                        color: '#fff', 
+                        fontWeight: 600, 
+                        textDecoration: 'none',
+                        fontSize: '14px'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                      onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                    >
+                      Regístrate aquí
+                    </a>
+                  </div>
                 </motion.div>
               )}
 

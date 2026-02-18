@@ -36,29 +36,59 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'El usuario ya existe' });
     }
 
-    // Para SUPER_ADMIN, crear una iglesia por defecto si no se proporciona
+    // Determinar el rol: si no se especifica, usar VIEWER (registros públicos)
+    // Solo permitir especificar rol diferente si viene de un admin autenticado
+    let finalRole = 'VIEWER';
+    if (role && (req as any).user) {
+      // Si hay un usuario autenticado, puede especificar el rol
+      finalRole = role;
+    }
+
+    // Para SUPER_ADMIN o cuando se crea el primer usuario, crear iglesia por defecto
     let finalChurchId = churchId;
-    if ((role === 'SUPER_ADMIN' || !role) && !churchId) {
+    if ((finalRole === 'SUPER_ADMIN' || !finalChurchId) && (finalRole === 'ADMIN' || finalRole === 'SUPER_ADMIN')) {
       // Importar Church model
       const Church = (await import('../../models/Church.model')).default;
       
-      // Crear iglesia por defecto
-      const defaultChurch = new Church({
-        name: 'Iglesia Principal',
-        address: { city: 'Ciudad', country: 'País' },
-        settings: {
-          timezone: 'America/New_York',
-          rotationWeeks: 4,
-          allowRepetitions: false,
-          dateFormat: 'DD/MM/YYYY',
-          whatsappEnabled: true,
-        },
-        plan: 'PRO',
-        isActive: true,
-      });
-      
-      await defaultChurch.save();
-      finalChurchId = defaultChurch._id;
+      // Verificar si ya existe alguna iglesia para usuarios VIEWER
+      if (finalRole === 'VIEWER') {
+        const defaultChurch = await Church.findOne({ isActive: true }).limit(1);
+        if (defaultChurch) {
+          finalChurchId = defaultChurch._id;
+        }
+      } else {
+        // Crear iglesia por defecto para admin
+        const defaultChurch = new Church({
+          name: 'Iglesia Principal',
+          address: { city: 'Ciudad', country: 'País' },
+          settings: {
+            timezone: 'America/New_York',
+            rotationWeeks: 4,
+            allowRepetitions: false,
+            dateFormat: 'DD/MM/YYYY',
+            whatsappEnabled: true,
+          },
+          plan: 'PRO',
+          isActive: true,
+        });
+        
+        await defaultChurch.save();
+        finalChurchId = defaultChurch._id;
+      }
+    }
+
+    // Si es VIEWER y no hay churchId, asignar la primera iglesia activa disponible
+    if (finalRole === 'VIEWER' && !finalChurchId) {
+      const Church = (await import('../../models/Church.model')).default;
+      const defaultChurch = await Church.findOne({ isActive: true }).limit(1);
+      if (defaultChurch) {
+        finalChurchId = defaultChurch._id;
+      } else {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'No hay iglesias disponibles. Contacta al administrador.' 
+        });
+      }
     }
 
     // Crear nuevo usuario
@@ -66,7 +96,7 @@ export const register = async (req: Request, res: Response) => {
       email: email.toLowerCase(),
       passwordHash: password, // El pre-save hook lo hasheará
       fullName: name,
-      role: role || 'ADMIN',
+      role: finalRole,
       churchId: finalChurchId,
       isActive: true,
     });

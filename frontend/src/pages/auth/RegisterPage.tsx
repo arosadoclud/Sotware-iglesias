@@ -1,0 +1,327 @@
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { UserPlus, Mail, Lock, User, Eye, EyeOff, CheckCircle2, XCircle } from 'lucide-react';
+import { authApi } from '../../lib/api';
+import { useAuthStore } from '../../store/authStore';
+import toast from 'react-hot-toast';
+
+const registerSchema = z.object({
+  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+  confirmPassword: z.string().min(6, 'Confirma tu contraseña'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Las contraseñas no coinciden',
+  path: ['confirmPassword'],
+});
+
+type RegisterForm = z.infer<typeof registerSchema>;
+
+const RegisterPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { setAuth } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+  } = useForm<RegisterForm>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const password = watch('password');
+
+  // Validaciones de contraseña
+  const passwordRequirements = [
+    { label: 'Mínimo 6 caracteres', valid: password?.length >= 6 },
+    { label: 'Contiene una letra', valid: /[a-zA-Z]/.test(password || '') },
+    { label: 'Contiene un número', valid: /[0-9]/.test(password || '') },
+  ];
+
+  const onSubmit = async (data: RegisterForm) => {
+    setIsLoading(true);
+    try {
+      const response = await authApi.register({
+        email: data.email,
+        password: data.password,
+        name: data.name,
+      });
+
+      if (response.data.success) {
+        const { user, accessToken } = response.data.data;
+        setAuth(user, accessToken);
+        
+        setSuccessMessage(true);
+        toast.success('¡Registro exitoso! Bienvenido');
+        
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
+      }
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Error al registrar usuario';
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (successMessage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+            className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4"
+          >
+            <CheckCircle2 className="w-12 h-12 text-green-600" />
+          </motion.div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">¡Registro Exitoso!</h2>
+          <p className="text-gray-600 mb-4">Tu cuenta ha sido creada correctamente.</p>
+          <p className="text-sm text-gray-500">Redirigiendo al dashboard...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4 py-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-md w-full"
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white text-center">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+            className="mx-auto w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-4"
+          >
+            <UserPlus className="w-8 h-8" />
+          </motion.div>
+          <h1 className="text-3xl font-bold mb-2">Crear Cuenta</h1>
+          <p className="text-blue-100">Únete a nuestra comunidad</p>
+        </div>
+
+        {/* Form */}
+        <div className="p-8">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Name Field */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Nombre Completo
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  {...register('name')}
+                  type="text"
+                  placeholder="Tu nombre completo"
+                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                    errors.name
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-blue-500 focus:ring-blue-200'
+                  }`}
+                />
+              </div>
+              {errors.name && (
+                <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                  <XCircle className="w-3 h-3" />
+                  {errors.name.message}
+                </p>
+              )}
+            </div>
+
+            {/* Email Field */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Correo Electrónico
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  {...register('email')}
+                  type="email"
+                  placeholder="tu@email.com"
+                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                    errors.email
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-blue-500 focus:ring-blue-200'
+                  }`}
+                />
+              </div>
+              {errors.email && (
+                <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                  <XCircle className="w-3 h-3" />
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Contraseña
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  {...register('password')}
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                    errors.password
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-blue-500 focus:ring-blue-200'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-blue-600 transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                  <XCircle className="w-3 h-3" />
+                  {errors.password.message}
+                </p>
+              )}
+              
+              {/* Password Requirements */}
+              {password && (
+                <div className="mt-2 space-y-1">
+                  {passwordRequirements.map((req, index) => (
+                    <div key={index} className="flex items-center gap-2 text-xs">
+                      {req.valid ? (
+                        <CheckCircle2 className="w-3 h-3 text-green-600" />
+                      ) : (
+                        <XCircle className="w-3 h-3 text-gray-300" />
+                      )}
+                      <span className={req.valid ? 'text-green-600' : 'text-gray-500'}>
+                        {req.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Confirm Password Field */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Confirmar Contraseña
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  {...register('confirmPassword')}
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition-all ${
+                    errors.confirmPassword
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
+                      : 'border-gray-200 focus:border-blue-500 focus:ring-blue-200'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-blue-600 transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                  <XCircle className="w-3 h-3" />
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Creando cuenta...</span>
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-5 h-5" />
+                  <span>Crear Cuenta</span>
+                </>
+              )}
+            </motion.button>
+          </form>
+
+          {/* Login Link */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              ¿Ya tienes una cuenta?{' '}
+              <Link
+                to="/login"
+                className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+              >
+                Inicia sesión aquí
+              </Link>
+            </p>
+          </div>
+
+          {/* Viewer Info */}
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+            <p className="text-xs text-blue-800 text-center">
+              <strong>Nota:</strong> Las cuentas nuevas tienen acceso de <strong>Visor</strong> por defecto. 
+              Podrás ver todos los programas y actividades de la iglesia.
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default RegisterPage;
