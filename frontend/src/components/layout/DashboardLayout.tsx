@@ -175,7 +175,7 @@ const DashboardLayoutImproved = () => {
       <motion.aside
         animate={{ width: collapsed ? '80px' : '280px' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="hidden lg:block fixed inset-y-0 left-0 bg-white border-r border-neutral-200 z-30 shadow-sm"
+        className="hidden lg:flex lg:flex-col fixed inset-y-0 left-0 bg-white border-r border-neutral-200 z-30 shadow-sm"
       >
         {/* Header */}
         <div className="flex items-center justify-between h-20 px-4 border-b border-neutral-100 bg-gradient-to-r from-white to-neutral-50/50">
@@ -234,7 +234,7 @@ const DashboardLayoutImproved = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-1">
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {nav.map((item) => (
             <NavItem
               key={item.name}
@@ -275,7 +275,7 @@ const DashboardLayoutImproved = () => {
         </nav>
 
         {/* User Profile */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-neutral-200 bg-neutral-50">
+        <div className="flex-shrink-0 p-4 border-t border-neutral-200 bg-neutral-50">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <motion.button
@@ -342,7 +342,7 @@ const DashboardLayoutImproved = () => {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ duration: 0.3 }}
-              className="lg:hidden fixed inset-y-0 left-0 w-[85vw] max-w-80 bg-white border-r border-neutral-200 z-50 shadow-xl"
+              className="lg:hidden fixed inset-y-0 left-0 w-[85vw] max-w-80 bg-white border-r border-neutral-200 z-50 shadow-xl flex flex-col"
             >
               <div className="flex items-center gap-3 h-20 px-5 border-b border-neutral-100 bg-gradient-to-r from-white to-neutral-50/50">
                 <motion.div 
@@ -364,7 +364,7 @@ const DashboardLayoutImproved = () => {
                   </p>
                 </div>
               </div>
-              <nav className="p-4 space-y-1">
+              <nav className="flex-1 overflow-y-auto p-4 space-y-1 pb-4">
                 {nav.map((item) => (
                   <div key={item.name} onClick={() => setMobileMenuOpen(false)}>
                     <NavItem item={item} collapsed={false} isActive={isActive(item.href)} />
@@ -387,7 +387,7 @@ const DashboardLayoutImproved = () => {
                   </>
                 )}
               </nav>
-              <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-neutral-200 bg-neutral-50">
+              <div className="flex-shrink-0 p-4 border-t border-neutral-200 bg-neutral-50">
                 <div className="flex items-center gap-3 mb-3">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-primary-600 text-white font-bold">
