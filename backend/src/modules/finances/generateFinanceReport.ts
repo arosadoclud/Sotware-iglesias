@@ -360,15 +360,18 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
     
     .page-number {
       position: fixed;
-      bottom: 25px;
-      right: 40px;
-      font-size: 11px;
-      color: #94a3b8;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: #64748b;
       font-weight: 600;
-      background: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      padding: 8px 20px;
+      border-radius: 20px;
+      border: 2px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      letter-spacing: 0.5px;
     }
     
     @media print {
@@ -921,10 +924,18 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
     
     .page-number {
       position: fixed;
-      bottom: 20px;
-      right: 40px;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
       font-size: 10px;
-      color: #9ca3af;
+      color: #64748b;
+      font-weight: 600;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      padding: 8px 20px;
+      border-radius: 20px;
+      border: 2px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      letter-spacing: 0.5px;
     }
   </style>
 </head>
