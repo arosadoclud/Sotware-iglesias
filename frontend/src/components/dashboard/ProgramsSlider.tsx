@@ -203,11 +203,11 @@ export default function ProgramsSlider() {
         <div className="h-[420px] flex items-center justify-center bg-gradient-to-br from-neutral-50 via-white to-neutral-50">
           <div className="flex flex-col items-center gap-4 text-neutral-400">
             <div className="relative">
-              <div className="w-20 h-20 rounded-2xl bg-neutral-100 flex items-center justify-center">
-                <FileText className="w-10 h-10 opacity-40" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-neutral-100 flex items-center justify-center">
+                <FileText className="w-7 h-7 sm:w-8 sm:h-8 opacity-40" />
               </div>
-              <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">
-                <Sparkles className="w-3 h-3 text-primary-600" />
+              <div className="absolute -top-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-primary-100 rounded-full flex items-center justify-center">
+                <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-primary-600" />
               </div>
             </div>
             <div className="text-center">
@@ -382,18 +382,18 @@ export default function ProgramsSlider() {
                       whileHover={{ scale: 1.05, rotate: 5 }}
                       className="relative flex-shrink-0"
                     >
-                      <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${st.gradient} flex flex-col items-center justify-center text-white shadow-lg`}>
-                        <span className="text-2xl font-bold leading-none">{date.getDate()}</span>
-                        <span className="text-xs font-medium uppercase mt-0.5">
+                      <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${st.gradient} flex flex-col items-center justify-center text-white shadow-lg`}>
+                        <span className="text-lg sm:text-xl font-bold leading-none">{date.getDate()}</span>
+                        <span className="text-[10px] sm:text-xs font-medium uppercase">
                           {format(date, 'MMM', { locale: es })}
                         </span>
                       </div>
                       <motion.div 
                         animate={{ scale: [1, 1.2, 1] }}
                         transition={{ duration: 2, repeat: Infinity }}
-                        className="absolute -top-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md"
+                        className="absolute -top-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-white rounded-full flex items-center justify-center shadow-md"
                       >
-                        <StatusIcon className={`w-3.5 h-3.5 ${st.text}`} />
+                        <StatusIcon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${st.text}`} />
                       </motion.div>
                     </motion.div>
 
