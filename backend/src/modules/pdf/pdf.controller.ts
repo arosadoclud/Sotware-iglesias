@@ -109,7 +109,7 @@ export const getProgramPdfUrl = async (
 
     // Construir URL completa usando el host del request o variable de entorno
     const protocol = req.protocol || 'http';
-    const host = req.get('host') || `localhost:${process.env.PORT || 5000}`;
+    const host = req.headers.host || `localhost:${process.env.PORT || 5000}`;
     const baseUrl = process.env.API_BASE_URL || `${protocol}://${host}`;
     const fullUrl = `${baseUrl}${result.url}`;
 
