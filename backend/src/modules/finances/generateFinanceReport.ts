@@ -291,6 +291,8 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
       margin: 20px 0;
       background: #ffffff;
       overflow: hidden;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
     .council-info-header {
       background: #0f2b46;
