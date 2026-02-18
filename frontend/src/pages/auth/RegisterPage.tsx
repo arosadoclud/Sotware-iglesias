@@ -9,7 +9,7 @@ import { authApi } from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
 
-// Lista de contraseñas comunes que deben ser rechazadas
+// Lista de contraseñas comunes que deben ser rechazadas (todas en minúsculas)
 const COMMON_PASSWORDS = [
   '12345678', 'password', 'password123', 'qwerty123', '123456789',
   'abc123', 'admin123', 'password1', 'welcome', 'qwerty',
@@ -18,8 +18,8 @@ const COMMON_PASSWORDS = [
   'superman', 'baseball', 'trustno1', 'freedom', 'whatever',
   'starwars', 'hello', 'batman', 'passw0rd', 'killer',
   'password!', 'pass1234', 'iglesia1', 'iglesia123', 'pastor123',
-  'admin1234', 'administrador', 'usuario123', 'Password1',
-  'Password123', 'Qwerty123', 'Admin123', 'User1234'
+  'admin1234', 'administrador', 'usuario123', 'password1',
+  'qwerty123', 'admin123', 'user1234', '12345678a'
 ];
 
 const registerSchema = z.object({
