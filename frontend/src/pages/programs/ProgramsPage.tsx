@@ -211,8 +211,8 @@ const ProgramsPage = () => {
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl rotate-3 opacity-20" />
-              <div className="relative p-2.5 sm:p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg shadow-purple-500/25">
-                <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              <div className="relative p-2 sm:p-2.5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg shadow-purple-500/25">
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
             </div>
             <div>
@@ -368,7 +368,7 @@ const ProgramsPage = () => {
                     type="checkbox"
                     checked={selectedIds.size === programs.length && programs.length > 0}
                     onChange={toggleSelectAll}
-                    className="w-3 h-3 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    className="w-2.5 h-2.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
                   <span className="text-sm font-medium text-gray-700">
                     Seleccionar todos ({programs.length})
@@ -398,7 +398,7 @@ const ProgramsPage = () => {
                         type="checkbox"
                         checked={selectedIds.has(prog._id)}
                         onChange={() => toggleSelect(prog._id)}
-                        className="w-3 h-3 mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500 flex-shrink-0"
+                        className="w-2.5 h-2.5 mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500 flex-shrink-0"
                       />
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${sc.style}`}>
                         <StatusIcon className="w-3 h-3" />
@@ -531,7 +531,7 @@ const ProgramsPage = () => {
                       type="checkbox"
                       checked={selectedIds.size === programs.length && programs.length > 0}
                       onChange={toggleSelectAll}
-                      className="w-3 h-3 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                      className="w-2.5 h-2.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
                       title="Seleccionar todos"
                     />
                   </th>
@@ -562,7 +562,7 @@ const ProgramsPage = () => {
                           type="checkbox"
                           checked={selectedIds.has(prog._id)}
                           onChange={() => toggleSelect(prog._id)}
-                          className="w-3 h-3 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                          className="w-2.5 h-2.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
                         />
                       </td>
                       <td className="py-3.5 px-4">
