@@ -1464,7 +1464,7 @@ export const generateMonthlyPDFReport = async (req: AuthRequest, res: Response, 
 
     // Obtener información del usuario que genera el reporte
     const user = await mongoose.model('User').findById(userId)
-    const generatedBy = user ? `${user.firstName} ${user.lastName}` : 'Sistema'
+    const generatedBy = user ? (user.fullName || user.email || 'Sistema') : 'Sistema'
 
     // Generar datos para el reporte
     const reportData = {
@@ -1606,7 +1606,7 @@ export const generateAnnualCouncilReport = async (req: AuthRequest, res: Respons
 
     // Obtener información del usuario
     const user = await mongoose.model('User').findById(userId)
-    const generatedBy = user ? `${user.firstName} ${user.lastName}` : 'Sistema'
+    const generatedBy = user ? (user.fullName || user.email || 'Sistema') : 'Sistema'
 
     // Generar datos para el reporte
     const reportData = {
