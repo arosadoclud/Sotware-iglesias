@@ -374,6 +374,51 @@ const UsersManagementPage = () => {
     }))
   }
 
+  // ── Role Management ─────────────────────────────────────────────────────────
+  
+  /**
+   * Asigna automáticamente los permisos de un rol específico
+   */
+  const assignRolePermissions = (role: string) => {
+    if (!permissionsData) return
+    
+    const rolePermissions = permissionsData.defaultRolePermissions[role] || []
+    setFormData(prev => ({
+      ...prev,
+      permissions: rolePermissions,
+      useCustomPermissions: true,
+    }))
+    toast.success(`Permisos de ${roleNames[role]} asignados`)
+  }
+
+  /**
+   * Detecta automáticamente el rol basado en los permisos seleccionados
+   */
+  const detectRole = (): string | null => {
+    if (!permissionsData || !formData.useCustomPermissions) return null
+    
+    const currentPermissions = formData.permissions.sort()
+    
+    // Compara con cada rol (de mayor a menor jerarquía)
+    const rolesOrder = ['SUPER_ADMIN', 'ADMIN', 'PASTOR', 'MINISTRY_LEADER', 'EDITOR', 'VIEWER']
+    
+    for (const role of rolesOrder) {
+      const rolePermissions = (permissionsData.defaultRolePermissions[role] || []).sort()
+      
+      // Si los permisos coinciden exactamente con un rol
+      if (
+        currentPermissions.length === rolePermissions.length &&
+        currentPermissions.every((p, i) => p === rolePermissions[i])
+      ) {
+        return role
+      }
+    }
+    
+    return null // Permisos personalizados que no coinciden con ningún rol
+  }
+
+  const detectedRole = detectRole()
+
   // ── Render ──────────────────────────────────────────────────────────────────
   
   if (loading) {
@@ -734,6 +779,56 @@ const UsersManagementPage = () => {
             
             {formData.useCustomPermissions && permissionsData && (
               <div className="space-y-4">
+                {/* Selector Rápido de Rol + Rol Detectado */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Selector de rol rápido */}
+                  <div className="p-3 bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg">
+                    <Label className="text-xs font-bold text-purple-700 mb-2 block">
+                      ⚡ Elevar Rol Rápido
+                    </Label>
+                    <Select onValueChange={assignRolePermissions}>
+                      <SelectTrigger className="bg-white border-purple-300">
+                        <SelectValue placeholder="Seleccionar rol..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(roleNames)
+                          .filter(([k]) => isSuperAdmin() || k !== 'SUPER_ADMIN')
+                          .map(([key, name]) => (
+                            <SelectItem key={key} value={key}>
+                              {name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-purple-600 mt-1.5">
+                      Asigna automáticamente los permisos del rol
+                    </p>
+                  </div>
+
+                  {/* Rol detectado */}
+                  <div className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg">
+                    <Label className="text-xs font-bold text-amber-700 mb-2 block">
+                      🎯 Rol Detectado
+                    </Label>
+                    <div className="flex items-center gap-2 min-h-[40px]">
+                      {detectedRole ? (
+                        <Badge className={`${roleColors[detectedRole]} text-sm py-1.5 px-3 border-2 font-semibold`}>
+                          {roleNames[detectedRole]}
+                        </Badge>
+                      ) : (
+                        <span className="text-sm text-amber-600 font-medium">
+                          Permisos personalizados
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-amber-600 mt-1.5">
+                      {detectedRole 
+                        ? `Coincide con rol ${roleNames[detectedRole]}` 
+                        : 'No coincide con ningún rol predefinido'}
+                    </p>
+                  </div>
+                </div>
+
                 {/* Seleccionar todos */}
                 <div className="flex items-center gap-3 p-3 bg-blue-50 border-2 border-blue-200 rounded-lg">
                   <Checkbox
