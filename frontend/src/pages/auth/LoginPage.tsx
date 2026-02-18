@@ -84,12 +84,12 @@ const LoginPage = () => {
 
         /* Force dark on html/body so no white bleeds through */
         html, body, #root {
-          background: #050a18 !important;
+          background: #0b1529 !important;
         }
 
         .login-root {
           min-height: 100vh;
-          background: #050a18;
+          background: linear-gradient(170deg, #0e1b33 0%, #0b1529 40%, #091225 100%);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -116,32 +116,40 @@ const LoginPage = () => {
         }
 
         .aurora-orb-1 {
-          width: 600px; height: 600px;
-          background: radial-gradient(circle, rgba(201, 168, 76, 0.12) 0%, transparent 70%);
-          top: -15%; left: 50%;
+          width: 700px; height: 700px;
+          background: radial-gradient(circle, rgba(201, 168, 76, 0.18) 0%, transparent 65%);
+          top: -20%; left: 50%;
           transform: translateX(-50%);
           animation: auroraFloat1 16s ease-in-out infinite;
         }
 
         .aurora-orb-2 {
-          width: 500px; height: 400px;
-          background: radial-gradient(circle, rgba(30, 60, 180, 0.18) 0%, transparent 70%);
+          width: 550px; height: 450px;
+          background: radial-gradient(circle, rgba(40, 80, 200, 0.22) 0%, transparent 65%);
           bottom: -10%; left: -5%;
           animation: auroraFloat2 20s ease-in-out infinite;
         }
 
         .aurora-orb-3 {
-          width: 450px; height: 450px;
-          background: radial-gradient(circle, rgba(20, 80, 200, 0.12) 0%, transparent 70%);
+          width: 500px; height: 500px;
+          background: radial-gradient(circle, rgba(30, 90, 220, 0.18) 0%, transparent 65%);
           top: 30%; right: -8%;
           animation: auroraFloat3 18s ease-in-out infinite;
         }
 
         .aurora-orb-4 {
-          width: 350px; height: 350px;
-          background: radial-gradient(circle, rgba(180, 140, 60, 0.08) 0%, transparent 70%);
+          width: 400px; height: 400px;
+          background: radial-gradient(circle, rgba(200, 160, 70, 0.12) 0%, transparent 65%);
           bottom: 20%; right: 20%;
           animation: auroraFloat4 14s ease-in-out infinite;
+        }
+
+        .aurora-orb-5 {
+          width: 300px; height: 300px;
+          background: radial-gradient(circle, rgba(100, 140, 255, 0.10) 0%, transparent 65%);
+          top: 50%; left: 50%;
+          transform: translate(-50%, -50%);
+          animation: auroraFloat1 22s ease-in-out infinite reverse;
         }
 
         @keyframes auroraFloat1 {
@@ -175,16 +183,16 @@ const LoginPage = () => {
         .light-ray {
           position: absolute;
           top: 50%; left: 50%;
-          width: 2px;
+          width: 1.5px;
           height: 120vh;
           transform-origin: top center;
-          background: linear-gradient(to bottom, rgba(201, 168, 76, 0.06), transparent 60%);
-          animation: rayPulse 8s ease-in-out infinite;
+          background: linear-gradient(to bottom, rgba(201, 168, 76, 0.08), transparent 50%);
+          animation: rayPulse 10s ease-in-out infinite;
         }
 
         @keyframes rayPulse {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.7; }
+          0%, 100% { opacity: 0.2; }
+          50% { opacity: 0.5; }
         }
 
         /* ── Subtle grid ── */
@@ -192,18 +200,20 @@ const LoginPage = () => {
           position: fixed;
           inset: 0;
           background-image:
-            linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
-          background-size: 60px 60px;
+            linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+          background-size: 70px 70px;
           pointer-events: none;
           z-index: 0;
+          mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 30%, transparent 80%);
+          -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 30%, transparent 80%);
         }
 
         /* ── Vignette ── */
         .vignette {
           position: fixed;
           inset: 0;
-          background: radial-gradient(ellipse 70% 70% at 50% 50%, transparent 40%, rgba(3, 5, 15, 0.7) 100%);
+          background: radial-gradient(ellipse 80% 80% at 50% 45%, transparent 50%, rgba(5, 10, 25, 0.55) 100%);
           pointer-events: none;
           z-index: 1;
         }
@@ -245,7 +255,7 @@ const LoginPage = () => {
           position: absolute;
           z-index: 1;
           pointer-events: none;
-          opacity: 0.04;
+          opacity: 0;
           animation: crossDrift linear infinite;
         }
 
@@ -253,25 +263,25 @@ const LoginPage = () => {
         .cross-float::after {
           content: '';
           position: absolute;
-          background: #c9a84c;
+          background: rgba(201, 168, 76, 0.6);
           border-radius: 1px;
         }
 
         .cross-float::before {
-          width: 30%; height: 100%;
-          left: 35%; top: 0;
+          width: 24%; height: 100%;
+          left: 38%; top: 0;
         }
 
         .cross-float::after {
-          width: 100%; height: 30%;
+          width: 100%; height: 24%;
           left: 0; top: 22%;
         }
 
         @keyframes crossDrift {
           0% { transform: translateY(0) rotate(var(--cross-rotate)); opacity: 0; }
-          15% { opacity: 0.05; }
-          85% { opacity: 0.05; }
-          100% { transform: translateY(-100px) rotate(calc(var(--cross-rotate) + 8deg)); opacity: 0; }
+          20% { opacity: 0.035; }
+          80% { opacity: 0.035; }
+          100% { transform: translateY(-120px) rotate(calc(var(--cross-rotate) + 5deg)); opacity: 0; }
         }
 
         /* ── Noise texture overlay ── */
@@ -312,21 +322,22 @@ const LoginPage = () => {
         .ornament-line::after {
           content: '';
           flex: 1;
-          max-width: 80px;
+          max-width: 90px;
           height: 1px;
-          background: linear-gradient(to right, transparent, rgba(201, 168, 76, 0.6));
+          background: linear-gradient(to right, transparent, rgba(212, 184, 106, 0.5));
         }
 
         .ornament-line::after {
-          background: linear-gradient(to left, transparent, rgba(201, 168, 76, 0.6));
+          background: linear-gradient(to left, transparent, rgba(212, 184, 106, 0.5));
         }
 
         .ornament-diamond {
-          width: 8px;
-          height: 8px;
-          background: #c9a84c;
+          width: 7px;
+          height: 7px;
+          background: rgba(212, 184, 106, 0.7);
           transform: rotate(45deg);
           flex-shrink: 0;
+          box-shadow: 0 0 6px rgba(212, 184, 106, 0.3);
         }
 
         .logo-ring {
@@ -339,18 +350,18 @@ const LoginPage = () => {
         .logo-ring::before {
           content: '';
           position: absolute;
-          inset: -4px;
+          inset: -5px;
           border-radius: 50%;
-          border: 1px solid rgba(201, 168, 76, 0.3);
+          border: 1px solid rgba(212, 184, 106, 0.35);
           animation: pulse-ring 3s ease-in-out infinite;
         }
 
         .logo-ring::after {
           content: '';
           position: absolute;
-          inset: -10px;
+          inset: -12px;
           border-radius: 50%;
-          border: 1px solid rgba(201, 168, 76, 0.1);
+          border: 1px solid rgba(212, 184, 106, 0.12);
           animation: pulse-ring 3s ease-in-out infinite 0.5s;
         }
 
@@ -364,41 +375,46 @@ const LoginPage = () => {
           height: 80px;
           border-radius: 50%;
           object-fit: contain;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(201, 168, 76, 0.25);
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(212, 184, 106, 0.3);
           padding: 8px;
+          box-shadow: 0 0 20px rgba(201, 168, 76, 0.08);
         }
 
         .church-name {
           font-family: 'Playfair Display SC', serif;
-          font-size: 13px;
+          font-size: 13.5px;
           font-weight: 600;
-          letter-spacing: 0.15em;
-          color: #d4b86a;
+          letter-spacing: 0.16em;
+          color: #dcc47a;
           text-transform: uppercase;
           line-height: 1.5;
-          margin-bottom: 6px;
+          margin-bottom: 8px;
+          text-shadow: 0 0 20px rgba(212, 184, 106, 0.15);
         }
 
         .subtitle {
           font-family: 'Playfair Display', serif;
           font-style: italic;
-          font-weight: 300;
-          font-size: 15px;
-          color: rgba(255,255,255,0.52);
-          letter-spacing: 0.05em;
+          font-weight: 400;
+          font-size: 14.5px;
+          color: rgba(255,255,255,0.58);
+          letter-spacing: 0.04em;
         }
 
         /* Glass card */
         .form-card {
-          background: rgba(20, 40, 100, 0.2);
-          border: 1px solid rgba(201, 168, 76, 0.2);
-          border-radius: 2px;
-          padding: 32px 28px;
+          background: rgba(15, 25, 60, 0.35);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(212, 184, 106, 0.18);
+          border-radius: 4px;
+          padding: 34px 30px;
           box-shadow:
-            0 0 0 1px rgba(0,0,20,0.6),
-            0 24px 80px rgba(0,5,30,0.7),
-            inset 0 1px 0 rgba(255,255,255,0.07);
+            0 0 0 1px rgba(0,0,30,0.4),
+            0 20px 60px rgba(0,5,30,0.5),
+            0 0 40px rgba(201, 168, 76, 0.03),
+            inset 0 1px 0 rgba(255,255,255,0.08);
           position: relative;
           overflow: hidden;
         }
@@ -408,18 +424,18 @@ const LoginPage = () => {
           content: '';
           position: absolute;
           top: 0; left: 0;
-          width: 20px; height: 20px;
-          border-top: 2px solid rgba(201, 168, 76, 0.5);
-          border-left: 2px solid rgba(201, 168, 76, 0.5);
+          width: 22px; height: 22px;
+          border-top: 1.5px solid rgba(212, 184, 106, 0.45);
+          border-left: 1.5px solid rgba(212, 184, 106, 0.45);
         }
 
         .form-card::after {
           content: '';
           position: absolute;
           bottom: 0; right: 0;
-          width: 20px; height: 20px;
-          border-bottom: 2px solid rgba(201, 168, 76, 0.5);
-          border-right: 2px solid rgba(201, 168, 76, 0.5);
+          width: 22px; height: 22px;
+          border-bottom: 1.5px solid rgba(212, 184, 106, 0.45);
+          border-right: 1.5px solid rgba(212, 184, 106, 0.45);
         }
 
         .sign-in-label {
@@ -446,9 +462,9 @@ const LoginPage = () => {
         .field-label {
           display: block;
           font-family: 'Playfair Display SC', serif;
-          font-size: 10px;
+          font-size: 10.5px;
           letter-spacing: 0.12em;
-          color: rgba(255,255,255,0.45);
+          color: rgba(255,255,255,0.55);
           text-transform: uppercase;
           margin-bottom: 8px;
         }
@@ -457,10 +473,10 @@ const LoginPage = () => {
           width: 100%;
           height: 46px;
           padding: 0 14px;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.14);
-          border-radius: 2px;
-          color: rgba(255,255,255,0.92);
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.16);
+          border-radius: 3px;
+          color: rgba(255,255,255,0.95);
           font-family: 'Playfair Display', serif;
           font-size: 15px;
           outline: none;
@@ -469,14 +485,14 @@ const LoginPage = () => {
         }
 
         .field-input::placeholder {
-          color: rgba(255,255,255,0.25);
+          color: rgba(255,255,255,0.3);
           font-style: italic;
         }
 
         .field-input:focus {
-          border-color: rgba(201, 168, 76, 0.5);
-          background: rgba(201, 168, 76, 0.04);
-          box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.06), 0 0 20px rgba(201, 168, 76, 0.05);
+          border-color: rgba(212, 184, 106, 0.5);
+          background: rgba(212, 184, 106, 0.06);
+          box-shadow: 0 0 0 3px rgba(212, 184, 106, 0.08), 0 0 16px rgba(212, 184, 106, 0.04);
         }
 
         .field-input.error {
@@ -524,12 +540,12 @@ const LoginPage = () => {
         .submit-btn {
           width: 100%;
           height: 48px;
-          margin-top: 8px;
-          background: linear-gradient(135deg, #b8922e 0%, #c9a84c 50%, #b8922e 100%);
+          margin-top: 10px;
+          background: linear-gradient(135deg, #c49a30 0%, #dbb854 50%, #c49a30 100%);
           background-size: 200% 100%;
           border: none;
-          border-radius: 2px;
-          color: #06060e;
+          border-radius: 3px;
+          color: #0a0e1a;
           font-family: 'Playfair Display SC', serif;
           font-size: 12px;
           font-weight: 700;
@@ -579,11 +595,11 @@ const LoginPage = () => {
 
         .footer-text {
           text-align: center;
-          margin-top: 24px;
+          margin-top: 28px;
           font-family: 'Playfair Display SC', serif;
           font-size: 10px;
           letter-spacing: 0.12em;
-          color: rgba(255,255,255,0.2);
+          color: rgba(255,255,255,0.28);
           text-transform: uppercase;
         }
 
@@ -597,6 +613,7 @@ const LoginPage = () => {
           <div className="aurora-orb aurora-orb-2" />
           <div className="aurora-orb aurora-orb-3" />
           <div className="aurora-orb aurora-orb-4" />
+          <div className="aurora-orb aurora-orb-5" />
         </div>
 
         {/* Light rays emanating from center */}
