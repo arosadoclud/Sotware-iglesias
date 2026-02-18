@@ -282,7 +282,7 @@ const LoginPage = () => {
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-center lg:text-left"
+              className="text-center"
             >
               {/* Logo with Glass Effect */}
               <motion.div
@@ -296,7 +296,7 @@ const LoginPage = () => {
                   <img 
                     src={LOGO_URL} 
                     alt="Church Logo" 
-                    className="relative w-32 h-32 lg:w-40 lg:h-40 object-contain rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 p-4 shadow-2xl"
+                    className="relative w-40 h-40 lg:w-48 lg:h-48 object-contain rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 p-4 shadow-2xl"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement
                       target.style.display = 'none'
@@ -305,41 +305,30 @@ const LoginPage = () => {
                 </div>
               </motion.div>
 
-              {/* Church Name */}
+              {/* Simple Title */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className="space-y-4 mb-8"
+                className="space-y-4"
               >
-                <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-white leading-tight">
-                  IGLESIA EVANGÉLICA<br />
+                <h1 className="text-3xl lg:text-4xl font-bold text-white leading-tight">
+                  Church Program<br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-200 to-white">
-                    DIOS FUERTE ARCA EVANGÉLICA
+                    Manager
                   </span>
                 </h1>
                 
-                <div className="flex items-center justify-center lg:justify-start gap-3">
-                  <div className="h-px w-12 bg-gradient-to-r from-transparent to-white/50" />
-                  <div className="h-1.5 w-1.5 rounded-full bg-white/50" />
-                  <div className="h-px w-12 bg-gradient-to-l from-transparent to-white/50" />
-                </div>
-
-                <p className="text-white/70 text-sm lg:text-base max-w-md mx-auto lg:mx-0">
-                  C/ Principal No. 168, Manoguayabo<br />
-                  Santo Domingo Oeste, después del Mercado
+                <p className="text-white/60 text-sm lg:text-base max-w-sm mx-auto">
+                  Sistema de gestión integral para iglesias
                 </p>
-              </motion.div>
 
-              {/* Badge */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-xl rounded-full border border-white/20"
-              >
-                <Sparkles className="w-4 h-4 text-white" />
-                <span className="text-white/90 text-sm font-medium">Sistema de Gestión Eclesiástica</span>
+                {/* Decorative Element */}
+                <div className="flex items-center justify-center gap-2 pt-4">
+                  <div className="h-px w-8 bg-gradient-to-r from-transparent to-white/30" />
+                  <Sparkles className="w-4 h-4 text-white/40" />
+                  <div className="h-px w-8 bg-gradient-to-l from-transparent to-white/30" />
+                </div>
               </motion.div>
             </motion.div>
 
