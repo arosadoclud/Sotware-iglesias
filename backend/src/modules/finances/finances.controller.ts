@@ -20,7 +20,7 @@ export const getMonthlyTithesDetails = async (req: AuthRequest, res: Response, n
       church: churchId,
       category: tithesCategory._id,
       type: 'INCOME',
-      approvalStatus: 'APPROVED',
+      approvalStatus: { $in: ['APPROVED', 'NOT_REQUIRED'] },
       date: { $gte: new Date(startDate as string), $lte: new Date(endDate as string) },
     })
       .populate('person', 'fullName')
@@ -1345,7 +1345,7 @@ export const generateMonthlyPDFReport = async (req: AuthRequest, res: Response, 
         $match: {
           church: new mongoose.Types.ObjectId(churchId as string),
           type: 'INCOME',
-          approvalStatus: 'APPROVED',
+          approvalStatus: { $in: ['APPROVED', 'NOT_REQUIRED'] },
           date: { $gte: startDate, $lte: endDate },
         },
       },
@@ -1386,7 +1386,7 @@ export const generateMonthlyPDFReport = async (req: AuthRequest, res: Response, 
         $match: {
           church: new mongoose.Types.ObjectId(churchId as string),
           type: 'EXPENSE',
-          approvalStatus: 'APPROVED',
+          approvalStatus: { $in: ['APPROVED', 'NOT_REQUIRED'] },
           date: { $gte: startDate, $lte: endDate },
         },
       },
@@ -1441,7 +1441,7 @@ export const generateMonthlyPDFReport = async (req: AuthRequest, res: Response, 
         church: churchId,
         category: tithesCategoryDoc._id,
         type: 'INCOME',
-        approvalStatus: 'APPROVED',
+        approvalStatus: { $in: ['APPROVED', 'NOT_REQUIRED'] },
         date: { $gte: startDate, $lte: endDate },
       })
       .populate('person', 'fullName')
@@ -1560,7 +1560,7 @@ export const generateAnnualCouncilReport = async (req: AuthRequest, res: Respons
       church: churchId,
       category: tithesCategory._id,
       type: 'INCOME',
-      approvalStatus: 'APPROVED',
+      approvalStatus: { $in: ['APPROVED', 'NOT_REQUIRED'] },
       date: { $gte: startDate, $lte: endDate },
     })
     .populate('person', 'fullName')

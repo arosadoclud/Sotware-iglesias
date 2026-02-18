@@ -358,22 +358,6 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
       font-weight: 500;
     }
     
-    .page-number {
-      position: fixed;
-      bottom: 15px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 10px;
-      color: #64748b;
-      font-weight: 600;
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      padding: 8px 20px;
-      border-radius: 20px;
-      border: 2px solid #e2e8f0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      letter-spacing: 0.5px;
-    }
-    
     @media print {
       body {
         padding: 20px;
@@ -600,7 +584,6 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
     </div>
   </div>
   
-  <div class="page-number">Página 1</div>
 </body>
 </html>
   `
@@ -616,10 +599,17 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
   const pdfBuffer = await page.pdf({
     format: 'Letter',
     printBackground: true,
+    displayHeaderFooter: true,
+    headerTemplate: '<span></span>',
+    footerTemplate: `
+      <div style="width: 100%; text-align: center; font-size: 9px; color: #64748b; font-family: 'Segoe UI', sans-serif;">
+        <span style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); padding: 4px 16px; border-radius: 12px; border: 1px solid #e2e8f0;">Página <span class="pageNumber"></span> de <span class="totalPages"></span></span>
+      </div>
+    `,
     margin: {
       top: '20px',
       right: '20px',
-      bottom: '20px',
+      bottom: '50px',
       left: '20px',
     },
   })
@@ -921,22 +911,6 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
       font-style: italic;
       text-align: center;
     }
-    
-    .page-number {
-      position: fixed;
-      bottom: 15px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 10px;
-      color: #64748b;
-      font-weight: 600;
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      padding: 8px 20px;
-      border-radius: 20px;
-      border: 2px solid #e2e8f0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      letter-spacing: 0.5px;
-    }
   </style>
 </head>
 <body>
@@ -1141,7 +1115,6 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
     </div>
   </div>
   
-  <div class="page-number">Página 1</div>
 </body>
 </html>
   `
@@ -1157,10 +1130,17 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
   const pdfBuffer = await page.pdf({
     format: 'Letter',
     printBackground: true,
+    displayHeaderFooter: true,
+    headerTemplate: '<span></span>',
+    footerTemplate: `
+      <div style="width: 100%; text-align: center; font-size: 9px; color: #64748b; font-family: 'Segoe UI', sans-serif;">
+        <span style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); padding: 4px 16px; border-radius: 12px; border: 1px solid #e2e8f0;">Página <span class="pageNumber"></span> de <span class="totalPages"></span></span>
+      </div>
+    `,
     margin: {
       top: '20px',
       right: '20px',
-      bottom: '20px',
+      bottom: '50px',
       left: '20px',
     },
   })
