@@ -25,6 +25,8 @@ export interface IUser extends Document {
   useCustomPermissions: boolean;   // Si true, usa permissions; si false, usa los del rol
   isSuperUser: boolean;            // Super usuario con todos los permisos (solo uno por iglesia)
   isActive: boolean;
+  failedLoginAttempts: number;     // Intentos de login fallidos
+  lockUntil?: Date;                // Fecha hasta la cual la cuenta está bloqueada
   lastLogin?: Date;
   refreshToken?: string;
   createdBy?: mongoose.Types.ObjectId; // Usuario que lo creó
@@ -92,6 +94,13 @@ const UserSchema = new Schema<IUser>(
       type: Boolean,
       default: true,
     },
+    failedLoginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockUntil: {
+      type: Date,
+    },
     lastLogin: {
       type: Date,
     },
@@ -151,6 +160,9 @@ UserSchema.methods.getPublicProfile = function () {
     churchId: this.churchId,
     isSuperUser: this.isSuperUser,
     isActive: this.isActive,
+    isLocked: this.lockUntil ? new Date() < this.lockUntil : false,
+    lockUntil: this.lockUntil,
+    failedLoginAttempts: this.failedLoginAttempts || 0,
     lastLogin: this.lastLogin,
     permissions: this.getEffectivePermissions(),
     useCustomPermissions: this.useCustomPermissions,

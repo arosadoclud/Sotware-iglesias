@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import {
   Users, Plus, Search, Shield, Edit2, Trash2, Key, MoreVertical, 
-  UserCheck, UserX, Loader2, Eye, EyeOff, AlertTriangle
+  UserCheck, UserX, Loader2, Eye, EyeOff, AlertTriangle, Lock, Unlock
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,6 +28,9 @@ interface User {
   role: string
   isActive: boolean
   isSuperUser?: boolean
+  isLocked?: boolean
+  lockUntil?: string
+  failedLoginAttempts?: number
   permissions: string[]
   useCustomPermissions: boolean
   effectivePermissions: string[]
@@ -81,6 +84,7 @@ const UsersManagementPage = () => {
   const [showPermissionsModal, setShowPermissionsModal] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showHardDeleteModal, setShowHardDeleteModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   
   // Permissions data
@@ -248,13 +252,38 @@ const UsersManagementPage = () => {
     setSaving(true)
     try {
       await adminApi.deleteUser(selectedUser._id)
-      toast.success('Usuario eliminado')
+      toast.success('Usuario desactivado')
       setShowDeleteModal(false)
+      loadUsers()
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Error al desactivar')
+    }
+    setSaving(false)
+  }
+
+  const handleHardDelete = async () => {
+    if (!selectedUser) return
+    
+    setSaving(true)
+    try {
+      await adminApi.hardDeleteUser(selectedUser._id)
+      toast.success('Usuario eliminado permanentemente')
+      setShowHardDeleteModal(false)
       loadUsers()
     } catch (e: any) {
       toast.error(e.response?.data?.message || 'Error al eliminar')
     }
     setSaving(false)
+  }
+
+  const handleUnlock = async (user: User) => {
+    try {
+      await adminApi.unlockUser(user._id)
+      toast.success('Cuenta desbloqueada')
+      loadUsers()
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Error al desbloquear')
+    }
   }
 
   const handleToggleStatus = async (user: User) => {
@@ -317,6 +346,11 @@ const UsersManagementPage = () => {
   const openDeleteModal = (user: User) => {
     setSelectedUser(user)
     setShowDeleteModal(true)
+  }
+
+  const openHardDeleteModal = (user: User) => {
+    setSelectedUser(user)
+    setShowHardDeleteModal(true)
   }
 
   const togglePermission = (permission: string) => {
@@ -455,6 +489,12 @@ const UsersManagementPage = () => {
                         {!user.isActive && (
                           <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">Inactivo</Badge>
                         )}
+                        {user.isLocked && (
+                          <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">
+                            <Lock className="w-3 h-3 mr-1" />
+                            Bloqueado
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-neutral-500 truncate">{user.email}</p>
                     </div>
@@ -502,6 +542,15 @@ const UsersManagementPage = () => {
                           <Key className="w-4 h-4 mr-2" />
                           Cambiar contraseña
                         </DropdownMenuItem>
+                        {user.isLocked && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleUnlock(user)} className="text-orange-600">
+                              <Unlock className="w-4 h-4 mr-2" />
+                              Desbloquear cuenta
+                            </DropdownMenuItem>
+                          </>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => handleToggleStatus(user)}>
                           {user.isActive ? (
@@ -518,11 +567,11 @@ const UsersManagementPage = () => {
                         </DropdownMenuItem>
                         {user._id !== currentUser?.id && user.role !== 'SUPER_ADMIN' && (
                           <DropdownMenuItem 
-                            onClick={() => openDeleteModal(user)}
+                            onClick={() => openHardDeleteModal(user)}
                             className="text-red-600"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Eliminar
+                            Eliminar permanentemente
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -793,28 +842,65 @@ const UsersManagementPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal (Soft Delete / Deactivate) */}
       <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
-              <AlertTriangle className="w-5 h-5" />
-              Eliminar Usuario
+            <DialogTitle className="flex items-center gap-2 text-amber-600">
+              <UserX className="w-5 h-5" />
+              Desactivar Usuario
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <p className="text-neutral-600">
-              ¿Está seguro que desea eliminar al usuario <strong>{selectedUser?.fullName}</strong>?
+              ¿Está seguro que desea desactivar al usuario <strong>{selectedUser?.fullName}</strong>?
             </p>
             <p className="text-sm text-neutral-500 mt-2">
-              Esta acción desactivará la cuenta del usuario. Puede reactivarla posteriormente.
+              La cuenta será desactivada pero no eliminada. Puede reactivarla posteriormente.
             </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Cancelar</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={saving}>
+            <Button 
+              variant="default"
+              className="bg-amber-600 hover:bg-amber-700"
+              onClick={handleDelete} 
+              disabled={saving}
+            >
               {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Eliminar
+              Desactivar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Hard Delete Confirmation Modal */}
+      <Dialog open={showHardDeleteModal} onOpenChange={setShowHardDeleteModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-5 h-5" />
+              Eliminar Permanentemente
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 font-medium text-sm">
+                ⚠️ Esta acción es irreversible
+              </p>
+            </div>
+            <p className="text-neutral-600">
+              ¿Está seguro que desea eliminar permanentemente al usuario <strong>{selectedUser?.fullName}</strong>?
+            </p>
+            <p className="text-sm text-neutral-500">
+              Se eliminará toda la información del usuario y no podrá ser recuperada. Si solo desea inhabilitar el acceso, use la opción "Desactivar".
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowHardDeleteModal(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleHardDelete} disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Eliminar Permanentemente
             </Button>
           </DialogFooter>
         </DialogContent>

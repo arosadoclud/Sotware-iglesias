@@ -193,7 +193,9 @@ export const adminApi = {
   resetUserPassword: (id: string, newPassword: string) =>
     api.post(`/admin/users/${id}/reset-password`, { newPassword }),
   deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
+  hardDeleteUser: (id: string) => api.delete(`/admin/users/${id}/permanent`),
   activateUser: (id: string) => api.post(`/admin/users/${id}/activate`),
+  unlockUser: (id: string) => api.post(`/admin/users/${id}/unlock`),
   
   // Permisos disponibles
   getPermissions: () => api.get('/admin/permissions'),

@@ -9,7 +9,9 @@ import {
   updateUserPermissions,
   resetUserPassword,
   deleteUser,
+  hardDeleteUser,
   activateUser,
+  unlockUser,
   getAuditLogs,
   getAuditStats,
   getAvailablePermissions,
@@ -46,8 +48,14 @@ router.post('/users/:id/reset-password', requireAdmin(), resetUserPassword);
 // Eliminar usuario (soft delete)
 router.delete('/users/:id', requirePermission(Permission.USERS_DELETE), deleteUser);
 
+// Eliminar usuario permanentemente (hard delete)
+router.delete('/users/:id/permanent', requirePermission(Permission.USERS_DELETE), hardDeleteUser);
+
 // Activar usuario
 router.post('/users/:id/activate', requirePermission(Permission.USERS_EDIT), activateUser);
+
+// Desbloquear cuenta de usuario
+router.post('/users/:id/unlock', requireAdmin(), unlockUser);
 
 // ── AUDITORÍA ─────────────────────────────────────────────────────────────────
 

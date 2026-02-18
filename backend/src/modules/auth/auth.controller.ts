@@ -170,10 +170,33 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
     }
 
+    // Verificar si la cuenta del usuario está bloqueada por intentos fallidos
+    if (user.lockUntil && new Date() < user.lockUntil) {
+      const minutesRemaining = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
+      return res.status(423).json({ 
+        success: false, 
+        message: `Cuenta bloqueada por demasiados intentos fallidos. Intente en ${minutesRemaining} minuto(s) o contacte al administrador.`,
+        locked: true,
+        lockUntil: user.lockUntil,
+      });
+    }
+
     const passwordMatch = await user.comparePassword(password);
     if (!passwordMatch) {
-      // Registrar intento fallido
+      // Registrar intento fallido (rate limiter global)
       await LoginSecurityService.recordFailedAttempt(email, clientIp);
+
+      // Incrementar contador de intentos fallidos del usuario
+      const MAX_USER_ATTEMPTS = 5;
+      const LOCK_DURATION_MINUTES = 30;
+      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+      
+      if (user.failedLoginAttempts >= MAX_USER_ATTEMPTS) {
+        user.lockUntil = new Date(Date.now() + LOCK_DURATION_MINUTES * 60 * 1000);
+      }
+      await user.save();
+
+      const attemptsRemaining = MAX_USER_ATTEMPTS - user.failedLoginAttempts;
 
       // Audit: Login fallido
       await AuditService.log({
@@ -186,12 +209,29 @@ export const login = async (req: Request, res: Response) => {
         category: AuditCategory.AUTH,
         resourceType: 'Auth',
         success: false,
-        errorMessage: 'Contraseña incorrecta',
+        errorMessage: user.failedLoginAttempts >= MAX_USER_ATTEMPTS 
+          ? `Cuenta bloqueada tras ${MAX_USER_ATTEMPTS} intentos fallidos`
+          : `Contraseña incorrecta (intento ${user.failedLoginAttempts}/${MAX_USER_ATTEMPTS})`,
         ipAddress: clientIp,
         userAgent: req.headers['user-agent'],
-        severity: AuditSeverity.WARNING,
+        severity: user.failedLoginAttempts >= MAX_USER_ATTEMPTS ? AuditSeverity.CRITICAL : AuditSeverity.WARNING,
       });
-      return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
+
+      if (user.failedLoginAttempts >= MAX_USER_ATTEMPTS) {
+        return res.status(423).json({ 
+          success: false, 
+          message: `Cuenta bloqueada por ${LOCK_DURATION_MINUTES} minutos tras ${MAX_USER_ATTEMPTS} intentos fallidos. Contacte al administrador.`,
+          locked: true,
+          lockUntil: user.lockUntil,
+        });
+      }
+
+      return res.status(401).json({ 
+        success: false, 
+        message: attemptsRemaining > 0 
+          ? `Credenciales inválidas. ${attemptsRemaining} intento(s) restante(s).`
+          : 'Credenciales inválidas',
+      });
     }
 
     if (!user.isActive) {
@@ -201,6 +241,9 @@ export const login = async (req: Request, res: Response) => {
     // Limpiar intentos fallidos tras login exitoso
     await LoginSecurityService.clearAttempts(email, clientIp);
 
+    // Resetear contador de intentos fallidos del usuario
+    user.failedLoginAttempts = 0;
+    user.lockUntil = undefined;
     user.lastLogin = new Date();
     await user.save();
 

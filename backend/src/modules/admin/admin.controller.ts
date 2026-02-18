@@ -42,6 +42,7 @@ export const getUsers = async (req: AuthRequest, res: Response, next: NextFuncti
     const usersWithPermissions = users.map(user => ({
       ...user.toObject(),
       effectivePermissions: user.getEffectivePermissions(),
+      isLocked: user.lockUntil ? new Date() < user.lockUntil : false,
     }));
 
     res.json({
@@ -378,6 +379,96 @@ export const activateUser = async (req: AuthRequest, res: Response, next: NextFu
     res.json({
       success: true,
       message: 'Usuario activado exitosamente',
+      data: user.getPublicProfile(),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Eliminar un usuario permanentemente (hard delete)
+ */
+export const hardDeleteUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    if (id === req.userId) {
+      throw new BadRequestError('No puede eliminarse a sí mismo');
+    }
+
+    const user = await User.findOne({ _id: id, churchId: req.churchId });
+    if (!user) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    // No permitir eliminar SUPER_ADMIN
+    if (user.role === UserRole.SUPER_ADMIN) {
+      throw new ForbiddenError('No puede eliminar un Super Admin');
+    }
+
+    // No permitir eliminar un superusuario
+    if (user.isSuperUser) {
+      throw new ForbiddenError('No puede eliminar un superusuario');
+    }
+
+    const userData = { email: user.email, role: user.role, fullName: user.fullName };
+
+    // Hard delete - eliminar permanentemente
+    await User.findByIdAndDelete(id);
+
+    // Audit log
+    await AuditService.logFromRequest(req, AuditAction.USER_DELETE, AuditCategory.USERS, 'User', {
+      resourceId: id,
+      resourceName: userData.fullName,
+      previousValue: userData,
+      metadata: { permanentDelete: true },
+      severity: AuditSeverity.CRITICAL,
+    });
+
+    res.json({
+      success: true,
+      message: 'Usuario eliminado permanentemente',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Desbloquear cuenta de un usuario (reset de intentos fallidos)
+ */
+export const unlockUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findOne({ _id: id, churchId: req.churchId });
+    if (!user) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    user.failedLoginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
+
+    // También limpiar intentos en LoginAttempt si existe
+    try {
+      const LoginAttempt = (await import('../../models/LoginAttempt.model')).default;
+      await LoginAttempt.deleteMany({ email: user.email.toLowerCase() });
+    } catch (e) {
+      // Si no existe el modelo, ignorar silenciosamente
+    }
+
+    // Audit log
+    await AuditService.logFromRequest(req, AuditAction.USER_UPDATE, AuditCategory.USERS, 'User', {
+      resourceId: user._id.toString(),
+      resourceName: user.fullName,
+      metadata: { action: 'unlock_account' },
+    });
+
+    res.json({
+      success: true,
+      message: 'Cuenta desbloqueada exitosamente',
       data: user.getPublicProfile(),
     });
   } catch (error) {
