@@ -227,7 +227,7 @@ const ProgramsPage = () => {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center justify-center gap-2 flex-wrap">
             {total > 0 && (
               <>
                 <motion.button
@@ -262,14 +262,12 @@ const ProgramsPage = () => {
                   {publishingAll ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="hidden sm:inline">Publicando...</span>
-                    <span className="sm:hidden">...</span>
+                      <span>Publicando...</span>
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    <span className="hidden sm:inline">Publicar Todos</span>
-                    <span className="sm:hidden">Pub</span>
+                    <span>Publicar</span>
                   </>
                 )}
               </motion.button>
@@ -285,14 +283,12 @@ const ProgramsPage = () => {
                 {deletingAll ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="hidden sm:inline">Eliminando...</span>
-                    <span className="sm:hidden">...</span>
+                    <span>Eliminando...</span>
                   </>
                 ) : (
                   <>
                     <Trash2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Eliminar Todos</span>
-                    <span className="sm:hidden">Del</span>
+                    <span>Eliminar</span>
                   </>
                 )}
               </motion.button>
@@ -306,8 +302,7 @@ const ProgramsPage = () => {
           >
             <Link to="/programs/generate" className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg">
               <Sparkles className="w-4 h-4" />
-              <span className="hidden sm:inline">Generar Programa</span>
-              <span className="sm:hidden">Nuevo</span>
+              <span>Nuevo</span>
             </Link>
           </motion.div>
           )}
@@ -373,7 +368,7 @@ const ProgramsPage = () => {
                     type="checkbox"
                     checked={selectedIds.size === programs.length && programs.length > 0}
                     onChange={toggleSelectAll}
-                    className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    className="w-3 h-3 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
                   <span className="text-sm font-medium text-gray-700">
                     Seleccionar todos ({programs.length})
@@ -403,7 +398,7 @@ const ProgramsPage = () => {
                         type="checkbox"
                         checked={selectedIds.has(prog._id)}
                         onChange={() => toggleSelect(prog._id)}
-                        className="w-3.5 h-3.5 mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500 flex-shrink-0"
+                        className="w-3 h-3 mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500 flex-shrink-0"
                       />
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${sc.style}`}>
                         <StatusIcon className="w-3 h-3" />
@@ -536,7 +531,7 @@ const ProgramsPage = () => {
                       type="checkbox"
                       checked={selectedIds.size === programs.length && programs.length > 0}
                       onChange={toggleSelectAll}
-                      className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                      className="w-3 h-3 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
                       title="Seleccionar todos"
                     />
                   </th>
@@ -567,7 +562,7 @@ const ProgramsPage = () => {
                           type="checkbox"
                           checked={selectedIds.has(prog._id)}
                           onChange={() => toggleSelect(prog._id)}
-                          className="w-3.5 h-3.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                          className="w-3 h-3 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
                         />
                       </td>
                       <td className="py-3.5 px-4">
