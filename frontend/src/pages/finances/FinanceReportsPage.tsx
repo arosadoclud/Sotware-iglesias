@@ -33,8 +33,8 @@ const ReportCardHeader = ({ title, subtitle, icon: Icon, iconColor = 'text-prima
   icon?: any
   iconColor?: string
 }) => (
-  <div className="border-b px-6 py-5">
-    <div className="flex items-center gap-4">
+  <div className="border-b px-4 sm:px-6 py-5">
+    <div className="flex flex-col items-center gap-3">
       <img
         src={LOGO_LOCAL}
         alt="Logo"
@@ -48,10 +48,9 @@ const ReportCardHeader = ({ title, subtitle, icon: Icon, iconColor = 'text-prima
           }
         }}
       />
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Iglesia Dios Fuerte Arca Evangélica</p>
-        <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-          {Icon && <Icon className={`w-5 h-5 ${iconColor}`} />}
+      <div className="text-center">
+        <p className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Iglesia Dios Fuerte Arca Evangélica</p>
+        <h2 className="text-lg font-bold text-gray-800">
           {title}
         </h2>
         {subtitle && <p className="text-sm text-gray-500 mt-0.5 capitalize">{subtitle}</p>}
