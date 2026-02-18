@@ -395,45 +395,73 @@ const FinanceReportsPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <FileText className="w-7 h-7 text-primary-600" />
-            Reportes Financieros
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Genera reportes detallados para el concilio y control interno
-          </p>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg">
+            <FileText className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Reportes Financieros
+            </h1>
+            <p className="text-gray-500 text-sm mt-0.5">
+              Genera reportes detallados para el concilio y control interno
+            </p>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handlePrint} disabled={loading}>
+        
+        {/* Botones de acción */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={handlePrint} 
+            disabled={loading}
+            className="flex-1 min-w-[120px] sm:flex-none"
+          >
             <Printer className="w-4 h-4 mr-2" />
-            Imprimir
+            <span>Imprimir</span>
           </Button>
+          
           {activeReport === 'monthly' && (
             <>
-              <Button onClick={downloadMonthlyPDF} disabled={loadingMonthlyPDF} className="relative bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700">
+              <Button 
+                onClick={downloadMonthlyPDF} 
+                disabled={loadingMonthlyPDF} 
+                className="relative flex-1 min-w-[140px] sm:flex-none bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
+              >
                 <BadgeNew show={isFeatureNew('monthly-pdf-report')} position="top-right" />
                 {loadingMonthlyPDF ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
                   <FileText className="w-4 h-4 mr-2" />
                 )}
-                Descargar PDF
+                <span className="hidden sm:inline">Descargar PDF</span>
+                <span className="sm:hidden">PDF</span>
               </Button>
-              <Button onClick={downloadAnnualCouncilPDF} disabled={loadingAnnualPDF} className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800">
+              
+              <Button 
+                onClick={downloadAnnualCouncilPDF} 
+                disabled={loadingAnnualPDF} 
+                className="flex-1 min-w-[160px] sm:flex-none bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800"
+              >
                 {loadingAnnualPDF ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
                   <Church className="w-4 h-4 mr-2" />
                 )}
-                Reporte Anual Concilio
+                <span className="hidden sm:inline">Reporte Anual Concilio</span>
+                <span className="sm:hidden">Concilio</span>
               </Button>
             </>
           )}
-          <Button onClick={exportToCSV} disabled={loading}>
+          
+          <Button 
+            onClick={exportToCSV} 
+            disabled={loading}
+            className="flex-1 min-w-[140px] sm:flex-none"
+          >
             <Download className="w-4 h-4 mr-2" />
-            Exportar CSV
+            <span>Exportar CSV</span>
           </Button>
         </div>
       </div>
