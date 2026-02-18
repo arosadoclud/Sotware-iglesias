@@ -27,6 +27,8 @@ export interface IUser extends Document {
   isActive: boolean;
   failedLoginAttempts: number;     // Intentos de login fallidos
   lockUntil?: Date;                // Fecha hasta la cual la cuenta está bloqueada
+  passwordResetToken?: string;     // Token para recuperar contraseña
+  passwordResetExpires?: Date;     // Expiración del token de recuperación
   lastLogin?: Date;
   refreshToken?: string;
   createdBy?: mongoose.Types.ObjectId; // Usuario que lo creó
@@ -100,6 +102,14 @@ const UserSchema = new Schema<IUser>(
     },
     lockUntil: {
       type: Date,
+    },
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+    passwordResetExpires: {
+      type: Date,
+      select: false,
     },
     lastLogin: {
       type: Date,

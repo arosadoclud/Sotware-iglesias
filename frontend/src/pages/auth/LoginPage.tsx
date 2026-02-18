@@ -4,15 +4,30 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'react-hot-toast'
-import { AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react'
+import { AlertCircle, Loader2, Eye, EyeOff, Mail, ArrowLeft, KeyRound, CheckCircle2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../../store/authStore'
-import api, { BACKEND_URL } from '../../lib/api'
+import api, { BACKEND_URL, authApi } from '../../lib/api'
 
 const loginSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Mínimo 6 caracteres'),
+  email: z
+    .string()
+    .min(1, 'El correo es requerido')
+    .email('Ingresa un correo electrónico válido'),
+  password: z
+    .string()
+    .min(1, 'La contraseña es requerida')
+    .min(6, 'La contraseña debe tener al menos 6 caracteres'),
 })
+
+const forgotSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'El correo es requerido')
+    .email('Ingresa un correo electrónico válido'),
+})
+
+type ForgotForm = z.infer<typeof forgotSchema>
 
 type LoginForm = z.infer<typeof loginSchema>
 
@@ -25,6 +40,10 @@ const LoginPage = () => {
   const { setAuth } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [showForgot, setShowForgot] = useState(false)
+  const [forgotLoading, setForgotLoading] = useState(false)
+  const [forgotSent, setForgotSent] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
 
   const {
     register,
@@ -32,6 +51,15 @@ const LoginPage = () => {
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
+  })
+
+  const {
+    register: registerForgot,
+    handleSubmit: handleForgotSubmit,
+    formState: { errors: forgotErrors },
+    reset: resetForgot,
+  } = useForm<ForgotForm>({
+    resolver: zodResolver(forgotSchema),
   })
 
   const onSubmit = async (data: LoginForm) => {
@@ -43,10 +71,31 @@ const LoginPage = () => {
       toast.success('¡Bienvenido!')
       navigate('/')
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Credenciales incorrectas')
+      const msg = error.response?.data?.message || 'Credenciales incorrectas'
+      toast.error(msg)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const onForgotSubmit = async (data: ForgotForm) => {
+    setForgotLoading(true)
+    try {
+      await authApi.forgotPassword(data.email)
+      setForgotSent(true)
+      setForgotEmail(data.email)
+    } catch {
+      toast.error('Error al enviar la solicitud. Intenta de nuevo.')
+    } finally {
+      setForgotLoading(false)
+    }
+  }
+
+  const handleBackToLogin = () => {
+    setShowForgot(false)
+    setForgotSent(false)
+    setForgotEmail('')
+    resetForgot()
   }
 
   // Memoize random values so they don't change on re-render
@@ -606,6 +655,96 @@ const LoginPage = () => {
         }
 
         .space-y-5 > * + * { margin-top: 20px; }
+
+        .forgot-link {
+          display: block;
+          text-align: center;
+          margin-top: 18px;
+          font-family: 'Playfair Display', serif;
+          font-style: italic;
+          font-size: 13px;
+          color: rgba(212, 184, 106, 0.55);
+          text-decoration: none;
+          cursor: pointer;
+          transition: color 0.25s;
+          border: none;
+          background: none;
+          padding: 0;
+          width: 100%;
+        }
+
+        .forgot-link:hover {
+          color: rgba(212, 184, 106, 0.9);
+        }
+
+        .forgot-back-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-family: 'Playfair Display', serif;
+          font-style: italic;
+          font-size: 13px;
+          color: rgba(212, 184, 106, 0.55);
+          cursor: pointer;
+          border: none;
+          background: none;
+          padding: 0;
+          transition: color 0.25s;
+          margin-bottom: 18px;
+        }
+
+        .forgot-back-btn:hover {
+          color: rgba(212, 184, 106, 0.9);
+        }
+
+        .forgot-description {
+          font-family: 'Playfair Display', serif;
+          font-size: 13.5px;
+          color: rgba(255,255,255,0.5);
+          line-height: 1.55;
+          text-align: center;
+          margin-bottom: 22px;
+        }
+
+        .forgot-success-icon {
+          width: 60px;
+          height: 60px;
+          margin: 0 auto 16px;
+          border-radius: 50%;
+          background: rgba(34, 197, 94, 0.1);
+          border: 1.5px solid rgba(34, 197, 94, 0.35);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #22c55e;
+        }
+
+        .forgot-success-text {
+          font-family: 'Playfair Display', serif;
+          font-size: 14px;
+          color: rgba(255,255,255,0.7);
+          text-align: center;
+          line-height: 1.6;
+          margin-bottom: 6px;
+        }
+
+        .forgot-success-email {
+          font-family: 'Playfair Display SC', serif;
+          font-size: 12px;
+          color: #dcc47a;
+          text-align: center;
+          letter-spacing: 0.05em;
+          margin-bottom: 16px;
+        }
+
+        .forgot-success-hint {
+          font-family: 'Playfair Display', serif;
+          font-style: italic;
+          font-size: 11.5px;
+          color: rgba(255,255,255,0.35);
+          text-align: center;
+          line-height: 1.5;
+        }
       `}</style>
 
       <div className="login-root">
@@ -736,96 +875,277 @@ const LoginPage = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.15, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="sign-in-label">Acceso</div>
+            <AnimatePresence mode="wait">
+              {/* ── LOGIN FORM ── */}
+              {!showForgot && (
+                <motion.div
+                  key="login-form"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="sign-in-label">Acceso</div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              {/* Email */}
-              <div>
-                <label htmlFor="email" className="field-label">
-                  Correo electrónico
-                </label>
-                <div className="field-input-wrapper">
-                  <input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    {...register('email')}
-                    className={`field-input${errors.email ? ' error' : ''}`}
-                    placeholder="nombre@ejemplo.com"
-                  />
-                </div>
-                <AnimatePresence>
-                  {errors.email && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="error-msg"
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                    {/* Email */}
+                    <div>
+                      <label htmlFor="email" className="field-label">
+                        Correo electrónico
+                      </label>
+                      <div className="field-input-wrapper">
+                        <input
+                          id="email"
+                          type="email"
+                          autoComplete="email"
+                          {...register('email')}
+                          className={`field-input${errors.email ? ' error' : ''}`}
+                          placeholder="nombre@ejemplo.com"
+                        />
+                      </div>
+                      <AnimatePresence>
+                        {errors.email && (
+                          <motion.p
+                            initial={{ opacity: 0, y: -4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            className="error-msg"
+                          >
+                            <AlertCircle size={12} />
+                            {errors.email.message}
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Password */}
+                    <div>
+                      <label htmlFor="password" className="field-label">
+                        Contraseña
+                      </label>
+                      <div className="field-input-wrapper">
+                        <input
+                          id="password"
+                          type={showPassword ? 'text' : 'password'}
+                          autoComplete="current-password"
+                          {...register('password')}
+                          className={`field-input has-icon${errors.password ? ' error' : ''}`}
+                          placeholder="••••••••"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="input-icon-btn"
+                          tabIndex={-1}
+                        >
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                      <AnimatePresence>
+                        {errors.password && (
+                          <motion.p
+                            initial={{ opacity: 0, y: -4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            className="error-msg"
+                          >
+                            <AlertCircle size={12} />
+                            {errors.password.message}
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Submit */}
+                    <motion.button
+                      type="submit"
+                      disabled={isLoading}
+                      className="submit-btn"
+                      whileTap={{ scale: 0.99 }}
                     >
-                      <AlertCircle size={12} />
-                      {errors.email.message}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-              </div>
+                      <span className="submit-inner">
+                        {isLoading ? (
+                          <>
+                            <Loader2 size={16} className="animate-spin" />
+                            Verificando...
+                          </>
+                        ) : (
+                          'Continuar'
+                        )}
+                      </span>
+                    </motion.button>
+                  </form>
 
-              {/* Password */}
-              <div>
-                <label htmlFor="password" className="field-label">
-                  Contraseña
-                </label>
-                <div className="field-input-wrapper">
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    {...register('password')}
-                    className={`field-input has-icon${errors.password ? ' error' : ''}`}
-                    placeholder="••••••••"
-                  />
+                  {/* Forgot password link */}
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="input-icon-btn"
-                    tabIndex={-1}
+                    className="forgot-link"
+                    onClick={() => setShowForgot(true)}
                   >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    ¿Olvidaste tu contraseña?
                   </button>
-                </div>
-                <AnimatePresence>
-                  {errors.password && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="error-msg"
-                    >
-                      <AlertCircle size={12} />
-                      {errors.password.message}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-              </div>
+                </motion.div>
+              )}
 
-              {/* Submit */}
-              <motion.button
-                type="submit"
-                disabled={isLoading}
-                className="submit-btn"
-                whileTap={{ scale: 0.99 }}
-              >
-                <span className="submit-inner">
-                  {isLoading ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      Verificando...
-                    </>
-                  ) : (
-                    'Continuar'
-                  )}
-                </span>
-              </motion.button>
-            </form>
+              {/* ── FORGOT PASSWORD FORM ── */}
+              {showForgot && (
+                <motion.div
+                  key="forgot-form"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <AnimatePresence mode="wait">
+                    {/* Email input step */}
+                    {!forgotSent && (
+                      <motion.div
+                        key="forgot-input"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.25 }}
+                      >
+                        <button
+                          type="button"
+                          className="forgot-back-btn"
+                          onClick={handleBackToLogin}
+                        >
+                          <ArrowLeft size={14} />
+                          Volver
+                        </button>
+
+                        <div style={{ textAlign: 'center', marginBottom: '18px' }}>
+                          <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 0.1 }}
+                            style={{
+                              width: 56, height: 56, borderRadius: '50%',
+                              background: 'rgba(212, 184, 106, 0.08)',
+                              border: '1px solid rgba(212, 184, 106, 0.25)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              margin: '0 auto 12px', color: '#dcc47a',
+                            }}
+                          >
+                            <KeyRound size={24} strokeWidth={1.5} />
+                          </motion.div>
+                          <div className="sign-in-label" style={{ marginBottom: '8px' }}>
+                            Recuperar Contraseña
+                          </div>
+                        </div>
+
+                        <div className="forgot-description">
+                          Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+                        </div>
+
+                        <form onSubmit={handleForgotSubmit(onForgotSubmit)}>
+                          <div style={{ marginBottom: '18px' }}>
+                            <label htmlFor="forgot-email" className="field-label">
+                              Correo electrónico
+                            </label>
+                            <div className="field-input-wrapper">
+                              <input
+                                id="forgot-email"
+                                type="email"
+                                autoComplete="email"
+                                {...registerForgot('email')}
+                                className={`field-input${forgotErrors.email ? ' error' : ''}`}
+                                placeholder="nombre@ejemplo.com"
+                                autoFocus
+                              />
+                            </div>
+                            <AnimatePresence>
+                              {forgotErrors.email && (
+                                <motion.p
+                                  initial={{ opacity: 0, y: -4 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0 }}
+                                  className="error-msg"
+                                >
+                                  <AlertCircle size={12} />
+                                  {forgotErrors.email.message}
+                                </motion.p>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          <motion.button
+                            type="submit"
+                            disabled={forgotLoading}
+                            className="submit-btn"
+                            whileTap={{ scale: 0.99 }}
+                          >
+                            <span className="submit-inner">
+                              {forgotLoading ? (
+                                <>
+                                  <Loader2 size={16} className="animate-spin" />
+                                  Enviando...
+                                </>
+                              ) : (
+                                <>
+                                  <Mail size={15} />
+                                  Enviar Enlace
+                                </>
+                              )}
+                            </span>
+                          </motion.button>
+                        </form>
+                      </motion.div>
+                    )}
+
+                    {/* Success confirmation */}
+                    {forgotSent && (
+                      <motion.div
+                        key="forgot-sent"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.35 }}
+                        style={{ padding: '10px 0' }}
+                      >
+                        <motion.div
+                          className="forgot-success-icon"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.15, type: 'spring', stiffness: 200 }}
+                        >
+                          <CheckCircle2 size={28} />
+                        </motion.div>
+
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 }}
+                        >
+                          <div className="forgot-success-text">
+                            ¡Enlace enviado!<br />
+                            Revisa tu bandeja de entrada
+                          </div>
+                          <div className="forgot-success-email">{forgotEmail}</div>
+                          <div className="forgot-success-hint">
+                            Si no ves el correo, revisa la carpeta de spam.<br />
+                            El enlace expirará en 1 hora.
+                          </div>
+                        </motion.div>
+
+                        <button
+                          type="button"
+                          className="forgot-link"
+                          onClick={handleBackToLogin}
+                          style={{ marginTop: '22px' }}
+                        >
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                            <ArrowLeft size={14} />
+                            Volver al inicio de sesión
+                          </span>
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* Footer */}

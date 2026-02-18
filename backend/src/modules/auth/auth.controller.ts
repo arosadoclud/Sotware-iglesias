@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import User from '../../models/User.model';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import envConfig from '../../config/env';
 import { AuditService, AuditAction, AuditCategory, AuditSeverity } from '../../middleware/audit.middleware';
 import { AuthRequest } from '../../middleware/auth.middleware';
@@ -404,5 +405,251 @@ export const changePassword = async (req: AuthRequest, res: Response, next: Next
   } catch (error: any) {
     console.error('ChangePassword error:', error);
     next(error);
+  }
+};
+
+/**
+ * Solicitar recuperación de contraseña
+ * Genera un token y envía email (o lo devuelve si no hay email configurado)
+ */
+export const requestPasswordReset = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'El email es requerido' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    
+    // Siempre responder exitosamente para no revelar si el email existe
+    if (!user) {
+      return res.json({
+        success: true,
+        message: 'Si el email existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña.',
+      });
+    }
+
+    if (!user.isActive) {
+      return res.json({
+        success: true,
+        message: 'Si el email existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña.',
+      });
+    }
+
+    // Generar token aleatorio
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Guardar token hasheado y expiración (1 hora)
+    user.passwordResetToken = hashedToken;
+    user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000);
+    await user.save();
+
+    // Construir URL de reset
+    const resetUrl = `${envConfig.frontendUrl}/reset-password/${resetToken}`;
+
+    // Intentar enviar email
+    try {
+      const nodemailer = await import('nodemailer');
+      const emailFrom = process.env.EMAIL_FROM;
+      const emailFromName = process.env.EMAIL_FROM_NAME || 'Church Program Manager';
+
+      if (emailFrom) {
+        // Función para crear transporter
+        let transporter;
+        const provider = process.env.EMAIL_PROVIDER || 'smtp';
+
+        if (provider === 'sendgrid') {
+          transporter = nodemailer.default.createTransport({
+            host: 'smtp.sendgrid.net',
+            port: 587,
+            auth: { user: 'apikey', pass: process.env.SENDGRID_API_KEY },
+          });
+        } else if (provider === 'mailtrap') {
+          transporter = nodemailer.default.createTransport({
+            host: 'smtp.mailtrap.io',
+            port: 2525,
+            auth: { user: process.env.MAILTRAP_USER || '', pass: process.env.MAILTRAP_PASS || '' },
+          });
+        } else {
+          transporter = nodemailer.default.createTransport({
+            host: process.env.SMTP_HOST || 'localhost',
+            port: Number(process.env.SMTP_PORT) || 587,
+            secure: process.env.SMTP_SECURE === 'true',
+            auth: { user: process.env.SMTP_USER || '', pass: process.env.SMTP_PASS || '' },
+          });
+        }
+
+        await transporter.sendMail({
+          from: `"${emailFromName}" <${emailFrom}>`,
+          to: user.email,
+          subject: '🔐 Restablecer contraseña - Church Program Manager',
+          html: `
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"/></head>
+<body style="font-family:Arial,sans-serif;background:#f0f4f8;margin:0;padding:20px;">
+<div style="max-width:480px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+  <div style="background:linear-gradient(135deg,#0e1b33,#1a2d52);padding:28px 24px;text-align:center;">
+    <div style="font-size:32px;margin-bottom:8px;">🔐</div>
+    <h1 style="color:#d4b86a;margin:0;font-size:18px;font-weight:600;">Restablecer Contraseña</h1>
+  </div>
+  <div style="padding:28px 24px;">
+    <p style="color:#333;font-size:15px;">Hola <strong>${user.fullName}</strong>,</p>
+    <p style="color:#555;font-size:14px;line-height:1.6;">
+      Recibimos una solicitud para restablecer la contraseña de tu cuenta. 
+      Haz clic en el botón de abajo para crear una nueva contraseña:
+    </p>
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${resetUrl}" style="display:inline-block;background:linear-gradient(135deg,#c49a30,#dbb854);color:#0a0e1a;padding:14px 32px;border-radius:6px;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.5px;">
+        Restablecer Contraseña
+      </a>
+    </div>
+    <p style="color:#888;font-size:12px;line-height:1.5;">
+      Este enlace expirará en <strong>1 hora</strong>.<br/>
+      Si no solicitaste este cambio, puedes ignorar este mensaje.
+    </p>
+    <hr style="border:none;border-top:1px solid #eee;margin:20px 0;"/>
+    <p style="color:#aaa;font-size:11px;text-align:center;">
+      Church Program Manager · Este es un mensaje automático
+    </p>
+  </div>
+</div>
+</body>
+</html>`,
+        });
+
+        console.info(`[Auth] Password reset email sent to ${user.email}`);
+      } else {
+        console.warn('[Auth] EMAIL_FROM not configured, password reset email skipped');
+      }
+    } catch (emailError) {
+      console.error('[Auth] Failed to send password reset email:', emailError);
+      // No fallar si el email no se pudo enviar
+    }
+
+    // Audit log
+    await AuditService.log({
+      churchId: user.churchId,
+      userId: user._id,
+      userEmail: user.email,
+      userName: user.fullName,
+      userRole: user.role,
+      action: AuditAction.PASSWORD_CHANGE,
+      category: AuditCategory.AUTH,
+      resourceType: 'Auth',
+      success: true,
+      metadata: { action: 'password_reset_requested' },
+    });
+
+    res.json({
+      success: true,
+      message: 'Si el email existe en nuestro sistema, recibirás un enlace para restablecer tu contraseña.',
+    });
+  } catch (error: any) {
+    console.error('RequestPasswordReset error:', error);
+    res.status(500).json({ success: false, message: 'Error al procesar la solicitud' });
+  }
+};
+
+/**
+ * Verificar si un token de reset es válido
+ */
+export const verifyResetToken = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: new Date() },
+    }).select('+passwordResetToken +passwordResetExpires');
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'El enlace es inválido o ha expirado. Solicita uno nuevo.',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { email: user.email, fullName: user.fullName },
+    });
+  } catch (error: any) {
+    console.error('VerifyResetToken error:', error);
+    res.status(500).json({ success: false, message: 'Error al verificar el token' });
+  }
+};
+
+/**
+ * Restablecer contraseña con token
+ */
+export const resetPasswordWithToken = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'La contraseña debe tener al menos 6 caracteres',
+      });
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: new Date() },
+    }).select('+passwordResetToken +passwordResetExpires +passwordHash');
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'El enlace es inválido o ha expirado. Solicita uno nuevo.',
+      });
+    }
+
+    // Actualizar contraseña y limpiar token
+    user.passwordHash = newPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    user.failedLoginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
+
+    // Limpiar intentos de login
+    try {
+      const LoginAttempt = (await import('../../models/LoginAttempt.model')).default;
+      await LoginAttempt.deleteMany({ email: user.email.toLowerCase() });
+    } catch (e) {
+      // Silencioso
+    }
+
+    // Audit log
+    await AuditService.log({
+      churchId: user.churchId,
+      userId: user._id,
+      userEmail: user.email,
+      userName: user.fullName,
+      userRole: user.role,
+      action: AuditAction.PASSWORD_CHANGE,
+      category: AuditCategory.AUTH,
+      resourceType: 'Auth',
+      success: true,
+      metadata: { action: 'password_reset_completed', method: 'token' },
+      severity: AuditSeverity.WARNING,
+    });
+
+    res.json({
+      success: true,
+      message: 'Contraseña restablecida exitosamente. Ya puedes iniciar sesión.',
+    });
+  } catch (error: any) {
+    console.error('ResetPasswordWithToken error:', error);
+    res.status(500).json({ success: false, message: 'Error al restablecer la contraseña' });
   }
 };

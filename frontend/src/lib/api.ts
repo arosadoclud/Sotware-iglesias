@@ -36,6 +36,9 @@ export const authApi = {
   me: () => api.get('/auth/me'),
   updateProfile: (data: { fullName: string }) => api.put('/auth/profile', data),
   changePassword: (data: { currentPassword: string; newPassword: string }) => api.put('/auth/change-password', data),
+  forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
+  verifyResetToken: (token: string) => api.get(`/auth/reset-password/${token}`),
+  resetPassword: (token: string, newPassword: string) => api.post(`/auth/reset-password/${token}`, { newPassword }),
 }
 
 // ── CHURCHES ──────────────────────────────────────────────────────────────────

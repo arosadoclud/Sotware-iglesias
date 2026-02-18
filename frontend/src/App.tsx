@@ -11,6 +11,7 @@ import { ProtectedModuleRoute } from './components/ui/ProtectedModuleRoute'
 import { PermissionRoute } from './components/ui/PermissionRoute'
 import { P } from './constants/permissions'
 import LoginPage from './pages/auth/LoginPage'
+import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import DashboardPage from './pages/DashboardPage'
 import PersonsPage from './pages/persons/PersonsPage'
 import PersonDetailPage from './pages/persons/PersonDetailPage'
@@ -63,6 +64,9 @@ const AnimatedRoutes = () => {
         <Route element={<AuthLayout />}>
           <Route path="/login" element={
             <PageTransition><LoginPage /></PageTransition>
+          } />
+          <Route path="/reset-password/:token" element={
+            <PageTransition><ResetPasswordPage /></PageTransition>
           } />
         </Route>
         <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
