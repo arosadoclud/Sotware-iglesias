@@ -781,27 +781,55 @@ async function sendVerificationEmail(email: string, fullName: string, token: str
 </body>
 </html>`;
 
-      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      // Usar API REST de Brevo con módulo https nativo (compatible con todas las versiones de Node.js)
+      const https = await import('https');
+      
+      const postData = JSON.stringify({
+        sender: { name: emailFromName, email: emailFrom },
+        to: [{ email, name: fullName }],
+        subject: '✅ Verifica tu email - Church Program Manager',
+        htmlContent,
+      });
+
+      const options = {
+        hostname: 'api.brevo.com',
+        port: 443,
+        path: '/v3/smtp/email',
         method: 'POST',
         headers: {
           'accept': 'application/json',
           'api-key': process.env.BREVO_API_KEY,
           'content-type': 'application/json',
+          'content-length': Buffer.byteLength(postData),
         },
-        body: JSON.stringify({
-          sender: { name: emailFromName, email: emailFrom },
-          to: [{ email, name: fullName }],
-          subject: '✅ Verifica tu email - Church Program Manager',
-          htmlContent,
-        }),
+      };
+
+      await new Promise<void>((resolve, reject) => {
+        const req = https.default.request(options, (res) => {
+          let data = '';
+          
+          res.on('data', (chunk) => {
+            data += chunk;
+          });
+          
+          res.on('end', () => {
+            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+              console.log(`Email de verificación enviado a: ${email} (vía Brevo API)`);
+              resolve();
+            } else {
+              reject(new Error(`Brevo API error: ${res.statusCode} - ${data}`));
+            }
+          });
+        });
+
+        req.on('error', (error) => {
+          reject(new Error(`Brevo API request failed: ${error.message}`));
+        });
+
+        req.write(postData);
+        req.end();
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Brevo API error: ${response.status} - ${JSON.stringify(errorData)}`);
-      }
-
-      console.log(`Email de verificación enviado a: ${email} (vía Brevo API)`);
+      
       return;
     }
 
