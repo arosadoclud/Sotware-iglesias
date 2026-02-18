@@ -59,8 +59,7 @@ const AnimatedRoutes = () => {
   const location = useLocation()
   
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+      <Routes location={location}>
         <Route element={<AuthLayout />}>
           <Route path="/login" element={
             <PageTransition><LoginPage /></PageTransition>
@@ -162,7 +161,6 @@ const AnimatedRoutes = () => {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </AnimatePresence>
   )
 }
 

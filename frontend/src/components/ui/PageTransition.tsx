@@ -102,10 +102,8 @@ const PageTransition = ({ children }: PageTransitionProps) => {
 
   return (
     <motion.div
-      key={location.pathname}
       initial="initial"
       animate="enter"
-      exit="exit"
       variants={variants}
       className="w-full"
     >
