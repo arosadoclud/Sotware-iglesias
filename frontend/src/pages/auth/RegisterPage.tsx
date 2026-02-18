@@ -108,10 +108,10 @@ const RegisterPage: React.FC = () => {
           </p>
           <div className="flex flex-col gap-3">
             <button
-              onClick={() => window.open('https://mail.google.com', '_blank')}
+              onClick={() => window.location.href = `mailto:${registeredEmail || ''}`}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transition-all"
             >
-              Abrir Gmail
+              Abrir Correo
             </button>
             <Link
               to="/login"
