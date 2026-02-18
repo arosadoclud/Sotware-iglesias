@@ -48,13 +48,23 @@ export const register = async (req: Request, res: Response) => {
     // Verificar si el usuario ya existe
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
-      // Si el usuario existe pero NO está verificado, permitir re-registro (eliminar el usuario anterior)
+      // VALIDACIÓN ESPECIAL PARA SUPERUSUARIO admin@iglesia.com
+      // No permitir NINGÚN re-registro del superusuario (ni siquiera si no está verificado)
+      if (normalizedEmail === 'admin@iglesia.com') {
+        console.log('[REGISTER] ⛔ Intento de re-registro de admin@iglesia.com bloqueado');
+        return res.status(400).json({ 
+          success: false, 
+          message: 'El superusuario admin@iglesia.com ya existe en el sistema. Si olvidaste tu contraseña, usa la opción de recuperación.' 
+        });
+      }
+      
+      // Para usuarios normales: Si el usuario existe pero NO está verificado, permitir re-registro
       if (!existingUser.isEmailVerified) {
-        console.log('[REGISTER] Usuario existe pero no verificado, eliminando registro anterior:', email);
+        console.log('[REGISTER] Usuario existe pero no verificado, eliminando registro anterior:', normalizedEmail);
         await User.deleteOne({ _id: existingUser._id });
         console.log('[REGISTER] Usuario anterior eliminado, procediendo con nuevo registro...');
       } else {
-        console.log('[REGISTER] Usuario ya existe y está verificado:', email);
+        console.log('[REGISTER] Usuario ya existe y está verificado:', normalizedEmail);
         return res.status(400).json({ success: false, message: 'El usuario ya existe' });
       }
     } else {
