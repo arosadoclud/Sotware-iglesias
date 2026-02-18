@@ -166,14 +166,6 @@ const DashboardPage = () => {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row items-start sm:items-center justify-between">
         <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", bounce: 0.5, duration: 0.6 }}
-            className="w-10 h-10 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-2xl lg:rounded-3xl flex items-center justify-center shadow-lg shadow-primary-500/30 flex-shrink-0"
-          >
-            <BarChart3 className="w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" />
-          </motion.div>
           <div className="flex-1 min-w-0">
             <motion.h1 
               initial={{ opacity: 0, x: -20 }}
@@ -192,6 +184,14 @@ const DashboardPage = () => {
               Resumen general de tu iglesia
             </motion.p>
           </div>
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", bounce: 0.5, duration: 0.6 }}
+            className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-lg shadow-primary-500/30 flex-shrink-0"
+          >
+            <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
+          </motion.div>
         </div>
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
