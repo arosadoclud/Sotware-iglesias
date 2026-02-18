@@ -107,6 +107,8 @@ const DashboardLayoutImproved = () => {
   const [showLogoutSplash, setShowLogoutSplash] = useState(false)
   const { restartTour } = useOnboarding()
 
+  const isViewer = user?.role === 'VIEWER'
+
   const handleLogout = () => {
     setShowLogoutSplash(true)
   }
@@ -118,6 +120,9 @@ const DashboardLayoutImproved = () => {
     // Esto evita problemas de componentes desmontados prematuramente
     window.location.href = '/login'
   }
+
+  // Módulos permitidos para VIEWER
+  const VIEWER_ALLOWED_PATHS = ['/', '/letters', '/new-members', '/calendar']
 
   // Navegación filtrada por permisos del usuario
   const allNav = [
@@ -132,10 +137,14 @@ const DashboardLayoutImproved = () => {
     { name: 'Finanzas', href: '/finances', icon: DollarSign, show: hasPermission(P.FINANCES_VIEW) || isAdmin(), className: 'sidebar-finances' },
     { name: 'Configuración', href: '/settings', icon: Settings, show: hasPermission(P.SETTINGS_VIEW) || isAdmin(), className: 'sidebar-settings' },
   ]
-  const nav = allNav.filter(item => item.show)
 
-  // Admin navigation items (only for admins)
-  const adminNav = isAdmin() ? [
+  // Si es VIEWER, filtrar solo los módulos permitidos
+  const nav = isViewer
+    ? allNav.filter(item => VIEWER_ALLOWED_PATHS.includes(item.href))
+    : allNav.filter(item => item.show)
+
+  // Admin navigation items (only for admins, never for viewers)
+  const adminNav = (!isViewer && isAdmin()) ? [
     { name: 'Usuarios', href: '/admin/users', icon: UserCog },
     { name: 'Auditoría', href: '/admin/audit', icon: Shield },
   ] : []
@@ -333,7 +342,7 @@ const DashboardLayoutImproved = () => {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ duration: 0.3 }}
-              className="lg:hidden fixed inset-y-0 left-0 w-80 bg-white border-r border-neutral-200 z-50 shadow-xl"
+              className="lg:hidden fixed inset-y-0 left-0 w-[85vw] max-w-80 bg-white border-r border-neutral-200 z-50 shadow-xl"
             >
               <div className="flex items-center gap-3 h-20 px-5 border-b border-neutral-100 bg-gradient-to-r from-white to-neutral-50/50">
                 <motion.div 
@@ -405,7 +414,7 @@ const DashboardLayoutImproved = () => {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="min-h-screen lg:pl-[280px]">
+      <main className={`min-h-screen transition-all duration-300 ${collapsed ? 'lg:pl-[80px]' : 'lg:pl-[280px]'}`}>
         <div className="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pt-16 sm:pt-18 lg:pt-8">
           <Outlet />
         </div>

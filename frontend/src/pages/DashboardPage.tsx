@@ -287,7 +287,8 @@ const DashboardPage = () => {
             </CardHeader>
             <CardContent>
               {hasMonthlyData ? (
-                <ResponsiveContainer width="100%" height={250} className="sm:h-[280px] lg:h-[300px]">
+                <div className="h-[220px] sm:h-[260px] lg:h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={stats.monthlyTrend}>
                     <defs>
                       <linearGradient id="colorPart" x1="0" y1="0" x2="0" y2="1">
@@ -330,8 +331,9 @@ const DashboardPage = () => {
                     />
                   </AreaChart>
                 </ResponsiveContainer>
+                </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-[280px] text-neutral-400">
+                <div className="flex flex-col items-center justify-center h-[220px] sm:h-[260px] lg:h-[280px] text-neutral-400">
                   <BarChart3 className="w-10 h-10 mb-2 opacity-40" />
                   <p className="text-sm">No hay datos de participación aún</p>
                 </div>
@@ -395,7 +397,7 @@ const DashboardPage = () => {
                             className="w-2.5 h-2.5 rounded-full"
                             style={{ backgroundColor: m.color }}
                           />
-                          <span className="text-neutral-600 truncate max-w-[120px]">{m.name}</span>
+                          <span className="text-neutral-600 truncate max-w-[100px] sm:max-w-[140px] lg:max-w-[120px]">{m.name}</span>
                         </div>
                         <span className="font-medium text-neutral-900">{m.value}</span>
                       </div>
@@ -466,7 +468,7 @@ const DashboardPage = () => {
                             >
                               {i + 1}
                             </motion.span>
-                            <span className="text-sm lg:text-base font-semibold text-neutral-800 truncate max-w-[180px] lg:max-w-[250px]">
+                            <span className="text-sm lg:text-base font-semibold text-neutral-800 truncate max-w-[140px] sm:max-w-[200px] lg:max-w-[250px]">
                               {p.name}
                             </span>
                           </div>

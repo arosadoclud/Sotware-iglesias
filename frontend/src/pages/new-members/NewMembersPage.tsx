@@ -282,12 +282,12 @@ const NewMembersPage = () => {
             <UserPlus className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900">Nuevos Miembros</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-neutral-900">Nuevos Miembros</h1>
             <p className="text-sm text-neutral-500">Seguimiento y bienvenida a visitantes</p>
           </div>
         </div>
         {canCreate && (
-          <Button onClick={() => openForm()} className="gap-2 bg-rose-600 hover:bg-rose-700">
+          <Button onClick={() => openForm()} className="gap-2 bg-rose-600 hover:bg-rose-700 w-full sm:w-auto">
             <Plus className="w-5 h-5" />
             Registrar Visitante
           </Button>
@@ -310,7 +310,7 @@ const NewMembersPage = () => {
                     <s.icon className={`w-5 h-5 ${s.color}`} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-neutral-900">{s.value}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-neutral-900">{s.value}</p>
                     <p className="text-xs text-neutral-500">{s.label}</p>
                   </div>
                 </CardContent>
@@ -414,8 +414,8 @@ const NewMembersPage = () => {
                           {phase.label}
                         </Badge>
 
-                        {/* Actions */}
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                        {/* Actions - visible on mobile, hover on desktop */}
+                        <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                           {canEdit && member.phone && (
                             <button
                               onClick={() => { setSelectedMember(member); setShowWhatsApp(true) }}

@@ -42,8 +42,8 @@ const CalendarPage = () => {
       </div>
 
       {loading ? <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary-600" /></div> : (
-        <div className="card overflow-x-auto -mx-4 sm:mx-0">
-          <div className="min-w-[640px] sm:min-w-0">
+        <div className="card overflow-x-auto -mx-4 sm:mx-0 pb-1">
+          <div className="min-w-[360px] sm:min-w-0">
             <div className="grid grid-cols-7 gap-px bg-gray-200">
               {/* Encabezado de días */}
               {DAYS_FULL.map((d) => (
@@ -65,13 +65,13 @@ const CalendarPage = () => {
                     </div>
                     <div className="space-y-0.5 sm:space-y-1">
                       {dayPrograms.slice(0, 3).map(p => (
-                        <div key={p._id} className="flex items-start gap-1 text-[9px] sm:text-xs leading-tight">
+                        <div key={p._id} className="flex items-start gap-1 text-[10px] sm:text-xs leading-tight">
                           <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 mt-0.5 ${STATUS_DOT[p.status] || 'bg-gray-400'}`} />
                           <span className="truncate text-gray-700 font-medium">{p.activityType?.name}</span>
                         </div>
                       ))}
                       {dayPrograms.length > 3 && (
-                        <div className="text-[8px] sm:text-[10px] text-primary-600 font-semibold ml-2">+{dayPrograms.length - 3}</div>
+                        <div className="text-[10px] sm:text-[11px] text-primary-600 font-semibold ml-2">+{dayPrograms.length - 3}</div>
                       )}
                     </div>
                   </div>

@@ -86,7 +86,7 @@ const Time12hPicker = ({
       <select
         value={hour12}
         onChange={(e) => handleChange(parseInt(e.target.value), minute, period)}
-        className="h-8 px-2 text-sm border border-neutral-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+        className="h-10 px-2 text-sm border border-neutral-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
       >
         {[12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((h) => (
           <option key={h} value={h}>{h}</option>
@@ -96,7 +96,7 @@ const Time12hPicker = ({
       <select
         value={minute}
         onChange={(e) => handleChange(hour12, e.target.value, period)}
-        className="h-8 px-2 text-sm border border-neutral-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+        className="h-10 px-2 text-sm border border-neutral-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
       >
         {['00', '15', '30', '45'].map((m) => (
           <option key={m} value={m}>{m}</option>
@@ -105,7 +105,7 @@ const Time12hPicker = ({
       <select
         value={period}
         onChange={(e) => handleChange(hour12, minute, e.target.value as 'AM' | 'PM')}
-        className="h-8 px-2 text-sm border border-neutral-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium"
+        className="h-10 px-2 text-sm border border-neutral-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium"
       >
         <option value="AM">AM</option>
         <option value="PM">PM</option>
@@ -610,22 +610,25 @@ const ActivityTypesPage = () => {
                 {form.roleConfig.map((rc, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2 p-3 bg-neutral-50 border border-neutral-200 rounded-lg"
+                    className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-neutral-50 border border-neutral-200 rounded-lg"
                   >
-                    <span className="text-sm font-bold text-neutral-400 w-6 text-center shrink-0">
-                      {idx + 1}.
-                    </span>
-                    <Input
-                      placeholder="Nombre de sección"
-                      value={rc.sectionName}
-                      onChange={(e) => updateRoleConfig(idx, 'sectionName', e.target.value)}
-                      className="flex-1"
-                    />
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-sm font-bold text-neutral-400 w-6 text-center shrink-0">
+                        {idx + 1}.
+                      </span>
+                      <Input
+                        placeholder="Nombre de sección"
+                        value={rc.sectionName}
+                        onChange={(e) => updateRoleConfig(idx, 'sectionName', e.target.value)}
+                        className="flex-1"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 pl-8 sm:pl-0">
                     <Select
                       value={rc.role.id}
                       onValueChange={(value) => updateRoleConfig(idx, 'roleId', value)}
                     >
-                      <SelectTrigger className="w-36">
+                      <SelectTrigger className="flex-1 sm:w-36">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -648,10 +651,11 @@ const ActivityTypesPage = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => removeRoleConfig(idx)}
-                      className="h-8 w-8 p-0 text-neutral-400 hover:text-danger-600 shrink-0"
+                      className="h-10 w-10 p-0 text-neutral-400 hover:text-danger-600 shrink-0"
                     >
                       <X className="w-4 h-4" />
                     </Button>
+                    </div>
                   </div>
                 ))}
               </div>

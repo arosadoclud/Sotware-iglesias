@@ -316,7 +316,7 @@ const ProgramsPage = () => {
       </div>
 
       {/* Filters mejorados */}
-      <div className="flex gap-1.5 sm:gap-2 flex-wrap overflow-x-auto pb-2 -mb-2">
+      <div className="flex gap-1.5 sm:gap-2 flex-wrap pb-2 -mb-2">
         {[['', 'Todos'], ['DRAFT','Borrador'], ['PUBLISHED','Publicado'], ['COMPLETED','Completado'], ['CANCELLED','Cancelado']].map(([val, lbl]) => (
           <motion.button
             key={val}

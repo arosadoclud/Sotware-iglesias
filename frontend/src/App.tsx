@@ -36,6 +36,23 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>
 }
 
+// Rutas permitidas para el rol VIEWER
+const VIEWER_ALLOWED_ROUTES = ['/', '/letters', '/new-members', '/calendar']
+
+const ViewerGuard = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuthStore()
+  const location = useLocation()
+  
+  if (user?.role === 'VIEWER') {
+    const isAllowed = VIEWER_ALLOWED_ROUTES.some(route => 
+      route === '/' ? location.pathname === '/' : location.pathname.startsWith(route)
+    )
+    if (!isAllowed) return <Navigate to="/" replace />
+  }
+  
+  return <>{children}</>
+}
+
 // Animated Routes component to handle page transitions
 const AnimatedRoutes = () => {
   const location = useLocation()
@@ -53,43 +70,49 @@ const AnimatedRoutes = () => {
             <PageTransition><DashboardPage /></PageTransition>
           } />
           <Route path="/persons" element={
-            <PageTransition><PersonsPage /></PageTransition>
+            <ViewerGuard><PageTransition><PersonsPage /></PageTransition></ViewerGuard>
           } />
           <Route path="/persons/:id" element={
-            <PageTransition><PersonDetailPage /></PageTransition>
+            <ViewerGuard><PageTransition><PersonDetailPage /></PageTransition></ViewerGuard>
           } />
           <Route path="/activities" element={
-            <PageTransition><ActivityTypesPage /></PageTransition>
+            <ViewerGuard><PageTransition><ActivityTypesPage /></PageTransition></ViewerGuard>
           } />
           <Route path="/programs" element={
-            <PageTransition><ProgramsPage /></PageTransition>
+            <ViewerGuard><PageTransition><ProgramsPage /></PageTransition></ViewerGuard>
           } />
           <Route path="/programs/generate" element={
-            <PermissionRoute permissions={[P.PROGRAMS_CREATE, P.PROGRAMS_GENERATE]}>
-              <PageTransition><GenerateProgramPage /></PageTransition>
-            </PermissionRoute>
+            <ViewerGuard>
+              <PermissionRoute permissions={[P.PROGRAMS_CREATE, P.PROGRAMS_GENERATE]}>
+                <PageTransition><GenerateProgramPage /></PageTransition>
+              </PermissionRoute>
+            </ViewerGuard>
           } />
           <Route path="/programs/:id/edit" element={
-            <PermissionRoute permissions={P.PROGRAMS_EDIT}>
-              <PageTransition><ProgramEditPage /></PageTransition>
-            </PermissionRoute>
+            <ViewerGuard>
+              <PermissionRoute permissions={P.PROGRAMS_EDIT}>
+                <PageTransition><ProgramEditPage /></PageTransition>
+              </PermissionRoute>
+            </ViewerGuard>
           } />
           <Route path="/programs/:id/flyer" element={
-            <PageTransition><FlyerPreviewPage /></PageTransition>
+            <ViewerGuard><PageTransition><FlyerPreviewPage /></PageTransition></ViewerGuard>
           } />
           <Route path="/programs/batch-review" element={
-            <PermissionRoute permissions={[P.PROGRAMS_CREATE, P.PROGRAMS_BATCH]}>
-              <PageTransition><BatchReviewPage /></PageTransition>
-            </PermissionRoute>
+            <ViewerGuard>
+              <PermissionRoute permissions={[P.PROGRAMS_CREATE, P.PROGRAMS_BATCH]}>
+                <PageTransition><BatchReviewPage /></PageTransition>
+              </PermissionRoute>
+            </ViewerGuard>
           } />
           <Route path="/programs/share-whatsapp" element={
-            <PageTransition><WhatsAppWizardPage /></PageTransition>
+            <ViewerGuard><PageTransition><WhatsAppWizardPage /></PageTransition></ViewerGuard>
           } />
           <Route path="/calendar" element={
             <PageTransition><CalendarPage /></PageTransition>
           } />
           <Route path="/events" element={
-            <PageTransition><EventsManagementPage /></PageTransition>
+            <ViewerGuard><PageTransition><EventsManagementPage /></PageTransition></ViewerGuard>
           } />
           <Route path="/new-members" element={
             <PageTransition><NewMembersPage /></PageTransition>
@@ -98,29 +121,39 @@ const AnimatedRoutes = () => {
             <PageTransition><LetterWizardPage /></PageTransition>
           } />
           <Route path="/finances" element={
-            <ProtectedModuleRoute module="finances">
-              <PageTransition><FinancesPage /></PageTransition>
-            </ProtectedModuleRoute>
+            <ViewerGuard>
+              <ProtectedModuleRoute module="finances">
+                <PageTransition><FinancesPage /></PageTransition>
+              </ProtectedModuleRoute>
+            </ViewerGuard>
           } />
           <Route path="/finances/reports" element={
-            <ProtectedModuleRoute module="finances">
-              <PageTransition><FinanceReportsPage /></PageTransition>
-            </ProtectedModuleRoute>
+            <ViewerGuard>
+              <ProtectedModuleRoute module="finances">
+                <PageTransition><FinanceReportsPage /></PageTransition>
+              </ProtectedModuleRoute>
+            </ViewerGuard>
           } />
           <Route path="/settings" element={
-            <ProtectedModuleRoute module="settings">
-              <PageTransition><SettingsPage /></PageTransition>
-            </ProtectedModuleRoute>
+            <ViewerGuard>
+              <ProtectedModuleRoute module="settings">
+                <PageTransition><SettingsPage /></PageTransition>
+              </ProtectedModuleRoute>
+            </ViewerGuard>
           } />
           <Route path="/admin/users" element={
-            <ProtectedModuleRoute module="users">
-              <PageTransition><UsersManagementPage /></PageTransition>
-            </ProtectedModuleRoute>
+            <ViewerGuard>
+              <ProtectedModuleRoute module="users">
+                <PageTransition><UsersManagementPage /></PageTransition>
+              </ProtectedModuleRoute>
+            </ViewerGuard>
           } />
           <Route path="/admin/audit" element={
-            <ProtectedModuleRoute module="audit">
-              <PageTransition><AuditLogsPage /></PageTransition>
-            </ProtectedModuleRoute>
+            <ViewerGuard>
+              <ProtectedModuleRoute module="audit">
+                <PageTransition><AuditLogsPage /></PageTransition>
+              </ProtectedModuleRoute>
+            </ViewerGuard>
           } />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

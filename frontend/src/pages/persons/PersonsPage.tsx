@@ -218,8 +218,8 @@ const PersonsPage = () => {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-neutral-100 transition-colors">
-                <MoreHorizontal className="h-4 w-4" />
+              <Button variant="ghost" className="h-10 w-10 p-0 hover:bg-neutral-100 transition-colors">
+                <MoreHorizontal className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
@@ -447,7 +447,98 @@ const PersonsPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, type: "spring", bounce: 0.2 }}
         >
-          <Card className="shadow-lg border-neutral-200/50 overflow-hidden">
+          {/* Mobile Card View */}
+          <div className="block md:hidden space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <Input
+                placeholder="Buscar por nombre..."
+                className="pl-9"
+                onChange={(e) => {
+                  const searchValue = e.target.value.toLowerCase()
+                  if (!searchValue) { load(page, pageSize); return }
+                  setPersons(prev => prev.filter(p => p.fullName.toLowerCase().includes(searchValue)))
+                }}
+              />
+            </div>
+            {persons.map((person) => {
+              const config = getStatusConfig(person.status)
+              return (
+                <Card key={person._id} className="shadow-sm border-neutral-200/80">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Avatar className="h-11 w-11 ring-2 ring-white shadow-md flex-shrink-0">
+                          <AvatarFallback className="bg-gradient-to-br from-primary-400 to-primary-600 text-white font-semibold">
+                            {person.fullName.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-neutral-900 truncate">{person.fullName}</p>
+                          {person.email && <p className="text-xs text-neutral-500 truncate">{person.email}</p>}
+                          {person.phone && <p className="text-xs text-neutral-500">{person.phone}</p>}
+                        </div>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-10 w-10 p-0 flex-shrink-0">
+                            <MoreHorizontal className="h-5 w-5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          {canEdit && (
+                            <DropdownMenuItem onClick={() => openEdit(person)} className="cursor-pointer">
+                              <Edit className="mr-2 h-4 w-4" /> Editar
+                            </DropdownMenuItem>
+                          )}
+                          {canDelete && (
+                            <DropdownMenuItem onClick={() => handleDelete(person._id, person.fullName)} className="text-danger-600 cursor-pointer focus:text-danger-600 focus:bg-danger-50">
+                              <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                      <Badge variant={config?.variant === 'destructive' ? 'danger' : config?.variant} className="font-medium text-xs">
+                        {config?.label || person.status}
+                      </Badge>
+                      {person.ministry && (
+                        <Badge variant="outline" className="font-medium text-xs bg-neutral-50">
+                          {person.ministry}
+                        </Badge>
+                      )}
+                      {person.roles.slice(0, 2).map((role, i) => (
+                        <Badge key={i} variant="secondary" className="text-xs bg-primary-50 text-primary-700">
+                          {role.roleName}
+                        </Badge>
+                      ))}
+                      {person.roles.length > 2 && (
+                        <Badge variant="outline" className="text-xs">+{person.roles.length - 2}</Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+            {/* Mobile Pagination */}
+            <div className="flex items-center justify-between pt-2">
+              <p className="text-sm text-neutral-500">
+                Página {page} de {Math.ceil(total / pageSize) || 1}
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+                  Anterior
+                </Button>
+                <Button variant="outline" size="sm" disabled={page >= Math.ceil(total / pageSize)} onClick={() => setPage(p => p + 1)}>
+                  Siguiente
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Table View */}
+          <Card className="shadow-lg border-neutral-200/50 overflow-hidden hidden md:block">
             <CardContent className="p-0">
               <DataTable
                 columns={columns}

@@ -229,7 +229,7 @@ const SecurityTabContent = () => {
                   <Label className="text-sm font-medium text-neutral-700 mb-3 block">
                     Módulos Protegidos
                   </Label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {allModules.map(module => {
                       const isProtected = config.modules.includes(module)
                       return (
@@ -658,7 +658,7 @@ const SettingsPage = () => {
                 onClick={() => setActiveTab(tab.id)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`relative flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-5 py-2 sm:py-3 rounded-xl text-[10px] sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+                className={`relative flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-2 sm:px-5 py-2.5 sm:py-3 rounded-xl text-[11px] sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                   isActive
                     ? 'text-primary-700'
                     : 'text-neutral-500 hover:text-neutral-700'

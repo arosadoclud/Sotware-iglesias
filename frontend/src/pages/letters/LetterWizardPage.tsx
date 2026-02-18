@@ -444,7 +444,7 @@ const LetterWizardPage = () => {
             </span>
           </div>
           {s < 3 && (
-            <div className={`w-16 h-1 mx-3 rounded-full transition-colors duration-300 ${
+            <div className={`w-8 sm:w-16 h-1 mx-1 sm:mx-3 rounded-full transition-colors duration-300 ${
               s < step ? 'bg-gradient-to-r from-green-500 to-green-400' : 'bg-neutral-200'
             }`} />
           )}
@@ -936,15 +936,15 @@ const LetterWizardPage = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-800">Cartas de Iglesia</h1>
-          <p className="text-neutral-500">Crea invitaciones, recomendaciones y más</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-neutral-800">Cartas de Iglesia</h1>
+          <p className="text-sm sm:text-base text-neutral-500">Crea invitaciones, recomendaciones y más</p>
         </div>
         {canCreate && (
-        <Button onClick={openWizard} className="gap-2 bg-primary-600 hover:bg-primary-700">
+        <Button onClick={openWizard} className="gap-2 bg-primary-600 hover:bg-primary-700 w-full sm:w-auto">
           <Plus className="w-5 h-5" />
           Nueva Carta
         </Button>
@@ -961,7 +961,7 @@ const LetterWizardPage = () => {
           onClick={openWizard}
         >
           <Card className="h-full border-2 border-dashed border-primary-200 hover:border-primary-400 hover:bg-primary-50/50 transition-all">
-            <CardContent className="flex flex-col items-center justify-center h-full min-h-[300px] p-8">
+            <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] sm:min-h-[300px] p-6 sm:p-8">
               <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center mb-4">
                 <Sparkles className="w-10 h-10 text-primary-600" />
               </div>
