@@ -14,27 +14,35 @@ export const register = async (req: Request, res: Response) => {
   try {
     const { email, password, name, role, churchId } = req.body;
 
+    console.log('[REGISTER] Intento de registro:', { email, hasPassword: !!password, name, role, churchId });
+
     // Validar email
     const emailValidation = LoginSecurityService.validateEmail(email);
     if (!emailValidation.valid) {
+      console.log('[REGISTER] Validación email falló:', emailValidation.message);
       return res.status(400).json({ success: false, message: emailValidation.message });
     }
 
     // Validar contraseña
     const passwordValidation = LoginSecurityService.validatePassword(password);
     if (!passwordValidation.valid) {
+      console.log('[REGISTER] Validación password falló:', passwordValidation.message);
       return res.status(400).json({ success: false, message: passwordValidation.message });
     }
 
     if (!name) {
+      console.log('[REGISTER] Nombre faltante');
       return res.status(400).json({ success: false, message: 'Nombre es requerido' });
     }
 
     // Verificar si el usuario ya existe
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
+      console.log('[REGISTER] Usuario ya existe:', email);
       return res.status(400).json({ success: false, message: 'El usuario ya existe' });
     }
+
+    console.log('[REGISTER] Usuario nuevo, procediendo a crear...');
 
     // Determinar el rol: si no se especifica, usar VIEWER (registros públicos)
     // Solo permitir especificar rol diferente si viene de un admin autenticado
@@ -98,6 +106,7 @@ export const register = async (req: Request, res: Response) => {
 
     // Determinar si es registro público (requiere verificación de email)
     const isPublicRegistration = !role && !(req as any).user;
+    console.log('[REGISTER] Tipo registro:', isPublicRegistration ? 'PÚBLICO (con verificación)' : 'ADMIN (sin verificación)');
 
     // Generar token de verificación de email para registros públicos
     let verificationToken = '';
@@ -105,6 +114,8 @@ export const register = async (req: Request, res: Response) => {
       verificationToken = crypto.randomBytes(32).toString('hex');
       const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
       
+      console.log('[REGISTER] Creando usuario inactivo, churchId:', finalChurchId);
+
       // Crear nuevo usuario (inactivo hasta verificar email)
       const newUser = new User({
         email: email.toLowerCase(),
@@ -119,6 +130,7 @@ export const register = async (req: Request, res: Response) => {
       });
 
       await newUser.save();
+      console.log('[REGISTER] Usuario creado exitosamente, enviando email de verificación...');
 
       // Enviar email de verificación
       await sendVerificationEmail(newUser.email, newUser.fullName, verificationToken);
