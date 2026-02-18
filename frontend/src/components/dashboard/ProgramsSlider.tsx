@@ -401,7 +401,7 @@ export default function ProgramsSlider() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-neutral-900 text-xl leading-tight mb-1 truncate">
+                          <h4 className="font-bold text-neutral-900 text-xl leading-tight mb-1 line-clamp-2">
                             {prog.activityType?.name}
                           </h4>
                           <p className="text-sm text-neutral-600 flex items-center gap-1.5">
@@ -592,7 +592,7 @@ export default function ProgramsSlider() {
                         {d.getDate()}
                       </div>
                       <div className="flex-1 min-w-0 text-left">
-                        <p className="text-xs font-semibold text-neutral-900 truncate">
+                        <p className="text-xs font-semibold text-neutral-900 line-clamp-2">
                           {p.activityType?.name}
                         </p>
                         <p className="text-[10px] text-neutral-500 truncate">
