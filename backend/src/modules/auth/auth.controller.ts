@@ -91,7 +91,44 @@ export const register = async (req: Request, res: Response) => {
       }
     }
 
-    // Crear nuevo usuario
+    // Determinar si es registro público (requiere verificación de email)
+    const isPublicRegistration = !role && !(req as any).user;
+
+    // Generar token de verificación de email para registros públicos
+    let verificationToken = '';
+    if (isPublicRegistration) {
+      verificationToken = crypto.randomBytes(32).toString('hex');
+      const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+      
+      // Crear nuevo usuario (inactivo hasta verificar email)
+      const newUser = new User({
+        email: email.toLowerCase(),
+        passwordHash: password, // El pre-save hook lo hasheará
+        fullName: name,
+        role: finalRole,
+        churchId: finalChurchId,
+        isActive: false, // Inactivo hasta verificar email
+        isEmailVerified: false,
+        emailVerificationToken: hashedToken,
+        emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
+      });
+
+      await newUser.save();
+
+      // Enviar email de verificación
+      await sendVerificationEmail(newUser.email, newUser.fullName, verificationToken);
+
+      return res.status(201).json({
+        success: true,
+        message: 'Registro exitoso. Por favor verifica tu email para activar tu cuenta.',
+        data: {
+          emailSent: true,
+          email: newUser.email,
+        },
+      });
+    }
+
+    // Crear nuevo usuario (admin creando usuario - sin verificación)
     const newUser = new User({
       email: email.toLowerCase(),
       passwordHash: password, // El pre-save hook lo hasheará
@@ -99,6 +136,7 @@ export const register = async (req: Request, res: Response) => {
       role: finalRole,
       churchId: finalChurchId,
       isActive: true,
+      isEmailVerified: true, // Los usuarios creados por admin ya están verificados
     });
 
     await newUser.save();
@@ -267,6 +305,16 @@ export const login = async (req: Request, res: Response) => {
 
     if (!user.isActive) {
       return res.status(401).json({ success: false, message: 'Usuario desactivado. Contacte al administrador.' });
+    }
+
+    // Verificar si el email ha sido verificado
+    if (!user.isEmailVerified) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Por favor verifica tu email antes de iniciar sesión. Revisa tu bandeja de entrada.',
+        emailNotVerified: true,
+        email: user.email,
+      });
     }
 
     // Limpiar intentos fallidos tras login exitoso
@@ -681,5 +729,222 @@ export const resetPasswordWithToken = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('ResetPasswordWithToken error:', error);
     res.status(500).json({ success: false, message: 'Error al restablecer la contraseña' });
+  }
+};
+
+/**
+ * Función auxiliar para enviar email de verificación
+ */
+async function sendVerificationEmail(email: string, fullName: string, token: string) {
+  try {
+    const nodemailer = await import('nodemailer');
+    const emailFrom = process.env.EMAIL_FROM;
+    const emailFromName = process.env.EMAIL_FROM_NAME || 'Church Program Manager';
+
+    if (!emailFrom) {
+      console.warn('Email no configurado - Token de verificación:', token);
+      return;
+    }
+
+    // Función para crear transporter
+    let transporter;
+    const provider = process.env.EMAIL_PROVIDER || 'smtp';
+
+    if (provider === 'sendgrid') {
+      transporter = nodemailer.default.createTransport({
+        host: 'smtp.sendgrid.net',
+        port: 587,
+        auth: { user: 'apikey', pass: process.env.SENDGRID_API_KEY },
+      });
+    } else if (provider === 'mailtrap') {
+      transporter = nodemailer.default.createTransport({
+        host: 'smtp.mailtrap.io',
+        port: 2525,
+        auth: { user: process.env.MAILTRAP_USER || '', pass: process.env.MAILTRAP_PASS || '' },
+      });
+    } else {
+      transporter = nodemailer.default.createTransport({
+        host: process.env.SMTP_HOST || 'localhost',
+        port: Number(process.env.SMTP_PORT) || 587,
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: { user: process.env.SMTP_USER || '', pass: process.env.SMTP_PASS || '' },
+      });
+    }
+
+    const verifyUrl = `${envConfig.frontendUrl}/verify-email/${token}`;
+
+    await transporter.sendMail({
+      from: `"${emailFromName}" <${emailFrom}>`,
+      to: email,
+      subject: '✅ Verifica tu email - Church Program Manager',
+      html: `
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"/></head>
+<body style="font-family:Arial,sans-serif;background:#f0f4f8;margin:0;padding:20px;">
+<div style="max-width:480px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+  <div style="background:linear-gradient(135deg,#0e1b33,#1a2d52);padding:28px 24px;text-align:center;">
+    <div style="font-size:32px;margin-bottom:8px;">✅</div>
+    <h1 style="color:#d4b86a;margin:0;font-size:18px;font-weight:600;">Verifica tu Email</h1>
+  </div>
+  <div style="padding:28px 24px;">
+    <p style="color:#333;font-size:15px;">Hola <strong>${fullName}</strong>,</p>
+    <p style="color:#555;font-size:14px;line-height:1.6;">
+      ¡Bienvenido a Church Program Manager! Para completar tu registro y activar tu cuenta, 
+      por favor verifica tu dirección de email haciendo clic en el botón de abajo:
+    </p>
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${verifyUrl}" style="display:inline-block;background:linear-gradient(135deg,#c49a30,#dbb854);color:#0a0e1a;padding:14px 32px;border-radius:6px;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.5px;">
+        Verificar Email
+      </a>
+    </div>
+    <p style="color:#888;font-size:12px;line-height:1.5;">
+      Este enlace expirará en <strong>24 horas</strong>.<br/>
+      Si no creaste esta cuenta, puedes ignorar este mensaje.
+    </p>
+    <hr style="border:none;border-top:1px solid #eee;margin:20px 0;"/>
+    <p style="color:#aaa;font-size:11px;text-align:center;">
+      Church Program Manager · Este es un mensaje automático
+    </p>
+  </div>
+</div>
+</body>
+</html>`,
+    });
+
+    console.log('Email de verificación enviado a:', email);
+  } catch (error) {
+    console.error('Error enviando email de verificación:', error);
+    throw error;
+  }
+}
+
+/**
+ * Verificar email con token
+ */
+export const verifyEmail = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token de verificación requerido',
+      });
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      emailVerificationToken: hashedToken,
+      emailVerificationExpires: { $gt: new Date() },
+    }).select('+emailVerificationToken +emailVerificationExpires');
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'El enlace de verificación es inválido o ha expirado.',
+      });
+    }
+
+    // Activar usuario y marcar email como verificado
+    user.isEmailVerified = true;
+    user.isActive = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpires = undefined;
+    await user.save();
+
+    // Generar token de acceso
+    const accessToken = jwt.sign(
+      { id: user._id, role: user.role, churchId: user.churchId },
+      envConfig.jwtSecret,
+      { expiresIn: '1d' }
+    );
+
+    const permissions = user.getEffectivePermissions();
+
+    // Audit log
+    await AuditService.log({
+      churchId: user.churchId,
+      userId: user._id,
+      userEmail: user.email,
+      userName: user.fullName,
+      userRole: user.role,
+      action: AuditAction.LOGIN,
+      category: AuditCategory.AUTH,
+      resourceType: 'Auth',
+      success: true,
+      metadata: { action: 'email_verified' },
+      severity: AuditSeverity.INFO,
+    });
+
+    res.json({
+      success: true,
+      message: 'Email verificado exitosamente. ¡Bienvenido!',
+      data: {
+        user: {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+          churchId: user.churchId,
+          permissions,
+          useCustomPermissions: user.useCustomPermissions,
+        },
+        accessToken,
+      },
+    });
+  } catch (error: any) {
+    console.error('VerifyEmail error:', error);
+    res.status(500).json({ success: false, message: 'Error al verificar el email' });
+  }
+};
+
+/**
+ * Reenviar email de verificación
+ */
+export const resendVerificationEmail = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'El email es requerido' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      // No revelar si el usuario existe
+      return res.json({
+        success: true,
+        message: 'Si el email existe y no está verificado, recibirás un nuevo enlace de verificación.',
+      });
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Este email ya ha sido verificado. Puedes iniciar sesión.',
+      });
+    }
+
+    // Generar nuevo token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+
+    user.emailVerificationToken = hashedToken;
+    user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
+    await user.save();
+
+    // Enviar email
+    await sendVerificationEmail(user.email, user.fullName, verificationToken);
+
+    res.json({
+      success: true,
+      message: 'Email de verificación reenviado. Revisa tu bandeja de entrada.',
+    });
+  } catch (error: any) {
+    console.error('ResendVerificationEmail error:', error);
+    res.status(500).json({ success: false, message: 'Error al reenviar el email de verificación' });
   }
 };

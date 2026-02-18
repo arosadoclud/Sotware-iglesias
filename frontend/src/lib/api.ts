@@ -40,6 +40,8 @@ export const authApi = {
   forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
   verifyResetToken: (token: string) => api.get(`/auth/reset-password/${token}`),
   resetPassword: (token: string, newPassword: string) => api.post(`/auth/reset-password/${token}`, { newPassword }),
+  verifyEmail: (token: string) => api.get(`/auth/verify-email/${token}`),
+  resendVerification: (email: string) => api.post('/auth/resend-verification', { email }),
 }
 
 // ── CHURCHES ──────────────────────────────────────────────────────────────────

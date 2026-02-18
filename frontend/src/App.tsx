@@ -12,6 +12,7 @@ import { PermissionRoute } from './components/ui/PermissionRoute'
 import { P } from './constants/permissions'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
+import VerifyEmailPage from './pages/auth/VerifyEmailPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import DashboardPage from './pages/DashboardPage'
 import PersonsPage from './pages/persons/PersonsPage'
@@ -67,6 +68,9 @@ const AnimatedRoutes = () => {
           } />
           <Route path="/register" element={
             <PageTransition><RegisterPage /></PageTransition>
+          } />
+          <Route path="/verify-email/:token" element={
+            <PageTransition><VerifyEmailPage /></PageTransition>
           } />
           <Route path="/reset-password/:token" element={
             <PageTransition><ResetPasswordPage /></PageTransition>

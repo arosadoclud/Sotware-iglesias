@@ -28,6 +28,7 @@ const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   const {
     register,
@@ -57,15 +58,20 @@ const RegisterPage: React.FC = () => {
       });
 
       if (response.data.success) {
-        const { user, accessToken } = response.data.data;
-        setAuth(user, accessToken);
-        
-        setSuccessMessage(true);
-        toast.success('¡Registro exitoso! Bienvenido');
-        
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
+        // Si tiene emailSent, es registro público que requiere verificación
+        if (response.data.data.emailSent) {
+          setRegisteredEmail(data.email);
+          setSuccessMessage(true);
+          toast.success('¡Registro exitoso! Verifica tu email');
+        } else {
+          // Si tiene accessToken, es registro por admin (login automático)
+          const { user, accessToken } = response.data.data;
+          setAuth(user, accessToken);
+          toast.success('¡Registro exitoso! Bienvenido');
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 1500);
+        }
       }
     } catch (error: any) {
       const message = error.response?.data?.message || 'Error al registrar usuario';
@@ -87,13 +93,33 @@ const RegisterPage: React.FC = () => {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4"
+            className="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4"
           >
-            <CheckCircle2 className="w-12 h-12 text-green-600" />
+            <Mail className="w-12 h-12 text-blue-600" />
           </motion.div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">¡Registro Exitoso!</h2>
-          <p className="text-gray-600 mb-4">Tu cuenta ha sido creada correctamente.</p>
-          <p className="text-sm text-gray-500">Redirigiendo al dashboard...</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">¡Verifica tu Email!</h2>
+          <p className="text-gray-600 mb-4">
+            Hemos enviado un enlace de verificación a:
+          </p>
+          <p className="text-lg font-semibold text-blue-600 mb-4">{registeredEmail}</p>
+          <p className="text-sm text-gray-500 mb-6">
+            Por favor revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.
+            El enlace expira en <strong>24 horas</strong>.
+          </p>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => window.open('https://mail.google.com', '_blank')}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transition-all"
+            >
+              Abrir Gmail
+            </button>
+            <Link
+              to="/login"
+              className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              Volver al login
+            </Link>
+          </div>
         </motion.div>
       </div>
     );

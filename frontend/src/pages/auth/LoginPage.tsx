@@ -44,6 +44,9 @@ const LoginPage = () => {
   const [forgotLoading, setForgotLoading] = useState(false)
   const [forgotSent, setForgotSent] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
+  const [emailNotVerified, setEmailNotVerified] = useState(false)
+  const [unverifiedEmail, setUnverifiedEmail] = useState('')
+  const [resendingVerification, setResendingVerification] = useState(false)
 
   const {
     register,
@@ -71,10 +74,30 @@ const LoginPage = () => {
       toast.success('¡Bienvenido!')
       navigate('/')
     } catch (error: any) {
-      const msg = error.response?.data?.message || 'Credenciales incorrectas'
-      toast.error(msg)
+      // Verificar si el email no está verificado
+      if (error.response?.data?.emailNotVerified) {
+        setEmailNotVerified(true)
+        setUnverifiedEmail(error.response.data.email)
+        toast.error('Por favor verifica tu email antes de iniciar sesión')
+      } else {
+        const msg = error.response?.data?.message || 'Credenciales incorrectas'
+        toast.error(msg)
+      }
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleResendVerification = async () => {
+    setResendingVerification(true)
+    try {
+      await authApi.resendVerification(unverifiedEmail)
+      toast.success('Email de verificación reenviado. Revisa tu bandeja de entrada.')
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'Error al reenviar el email'
+      toast.error(msg)
+    } finally {
+      setResendingVerification(false)
     }
   }
 
@@ -886,6 +909,35 @@ const LoginPage = () => {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="sign-in-label">Acceso</div>
+
+                  {/* Email not verified alert */}
+                  {emailNotVerified && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
+                    >
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-yellow-800 mb-1">
+                            Email no verificado
+                          </p>
+                          <p className="text-xs text-yellow-700 mb-3">
+                            Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={handleResendVerification}
+                            disabled={resendingVerification}
+                            className="text-xs font-semibold text-yellow-800 hover:text-yellow-900 underline disabled:opacity-50"
+                          >
+                            {resendingVerification ? 'Reenviando...' : 'Reenviar email de verificación'}
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
 
                   <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                     {/* Email */}

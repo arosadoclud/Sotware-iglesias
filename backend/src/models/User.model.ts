@@ -29,6 +29,9 @@ export interface IUser extends Document {
   lockUntil?: Date;                // Fecha hasta la cual la cuenta está bloqueada
   passwordResetToken?: string;     // Token para recuperar contraseña
   passwordResetExpires?: Date;     // Expiración del token de recuperación
+  isEmailVerified: boolean;        // Si el email ha sido verificado
+  emailVerificationToken?: string; // Token para verificación de email
+  emailVerificationExpires?: Date; // Expiración del token de verificación
   lastLogin?: Date;
   refreshToken?: string;
   createdBy?: mongoose.Types.ObjectId; // Usuario que lo creó
@@ -108,6 +111,18 @@ const UserSchema = new Schema<IUser>(
       select: false,
     },
     passwordResetExpires: {
+      type: Date,
+      select: false,
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationToken: {
+      type: String,
+      select: false,
+    },
+    emailVerificationExpires: {
       type: Date,
       select: false,
     },
