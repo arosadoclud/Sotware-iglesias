@@ -21,6 +21,7 @@ export interface IUnavailability {
 export interface IPerson extends Document {
   _id: mongoose.Types.ObjectId;
   churchId: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId;  // Vinculación con User (opcional)
   fullName: string;
   firstName?: string;  // Agregado para compatibilidad
   lastName?: string;   // Agregado para compatibilidad
@@ -94,6 +95,12 @@ const PersonSchema = new Schema<IPerson>(
       type: Schema.Types.ObjectId,
       ref: 'Church',
       required: [true, 'El ID de la iglesia es requerido'],
+      index: true,
+    },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
       index: true,
     },
     fullName: {

@@ -139,14 +139,67 @@ export const register = async (req: Request, res: Response) => {
       await newUser.save();
       console.log('[REGISTER] Usuario creado exitosamente, enviando email de verificación...');
 
+      // ─── VINCULACIÓN INTELIGENTE CON PERSON ───────────────────────────────
+      // Buscar Person existente por similaridad de nombre
+      const Person = (await import('../../models/Person.model')).default;
+      const existingPerson = await findPersonByNameSimilarity(name, finalChurchId, Person);
+      
+      let linkedPersonId: any = null;
+      let createdNewPerson = false;
+      
+      if (existingPerson && !existingPerson.userId) {
+        // Vincular Person existente con el nuevo User
+        existingPerson.userId = newUser._id;
+        existingPerson.email = newUser.email;  // Actualizar email
+        await existingPerson.save();
+        linkedPersonId = existingPerson._id;
+        console.log(`[REGISTER] Person existente vinculada: ${existingPerson.fullName} (${existingPerson._id})`);
+      } else if (!existingPerson) {
+        // Crear nueva Person automáticamente
+        const newPerson = new Person({
+          churchId: finalChurchId,
+          userId: newUser._id,
+          fullName: name,
+          email: newUser.email,
+          ministry: 'General',  // Ministerio por defecto
+          status: 'ACTIVO',
+          priority: 5,
+          roles: [],
+        });
+        await newPerson.save();
+        linkedPersonId = newPerson._id;
+        createdNewPerson = true;
+        console.log(`[REGISTER] Nueva Person creada automáticamente: ${newPerson.fullName} (${newPerson._id})`);
+      } else {
+        console.log('[REGISTER] Person encontrada ya tiene User vinculado, no se vincula');
+      }
+
       // Enviar email de verificación (con rollback si falla)
       try {
         await sendVerificationEmail(newUser.email, newUser.fullName, verificationToken);
         console.log('[REGISTER] Email de verificación enviado exitosamente');
       } catch (emailError: any) {
-        console.error('[REGISTER] Error enviando email, eliminando usuario creado:', emailError.message);
-        // Rollback: eliminar el usuario si el email falló
+        console.error('[REGISTER] Error enviando email, haciendo rollback completo:', emailError.message);
+        
+        // Rollback: eliminar el usuario
         await User.deleteOne({ _id: newUser._id });
+        
+        // Rollback: limpiar vinculación o eliminar Person creada
+        if (linkedPersonId) {
+          if (createdNewPerson) {
+            // Eliminar Person recién creada
+            await Person.deleteOne({ _id: linkedPersonId });
+            console.log('[REGISTER] Person creada eliminada en rollback');
+          } else {
+            // Desvincular Person existente
+            await Person.updateOne(
+              { _id: linkedPersonId }, 
+              { $unset: { userId: '', email: '' } }
+            );
+            console.log('[REGISTER] Person desvinculada en rollback');
+          }
+        }
+        
         return res.status(500).json({
           success: false,
           message: 'Error al enviar el email de verificación. Por favor, intenta de nuevo en unos minutos.',
@@ -175,6 +228,30 @@ export const register = async (req: Request, res: Response) => {
     });
 
     await newUser.save();
+
+    // ─── VINCULACIÓN INTELIGENTE CON PERSON (usuarios creados por admin) ───
+    const Person = (await import('../../models/Person.model')).default;
+    const existingPerson = await findPersonByNameSimilarity(name, finalChurchId, Person);
+    
+    if (existingPerson && !existingPerson.userId) {
+      existingPerson.userId = newUser._id;
+      existingPerson.email = newUser.email;
+      await existingPerson.save();
+      console.log(`[REGISTER ADMIN] Person existente vinculada: ${existingPerson.fullName}`);
+    } else if (!existingPerson) {
+      const newPerson = new Person({
+        churchId: finalChurchId,
+        userId: newUser._id,
+        fullName: name,
+        email: newUser.email,
+        ministry: 'General',
+        status: 'ACTIVO',
+        priority: 5,
+        roles: [],
+      });
+      await newPerson.save();
+      console.log(`[REGISTER ADMIN] Nueva Person creada: ${newPerson.fullName}`);
+    }
 
     // Generar token
     const accessToken = jwt.sign(
@@ -766,6 +843,100 @@ export const resetPasswordWithToken = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, message: 'Error al restablecer la contraseña' });
   }
 };
+
+/**
+ * Función auxiliar para buscar Person por similaridad de nombre
+ * Retorna la Person con mayor similaridad si supera el 80% de coincidencia
+ */
+async function findPersonByNameSimilarity(
+  fullName: string, 
+  churchId: any, 
+  PersonModel: any
+): Promise<any | null> {
+  try {
+    // Normalizar el nombre de entrada
+    const normalizedInput = normalizeNameForComparison(fullName);
+    const inputWords = normalizedInput.split(' ').filter(w => w.length > 2);
+    
+    if (inputWords.length === 0) return null;
+
+    // Obtener todas las personas activas de la iglesia sin userId asignado
+    const persons = await PersonModel.find({ 
+      churchId, 
+      status: { $in: ['ACTIVO', 'ACTIVE'] },
+      userId: { $exists: false }  // Solo buscar personas sin usuario vinculado
+    }).select('fullName');
+
+    if (persons.length === 0) return null;
+
+    let bestMatch: any = null;
+    let bestScore = 0;
+
+    // Comparar cada persona
+    for (const person of persons) {
+      const normalizedPerson = normalizeNameForComparison(person.fullName);
+      const personWords = normalizedPerson.split(' ').filter(w => w.length > 2);
+      
+      // Calcular similaridad basada en palabras coincidentes
+      const score = calculateNameSimilarity(inputWords, personWords);
+      
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = person;
+      }
+    }
+
+    // Solo retornar si la similaridad es mayor al 80%
+    if (bestScore >= 0.80) {
+      console.log(`[MATCH] Coincidencia encontrada: "${fullName}" ↔ "${bestMatch.fullName}" (${Math.round(bestScore * 100)}%)`);
+      return bestMatch;
+    }
+
+    console.log(`[MATCH] No se encontró coincidencia suficiente para: "${fullName}" (mejor: ${Math.round(bestScore * 100)}%)`);
+    return null;
+  } catch (error) {
+    console.error('[MATCH] Error buscando persona por nombre:', error);
+    return null;
+  }
+}
+
+/**
+ * Normalizar nombre para comparación (quitar acentos, lowercase, espacios extra)
+ */
+function normalizeNameForComparison(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Quitar acentos
+    .replace(/[^a-z0-9\s]/g, '') // Solo letras, números y espacios
+    .replace(/\s+/g, ' ') // Espacios múltiples a uno
+    .trim();
+}
+
+/**
+ * Calcular similaridad entre dos conjuntos de palabras
+ * Retorna un score entre 0 y 1
+ */
+function calculateNameSimilarity(words1: string[], words2: string[]): number {
+  if (words1.length === 0 || words2.length === 0) return 0;
+
+  // Contar palabras coincidentes
+  let matches = 0;
+  for (const word1 of words1) {
+    for (const word2 of words2) {
+      // Coincidencia exacta o una palabra contiene la otra
+      if (word1 === word2 || word1.includes(word2) || word2.includes(word1)) {
+        matches++;
+        break;
+      }
+    }
+  }
+
+  // Score basado en el promedio de coincidencias sobre ambos conjuntos
+  const score1 = matches / words1.length;
+  const score2 = matches / words2.length;
+  return (score1 + score2) / 2;
+}
 
 /**
  * Función auxiliar para enviar email de verificación
