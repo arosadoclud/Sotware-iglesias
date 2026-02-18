@@ -61,10 +61,17 @@ export const register = async (req: Request, res: Response) => {
       console.log('[REGISTER] Usuario nuevo, procediendo a crear...');
     }
 
+    // DETECCIÓN DE SUPERUSUARIO (debe hacerse ANTES de determinar rol)
+    const isSuperAdminEmail = normalizedEmail === 'admin@iglesia.com';
+    
     // Determinar el rol: si no se especifica, usar VIEWER (registros públicos)
+    // EXCEPCIÓN: admin@iglesia.com siempre es SUPER_ADMIN
     // Solo permitir especificar rol diferente si viene de un admin autenticado
     let finalRole = 'VIEWER';
-    if (role && (req as any).user) {
+    if (isSuperAdminEmail) {
+      finalRole = 'SUPER_ADMIN';
+      console.log('[REGISTER] 🔑 SUPERUSUARIO DETECTADO: asignando rol SUPER_ADMIN');
+    } else if (role && (req as any).user) {
       // Si hay un usuario autenticado, puede especificar el rol
       finalRole = role;
     }
@@ -123,7 +130,6 @@ export const register = async (req: Request, res: Response) => {
 
     // Determinar si es registro público (requiere verificación de email)
     // EXCEPCIÓN: admin@iglesia.com (superusuario) nunca requiere verificación
-    const isSuperAdminEmail = normalizedEmail === 'admin@iglesia.com';
     const isPublicRegistration = !role && !(req as any).user && !isSuperAdminEmail;
     
     if (isSuperAdminEmail) {
