@@ -72,15 +72,28 @@ export const register = async (req: Request, res: Response) => {
     // Si es VIEWER y no hay churchId, asignar la primera iglesia activa disponible
     if (finalRole === 'VIEWER' && !finalChurchId) {
       const Church = (await import('../../models/Church.model')).default;
-      const defaultChurch = await Church.findOne({ isActive: true }).limit(1);
-      if (defaultChurch) {
-        finalChurchId = defaultChurch._id;
-      } else {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'No hay iglesias disponibles. Contacta al administrador.' 
+      let defaultChurch = await Church.findOne({ isActive: true }).limit(1);
+      
+      // Si no hay ninguna iglesia, crear una por defecto (primer usuario del sistema)
+      if (!defaultChurch) {
+        defaultChurch = new Church({
+          name: 'Iglesia Principal',
+          address: { city: 'Ciudad', country: 'País' },
+          settings: {
+            timezone: 'America/New_York',
+            rotationWeeks: 4,
+            allowRepetitions: false,
+            dateFormat: 'DD/MM/YYYY',
+            whatsappEnabled: true,
+          },
+          plan: 'PRO',
+          isActive: true,
         });
+        await defaultChurch.save();
+        console.log('Iglesia por defecto creada automáticamente para primer usuario VIEWER');
       }
+      
+      finalChurchId = defaultChurch._id;
     }
 
     // Determinar si es registro público (requiere verificación de email)
