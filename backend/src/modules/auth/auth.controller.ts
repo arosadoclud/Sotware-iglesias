@@ -139,8 +139,19 @@ export const register = async (req: Request, res: Response) => {
       await newUser.save();
       console.log('[REGISTER] Usuario creado exitosamente, enviando email de verificación...');
 
-      // Enviar email de verificación
-      await sendVerificationEmail(newUser.email, newUser.fullName, verificationToken);
+      // Enviar email de verificación (con rollback si falla)
+      try {
+        await sendVerificationEmail(newUser.email, newUser.fullName, verificationToken);
+        console.log('[REGISTER] Email de verificación enviado exitosamente');
+      } catch (emailError: any) {
+        console.error('[REGISTER] Error enviando email, eliminando usuario creado:', emailError.message);
+        // Rollback: eliminar el usuario si el email falló
+        await User.deleteOne({ _id: newUser._id });
+        return res.status(500).json({
+          success: false,
+          message: 'Error al enviar el email de verificación. Por favor, intenta de nuevo en unos minutos.',
+        });
+      }
 
       return res.status(201).json({
         success: true,
