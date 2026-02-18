@@ -285,32 +285,45 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
     
     /* ---- COUNCIL INFO ---- */
     .council-info {
-      border: 2px solid #d1d5db;
+      border: 2px solid #0f2b46;
       border-radius: 6px;
-      padding: 15px;
+      padding: 0;
       margin: 20px 0;
-      background: #f9fafb;
+      background: #ffffff;
+      overflow: hidden;
     }
-    .council-info-title {
+    .council-info-header {
+      background: #0f2b46;
+      color: #ffffff;
+      padding: 10px 16px;
       font-size: 12px;
       font-weight: 700;
-      color: #374151;
-      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .council-info-body {
+      padding: 14px 16px;
     }
     .council-info-row {
       display: flex;
       justify-content: space-between;
-      padding: 6px 0;
+      align-items: center;
+      padding: 8px 12px;
       font-size: 12px;
-      color: #374151;
+      color: #1a1a2e;
+      border-bottom: 1px solid #e5e7eb;
     }
+    .council-info-row:last-of-type { border-bottom: none; }
+    .council-info-row .label { font-weight: 600; }
+    .council-info-row .value { font-family: 'Courier New', monospace; font-weight: 700; }
     .council-info-note {
       font-size: 10px;
-      color: #6b7280;
-      background: #f3f4f6;
-      padding: 8px 10px;
-      border-radius: 4px;
-      margin-top: 8px;
+      color: #4a5568;
+      background: #f0f4f8;
+      border-left: 3px solid #0f2b46;
+      padding: 8px 12px;
+      margin-top: 10px;
+      line-height: 1.5;
     }
     
     /* ---- BALANCE ---- */
@@ -480,20 +493,23 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
   
   <!-- Council Info -->
   <div class="council-info">
-    <div class="council-info-title">Información del Concilio</div>
-    <div style="border-left: 3px solid #b45309; padding: 8px 12px; background: #fffbeb; margin-bottom: 10px; font-size: 11px; color: #92400e; font-weight: 600;">
-      NOTA: El 10% de diezmos para el concilio se calcula y envía ANUALMENTE, no mensualmente.
-    </div>
-    <div class="council-info-row">
-      <span>Diezmos del Mes:</span>
-      <span style="font-family:'Courier New',monospace; font-weight:700;">RD$ ${data.summary.totalTithes.toLocaleString('es-DO', { minimumFractionDigits: 2 })}</span>
-    </div>
-    <div class="council-info-row">
-      <span>Porcentaje Anual del Concilio:</span>
-      <span style="font-weight:700;">10% (sobre total anual)</span>
-    </div>
-    <div class="council-info-note">
-      Para ver el cálculo del 10% anual, genere el "Reporte Anual del Concilio" al finalizar el año.
+    <div class="council-info-header">Información del Concilio</div>
+    <div class="council-info-body">
+      <div class="council-info-row">
+        <span class="label">Diezmos del Mes:</span>
+        <span class="value" style="color:#16a34a;">RD$ ${data.summary.totalTithes.toLocaleString('es-DO', { minimumFractionDigits: 2 })}</span>
+      </div>
+      <div class="council-info-row">
+        <span class="label">Porcentaje Anual del Concilio:</span>
+        <span class="value" style="color:#0f2b46;">10% (sobre total anual)</span>
+      </div>
+      <div class="council-info-row" style="background:#fffbeb; border-radius:4px;">
+        <span class="label" style="color:#92400e;">Acumulado del Mes para Concilio:</span>
+        <span class="value" style="color:#b45309;">RD$ ${data.summary.councilDeduction.toLocaleString('es-DO', { minimumFractionDigits: 2 })}</span>
+      </div>
+      <div class="council-info-note">
+        El 10% de diezmos se calcula y envía anualmente. Para ver el cálculo del 10% anual, genere el "Reporte Anual del Concilio" al finalizar el año.
+      </div>
     </div>
   </div>
   
