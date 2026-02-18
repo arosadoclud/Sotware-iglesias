@@ -879,6 +879,12 @@ export const getCouncilReport = async (req: AuthRequest, res: Response, next: Ne
     const totalIncome = income.reduce((sum, i) => sum + i.total, 0)
     const totalExpenses = expenses.reduce((sum, e) => sum + e.total, 0)
 
+    // Calcular 10% de diezmos para concilio
+    const tithesItem = income.find((i: any) => i.categoryCode === 'ING-01')
+    const tithesTotal = tithesItem ? tithesItem.total : 0
+    const councilAmount = tithesTotal * 0.10 // 10% para concilio
+    const churchAmount = tithesTotal * 0.90 // 90% para iglesia
+
     res.json({
       success: true,
       data: {
@@ -893,6 +899,11 @@ export const getCouncilReport = async (req: AuthRequest, res: Response, next: Ne
           income: totalIncome,
           expenses: totalExpenses,
           balance: totalIncome - totalExpenses,
+        },
+        tithes: {
+          total: tithesTotal,
+          councilAmount, // 10% para concilio
+          churchAmount,  // 90% para iglesia
         },
       },
     })

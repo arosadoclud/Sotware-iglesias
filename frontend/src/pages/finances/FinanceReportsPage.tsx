@@ -284,6 +284,13 @@ const FinanceReportsPage = () => {
         csvContent += `\nTotal Ingresos,,${councilReport.totals.income}\n`
         csvContent += `Total Gastos,,${councilReport.totals.expenses}\n`
         csvContent += `Balance,,${councilReport.totals.balance}\n`
+        // Agregar información de diezmos si existe
+        if (councilReport.tithes && councilReport.tithes.total > 0) {
+          csvContent += `\nDESGLOSE DE DIEZMOS\n`
+          csvContent += `Total de Diezmos,,${councilReport.tithes.total}\n`
+          csvContent += `10% para Concilio,,${councilReport.tithes.councilAmount}\n`
+          csvContent += `90% para Iglesia Local,,${councilReport.tithes.churchAmount}\n`
+        }
         break
 
       case 'tithing':
@@ -601,6 +608,42 @@ const FinanceReportsPage = () => {
                       </p>
                     </div>
                   </div>
+
+                  {/* Desglose de Diezmos para Concilio */}
+                  {councilReport.tithes && councilReport.tithes.total > 0 && (
+                    <div className="mt-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Heart className="w-5 h-5 text-purple-600" />
+                        <h3 className="font-semibold text-purple-900">Desglose de Diezmos</h3>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center p-3 bg-white rounded-lg">
+                          <span className="text-gray-700">Total de Diezmos</span>
+                          <span className="text-lg font-bold text-purple-700">
+                            {formatCurrency(councilReport.tithes.total)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg border border-orange-200">
+                          <span className="text-gray-700 flex items-center gap-2">
+                            <Church className="w-4 h-4 text-orange-600" />
+                            10% para Concilio
+                          </span>
+                          <span className="text-lg font-bold text-orange-600">
+                            {formatCurrency(councilReport.tithes.councilAmount)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                          <span className="text-gray-700">90% para Iglesia Local</span>
+                          <span className="text-lg font-bold text-green-600">
+                            {formatCurrency(councilReport.tithes.churchAmount)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-4 text-xs text-gray-500 text-center">
+                        <p>De cada diezmo que entra, el 10% se destina al Concilio según estatutos</p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
