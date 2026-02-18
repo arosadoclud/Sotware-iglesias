@@ -2122,6 +2122,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   flyerRowRole: {
     flexShrink: 0, width: 140, fontSize: '0.82rem', fontWeight: 600, color: C.navy,
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
   },
   flyerRowPerson: {
     flex: 1, fontFamily: F.display, fontSize: '1rem', fontWeight: 600,
