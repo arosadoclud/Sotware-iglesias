@@ -505,7 +505,7 @@ const LetterWizardPage = () => {
 
   // Step 2: Fill form - Improved UI
   const renderStep2 = () => (
-    <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-2 -mr-2">
+    <div className="space-y-5 pb-4">
       {/* Mi Iglesia Section */}
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
@@ -788,7 +788,7 @@ const LetterWizardPage = () => {
 
   // Step 3: Preview - Improved
   const renderStep3 = () => (
-    <div className="space-y-5">
+    <div className="space-y-5 pb-4">
       <div className="text-center">
         <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium mb-2">
           <CheckCircle2 className="w-4 h-4" />
@@ -798,7 +798,7 @@ const LetterWizardPage = () => {
       </div>
 
       {/* Letter Preview - Enhanced styling */}
-      <div className="border-2 border-neutral-200 rounded-xl shadow-lg overflow-hidden max-h-[45vh] overflow-y-auto bg-white ring-1 ring-black/5">
+      <div className="border-2 border-neutral-200 rounded-xl shadow-lg overflow-hidden bg-white ring-1 ring-black/5">
         {/* Header with logo simulation */}
         <div className="p-6 bg-gradient-to-b from-neutral-50 to-white">
           <div className="flex items-start gap-4 mb-8">
@@ -1057,8 +1057,8 @@ const LetterWizardPage = () => {
 
       {/* Wizard Modal */}
       <Dialog open={showWizard} onOpenChange={setShowWizard}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden bg-gradient-to-b from-white to-neutral-50">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col bg-gradient-to-b from-white to-neutral-50">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-center text-lg font-semibold text-neutral-800">
               {step === 1 && '✨ Nueva Carta'}
               {step === 2 && '✏️ Completa los Datos'}
@@ -1068,22 +1068,24 @@ const LetterWizardPage = () => {
 
           <StepIndicator />
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              {step === 1 && renderStep1()}
-              {step === 2 && renderStep2()}
-              {step === 3 && renderStep3()}
-            </motion.div>
-          </AnimatePresence>
+          <div className="flex-1 overflow-y-auto px-1 min-h-0">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                {step === 1 && renderStep1()}
+                {step === 2 && renderStep2()}
+                {step === 3 && renderStep3()}
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between pt-5 border-t border-neutral-200 bg-white rounded-b-lg">
+          <div className="flex justify-between pt-4 pb-2 border-t border-neutral-200 bg-white rounded-b-lg flex-shrink-0 mt-4">
             <Button
               variant="outline"
               onClick={step === 1 ? () => setShowWizard(false) : prevStep}
