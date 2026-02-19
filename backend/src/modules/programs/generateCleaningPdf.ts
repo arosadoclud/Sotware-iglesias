@@ -23,14 +23,28 @@ export interface CleaningPdfData {
 }
 
 export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer> {
-  // Leer logo local
+  // Buscar logo de la iglesia en múltiples ubicaciones
   let logoBase64 = '';
-  try {
-    const logoPath = path.join(process.cwd(), 'uploads', 'logo.png');
-    const logoBuffer = await fs.readFile(logoPath);
-    logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
-  } catch (error) {
-    console.warn('No se pudo cargar el logo desde uploads/logo.png:', error);
+  const possibleLogoPaths = [
+    path.join(process.cwd(), 'uploads', 'logo.png'),
+    path.join(process.cwd(), '..', 'uploads', 'logo.png'),
+    path.join(process.cwd(), '..', 'frontend', 'public', 'logo.png'),
+    path.join(process.cwd(), 'public', 'logo.png'),
+  ];
+  
+  for (const logoPath of possibleLogoPaths) {
+    try {
+      const logoBuffer = await fs.readFile(logoPath);
+      logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+      console.log(`Logo cargado desde: ${logoPath}`);
+      break;
+    } catch (error) {
+      // Continuar buscando en la siguiente ubicación
+    }
+  }
+  
+  if (!logoBase64) {
+    console.warn('No se pudo cargar el logo desde ninguna ubicación');
   }
 
   // Build HTML for cleaning schedule - matching preview format
