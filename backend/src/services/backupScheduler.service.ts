@@ -1,18 +1,18 @@
-import cron from 'node-cron';
+import cron, { ScheduledTask } from 'node-cron';
 import { BackupService } from '../services/backup.service';
 
 /**
  * Programador de Backups Automáticos
  * 
  * Configuraciones recomendadas:
- * - Diario a las 2 AM: '0 2 * * *'
- * - Cada 6 horas: '0 */6 * * *'
- * - Cada lunes a las 3 AM: '0 3 * * 1'
+ * - Diario a las 2 AM: `0 2 * * *`
+ * - Cada 6 horas: `0 *_/6 * * *`
+ * - Cada lunes a las 3 AM: `0 3 * * 1`
  */
 
 export class BackupScheduler {
   private backupService: BackupService;
-  private jobs: cron.ScheduledTask[] = [];
+  private jobs: ScheduledTask[] = [];
 
   constructor() {
     this.backupService = new BackupService();

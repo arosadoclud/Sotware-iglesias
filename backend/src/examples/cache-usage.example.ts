@@ -89,14 +89,10 @@ export const getDashboardStats = async (req: AuthRequest, res: Response, next: N
       cacheKey,
       async () => {
         // Queries pesadas que se benefician del cache
-        const [
-          totalPersons,
-          totalPrograms,
-          recentActivities
-        ] = await Promise.all([
-          Person.countDocuments({ churchId }),
-          // Otros queries...
-        ]);
+        const totalPersons = await Person.countDocuments({ churchId });
+        // Otros queries se pueden agregar aquí
+        const totalPrograms = 0; // Placeholder
+        const recentActivities = []; // Placeholder
 
         return {
           totalPersons,

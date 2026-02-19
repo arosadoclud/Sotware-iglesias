@@ -3,8 +3,20 @@ import express from 'express';
 import mongoose from 'mongoose';
 import User from '../../models/User.model';
 import Church from '../../models/Church.model';
-import { login, register, refreshToken } from '../auth.controller';
-import { authenticate } from '../../../middleware/auth.middleware';
+import { login, register } from './auth.controller';
+import { authenticate } from '../../middleware/auth.middleware';
+
+// Extender Request para incluir user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+      userId?: string;
+      churchId?: string;
+      userRole?: string;
+    }
+  }
+}
 
 describe('Auth Module', () => {
   let app: express.Application;
@@ -17,7 +29,6 @@ describe('Auth Module', () => {
     // Rutas de prueba
     app.post('/auth/register', register);
     app.post('/auth/login', login);
-    app.post('/auth/refresh', refreshToken);
     
     // Crear iglesia de prueba
     const testChurch = await Church.create({
