@@ -478,7 +478,7 @@ const CleaningProgramEditPage = () => {
                 </div>
 
                 <div className="text-center text-xs font-bold uppercase tracking-widest text-[#2c4875] pb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
-                  Grupo {program?.assignedGroupNumber} de {program?.totalGroups} • {cleaningMembers.length} Personas
+                  Grupo {program?.assignedGroupNumber}
                 </div>
 
                 {/* Members List */}
@@ -499,7 +499,7 @@ const CleaningProgramEditPage = () => {
                           {String(index + 1).padStart(2, '0')}
                         </div>
                         <div className="ml-4 flex-1">
-                          <div className="text-sm font-semibold text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>
+                          <div className="text-sm font-semibold text-gray-800 italic" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                             {member.name}
                           </div>
                           {member.phone && (
