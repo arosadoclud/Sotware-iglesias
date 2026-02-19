@@ -4,6 +4,7 @@ import { Wand2, Loader2, FileText, Trash2, Download, Send, Clock, CheckCircle2, 
 import { programsApi } from '../../lib/api'
 import { sharePdfViaWhatsApp } from '../../lib/shareWhatsApp'
 import { safeDateParse, toDateStr } from '../../lib/utils'
+import { downloadBlob } from '../../lib/downloadHelper'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
