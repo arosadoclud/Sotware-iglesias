@@ -42,14 +42,17 @@ WORKDIR /app
 # Copiar package files
 COPY package*.json ./
 
-# Instalar dependencias
-RUN npm ci --only=production
+# Instalar TODAS las dependencias primero (necesarias para compilar TypeScript)
+RUN npm ci
 
 # Copiar código fuente
 COPY . .
 
 # Compilar TypeScript
 RUN npm run build
+
+# Eliminar devDependencies después del build
+RUN npm prune --production
 
 # Crear directorios necesarios
 RUN mkdir -p public/flyers uploads
