@@ -476,23 +476,31 @@ export const updateProgramStatus = async (req: AuthRequest, res: Response, next:
     if (status === 'PUBLISHED') {
       const church = await Church.findById(req.churchId);
       if (church) {
+        console.log('[Controller] 📢 Programa publicado, iniciando tareas...');
+        
         // No await — fire and forget, las notificaciones son asíncronas
         notificationService.notifyProgramPublished(program, church).catch(err =>
           console.error('[Notifications] Error al notificar publicación:', err)
         );
 
         // Generar screenshot automático en background
+        console.log('[Controller] 🚀 Disparando generación de screenshot...');
         screenshotService.generateScreenshot({
           program,
           church,
-          flyerStyle: true
-        }).then(result => {
+        }).then(async (result) => {
+          console.log('[Controller] ✅ Screenshot generado:', result.url);
           // Actualizar el programa con la URL del screenshot
-          return Program.findByIdAndUpdate(program._id, { 
-            screenshotUrl: result.url 
-          });
+          const updatedProgram = await Program.findByIdAndUpdate(
+            program._id, 
+            { screenshotUrl: result.url },
+            { new: true }
+          );
+          console.log('[Controller] 💾 Programa actualizado con screenshotUrl');
+          return updatedProgram;
         }).catch(err => {
-          console.error('[Screenshot] Error al generar captura:', err);
+          console.error('[Controller] ❌ Error al generar captura:', err);
+          console.error('[Controller] Error stack:', err.stack);
         });
       }
     }

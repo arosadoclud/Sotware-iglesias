@@ -23,6 +23,9 @@ export class ScreenshotService {
     // Crear directorio de screenshots si no existe
     if (!fs.existsSync(this.screenshotsDir)) {
       fs.mkdirSync(this.screenshotsDir, { recursive: true });
+      console.log(`[Screenshot] ✅ Directorio creado: ${this.screenshotsDir}`);
+    } else {
+      console.log(`[Screenshot] 📁 Directorio existe: ${this.screenshotsDir}`);
     }
   }
 
@@ -32,29 +35,36 @@ export class ScreenshotService {
    * @returns URL relativa del screenshot guardado
    */
   async generateScreenshot(options: PdfGenerationOptions): Promise<ScreenshotResult> {
-    // Usar el mismo HTML que el PDF (flyer style)
-    const html = pdfService.buildHtml({ ...options, flyerStyle: true });
-    const { program, church } = options;
-
-    // Configuración para Render/producción (misma que PDF)
-    const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
+    console.log('[Screenshot] 🎬 Iniciando generación de screenshot...');
+    console.log('[Screenshot] Program ID:', (options.program as any)._id);
+    console.log('[Screenshot] Church:', options.church.name);
     
-    const browser = await puppeteer.launch({
-      headless: true,
-      executablePath,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--allow-file-access-from-files",
-        "--single-process",
-        "--no-zygote",
-      ],
-    });
-
     try {
+      // Usar el mismo HTML que el PDF (flyer style)
+      console.log('[Screenshot] 📄 Generando HTML...');
+      const html = pdfService.buildHtml({ ...options, flyerStyle: true });
+      const { program, church } = options;
+
+      // Configuración para Render/producción (misma que PDF)
+      const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
+      console.log('[Screenshot] 🌐 Lanzando navegador Puppeteer...');
+      
+      const browser = await puppeteer.launch({
+        headless: true,
+        executablePath,
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-gpu",
+          "--allow-file-access-from-files",
+          "--single-process",
+          "--no-zygote",
+        ],
+      });
+
       const page = await browser.newPage();
+      console.log('[Screenshot] 📱 Nueva página creada');
       
       // Configurar viewport para screenshot (ratio vertical típico de flyer)
       // 1200x1600px = ratio 3:4 (similar a carta)
@@ -63,12 +73,15 @@ export class ScreenshotService {
         height: 1600,
         deviceScaleFactor: 1,
       });
+      console.log('[Screenshot] 📐 Viewport configurado: 1200x1600px');
 
       await page.setContent(html, { waitUntil: "networkidle0" });
+      console.log('[Screenshot] 📝 HTML cargado');
 
       // Esperar a que las fuentes de Google se carguen
       await page.evaluateHandle("document.fonts.ready");
       await new Promise((resolve) => setTimeout(resolve, 1500));
+      console.log('[Screenshot] ⏱️ Fuentes cargadas');
 
       // Generar screenshot como PNG
       const screenshotBuffer = await page.screenshot({
@@ -76,6 +89,7 @@ export class ScreenshotService {
         fullPage: true,
         omitBackground: false,
       });
+      console.log('[Screenshot] 📸 Screenshot capturado:', screenshotBuffer.length, 'bytes');
 
       // Generar filename único basado en programId y fecha
       const dateStr = format(new Date(program.programDate), "yyyy-MM-dd");
@@ -85,8 +99,10 @@ export class ScreenshotService {
       // Guardar screenshot
       const filePath = path.join(this.screenshotsDir, filename);
       fs.writeFileSync(filePath, screenshotBuffer);
+      console.log('[Screenshot] 💾 Screenshot guardado:', filePath);
 
       await browser.close();
+      console.log('[Screenshot] 🎉 Screenshot completado exitosamente');
 
       // Retornar URL relativa para acceso HTTP
       return {
@@ -95,7 +111,7 @@ export class ScreenshotService {
         generatedAt: new Date(),
       };
     } catch (error) {
-      await browser.close();
+      console.error('[Screenshot] ❌ Error durante generación:', error);
       throw error;
     }
   }
