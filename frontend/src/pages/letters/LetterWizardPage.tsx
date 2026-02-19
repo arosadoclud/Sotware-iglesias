@@ -31,6 +31,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { lettersApi } from '@/lib/api'
+import { downloadBlob } from '@/lib/downloadHelper'
 import { toast } from 'sonner'
 
 // Tipos de carta disponibles
@@ -305,12 +306,8 @@ const LetterWizardPage = () => {
           pastorDestinatario: formData.pastor_destinatario,
         },
       })
-      const url = window.URL.createObjectURL(new Blob([res.data]))
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `carta-${recipientName?.replace(/\s+/g, '-') || 'documento'}-${new Date().toISOString().split('T')[0]}.pdf`
-      a.click()
-      window.URL.revokeObjectURL(url)
+      const filename = `carta-${recipientName?.replace(/\s+/g, '-') || 'documento'}-${new Date().toISOString().split('T')[0]}.pdf`
+      downloadBlob(new Blob([res.data]), filename)
       toast.success('PDF descargado exitosamente')
     } catch (e: any) {
       toast.error('Error al generar PDF')

@@ -118,13 +118,9 @@ const ProgramsPage = () => {
     setDownloadingPdf(prog._id)
     try {
       const res = await programsApi.downloadPdf(prog._id)
-      const url = window.URL.createObjectURL(new Blob([res.data]))
-      const a = document.createElement('a')
-      a.href = url
       const dateStr = toDateStr(prog.programDate)
-      a.download = `${prog.activityType?.name?.replace(/\s+/g, '-') || 'programa'}-${dateStr}.pdf`
-      a.click()
-      window.URL.revokeObjectURL(url)
+      const filename = `${prog.activityType?.name?.replace(/\s+/g, '-') || 'programa'}-${dateStr}.pdf`
+      downloadBlob(new Blob([res.data]), filename)
       toast.success('PDF descargado')
     } catch {
       toast.error('Error al generar PDF')
@@ -154,14 +150,11 @@ const ProgramsPage = () => {
     for (const prog of toDownload) {
       try {
         const res = await programsApi.downloadPdf(prog._id)
-        const url = window.URL.createObjectURL(new Blob([res.data]))
-        const a = document.createElement('a')
-        a.href = url
         const dateStr = toDateStr(prog.programDate)
-        a.download = `${prog.activityType?.name?.replace(/\s+/g, '-') || 'programa'}-${dateStr}.pdf`
-        a.click()
-        window.URL.revokeObjectURL(url)
+        const filename = `${prog.activityType?.name?.replace(/\s+/g, '-') || 'programa'}-${dateStr}.pdf`
+        downloadBlob(new Blob([res.data]), filename)
         downloaded++
+        await new Promise(resolve => setTimeout(resolve, 500)) // Small delay between downloads
       } catch {
         failed++
       }

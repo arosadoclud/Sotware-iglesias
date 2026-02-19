@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { programsApi, personsApi } from '../../lib/api';
+import { downloadBlob } from '../../lib/downloadHelper';
 import { toast } from 'sonner';
 import { Loader2, ArrowLeft, Save, Download, Users, Calendar, Eye, MessageCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -145,13 +146,8 @@ const CleaningProgramEditPage = () => {
     try {
       setSaving(true);
       const res = await programsApi.downloadFlyer(id);
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const a = document.createElement('a');
-      a.href = url;
       const filename = `limpieza-grupo-${program?.assignedGroupNumber || 'X'}-${new Date().toISOString().split('T')[0]}.pdf`;
-      a.download = filename;
-      a.click();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(new Blob([res.data]), filename);
       toast.success('✅ PDF descargado');
     } catch (error) {
       toast.error('❌ Error al descargar el PDF');

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { activitiesApi, programsApi } from '../../lib/api'
+import { downloadBlob } from '../../lib/downloadHelper'
 import { safeDateParse } from '../../lib/utils'
 import { toast } from 'sonner'
 import {
@@ -494,12 +495,8 @@ const GenerateProgramPage = () => {
     setDownloadingPdf(programId)
     try {
       const res = await programsApi.downloadPdf(programId)
-      const url = window.URL.createObjectURL(new Blob([res.data]))
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `programa-${programId}.pdf`
-      a.click()
-      window.URL.revokeObjectURL(url)
+      const filename = `programa-${programId}.pdf`
+      downloadBlob(new Blob([res.data]), filename)
       toast.success('PDF descargado')
     } catch {
       toast.error('Error al generar el PDF')

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { programsApi, churchesApi } from '../../lib/api'
+import { downloadBlob } from '../../lib/downloadHelper'
 import { shareMultiplePdfsViaWhatsApp } from '../../lib/shareWhatsApp'
 import { toDateStr, safeDateParse } from '../../lib/utils'
 import { toast } from 'sonner'
@@ -285,15 +286,11 @@ const BatchReviewPage = () => {
     setDownloadingId(progId)
     try {
       const res = await programsApi.downloadPdf(progId)
-      const url = window.URL.createObjectURL(new Blob([res.data]))
-      const a = document.createElement('a')
-      a.href = url
       const prog = programs.find(p => p._id === progId)
       const dateStr = prog ? toDateStr(prog.programDate) : progId
       const actName = prog?.activityType?.name?.replace(/\s+/g, '-') || 'programa'
-      a.download = `${actName}-${dateStr}.pdf`
-      a.click()
-      window.URL.revokeObjectURL(url)
+      const filename = `${actName}-${dateStr}.pdf`
+      downloadBlob(new Blob([res.data]), filename)
       toast.success('PDF descargado')
     } catch {
       toast.error('Error al generar PDF')
@@ -307,16 +304,13 @@ const BatchReviewPage = () => {
     for (const prog of programs) {
       try {
         const res = await programsApi.downloadPdf(prog._id)
-        const url = window.URL.createObjectURL(new Blob([res.data]))
-        const a = document.createElement('a')
-        a.href = url
         const dateStr = toDateStr(prog.programDate)
         const actName = prog.activityType?.name?.replace(/\s+/g, '-') || 'programa'
-        a.download = `${actName}-${dateStr}.pdf`
-        a.click()
-        window.URL.revokeObjectURL(url)
+        const filename = `${actName}-${dateStr}.pdf`
+        downloadBlob(new Blob([res.data]), filename)
         success++
         // Small delay between downloads
+        await new Promise(r => setTimeout(r, 500))
         await new Promise(r => setTimeout(r, 500))
       } catch {
         toast.error(`Error con programa del ${format(safeDateParse(prog.programDate), "d MMM", { locale: es })}`)

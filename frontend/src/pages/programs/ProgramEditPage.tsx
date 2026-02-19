@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { programsApi } from '../../lib/api';
+import { downloadBlob } from '../../lib/downloadHelper';
 import { safeDateParse } from '../../lib/utils';
 import { toast } from 'sonner';
 import { Loader2, ArrowLeft, Save, Download, Eye, MessageCircle } from 'lucide-react';
@@ -136,15 +137,10 @@ const ProgramEditPage = () => {
     try {
       setSaving(true);
       const res = await programsApi.downloadFlyer(id);
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const a = document.createElement('a');
-      a.href = url;
       const dateStr = programDate ? programDate.split('T')[0] : new Date().toISOString().split('T')[0];
       const activitySlug = worshipType.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       const filename = `${churchName.toLowerCase().replace(/\s+/g, '-')}-${activitySlug}-${dateStr}.pdf`;
-      a.download = filename;
-      a.click();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(new Blob([res.data]), filename);
       toast.success('✅ PDF descargado');
     } catch (error) {
       toast.error('❌ Error al descargar el PDF');
