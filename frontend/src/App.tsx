@@ -21,6 +21,7 @@ import ActivityTypesPage from './pages/activities/ActivityTypesPage'
 import ProgramsPage from './pages/programs/ProgramsPage'
 import GenerateProgramPage from './pages/programs/GenerateProgramPage'
 import ProgramEditPage from './pages/programs/ProgramEditPage'
+import CleaningProgramEditPage from './pages/programs/CleaningProgramEditPage'
 import FlyerPreviewPage from './pages/programs/FlyerPreviewPage'
 import BatchReviewPage from './pages/programs/BatchReviewPage'
 import WhatsAppWizardPage from './pages/programs/WhatsAppWizardPage'
@@ -103,6 +104,13 @@ const AnimatedRoutes = () => {
             <ViewerGuard>
               <PermissionRoute permissions={P.PROGRAMS_EDIT}>
                 <PageTransition><ProgramEditPage /></PageTransition>
+              </PermissionRoute>
+            </ViewerGuard>
+          } />
+          <Route path="/programs/edit-cleaning/:id" element={
+            <ViewerGuard>
+              <PermissionRoute permissions={P.PROGRAMS_EDIT}>
+                <PageTransition><CleaningProgramEditPage /></PageTransition>
               </PermissionRoute>
             </ViewerGuard>
           } />

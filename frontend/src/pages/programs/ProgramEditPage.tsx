@@ -30,6 +30,13 @@ const ProgramEditPage = () => {
       try {
         const res = await programsApi.get(id);
         const prog = res.data.data;
+        
+        // Si es un programa de limpieza, redirigir al editor específico
+        if (prog.generationType === 'cleaning_groups') {
+          navigate(`/programs/edit-cleaning/${id}`, { replace: true });
+          return;
+        }
+        
         setProgram(prog);
         setAssignments(prog.assignments || []);
         
