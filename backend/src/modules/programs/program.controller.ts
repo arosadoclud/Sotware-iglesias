@@ -115,6 +115,7 @@ import { NotFoundError, BadRequestError, ConflictError } from '../../utils/error
 import { notificationService } from '../notifications/notification.service';
 import { cache, CacheKeys, CacheTTL } from '../../infrastructure/cache/CacheAdapter';
 import { getRandomVerse } from '../bible/bible.service';
+import { screenshotService } from '../pdf/screenshot.service';
 
 // Helper: Convertir hora 24h "HH:mm" → "H:MM AM/PM"
 function formatTime24to12(time24: string): { formatted: string; period: 'AM' | 'PM' } {
@@ -471,7 +472,7 @@ export const updateProgramStatus = async (req: AuthRequest, res: Response, next:
     const program = await Program.findOneAndUpdate({ _id: req.params.id, churchId: req.churchId }, { status }, { new: true });
     if (!program) throw new NotFoundError('Programa no encontrado');
 
-    // Disparar notificaciones cuando el programa se publica
+    // Disparar notificaciones y generar screenshot cuando el programa se publica
     if (status === 'PUBLISHED') {
       const church = await Church.findById(req.churchId);
       if (church) {
@@ -479,6 +480,20 @@ export const updateProgramStatus = async (req: AuthRequest, res: Response, next:
         notificationService.notifyProgramPublished(program, church).catch(err =>
           console.error('[Notifications] Error al notificar publicación:', err)
         );
+
+        // Generar screenshot automático en background
+        screenshotService.generateScreenshot({
+          program,
+          church,
+          flyerStyle: true
+        }).then(result => {
+          // Actualizar el programa con la URL del screenshot
+          return Program.findByIdAndUpdate(program._id, { 
+            screenshotUrl: result.url 
+          });
+        }).catch(err => {
+          console.error('[Screenshot] Error al generar captura:', err);
+        });
       }
     }
 

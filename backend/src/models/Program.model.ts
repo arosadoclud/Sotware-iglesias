@@ -37,6 +37,7 @@ export interface IProgram extends Document {
   status: ProgramStatus;
   assignments: IAssignment[];
   pdfUrl?: string;
+  screenshotUrl?: string;
   notes?: string;
   generatedBy: {
     id: mongoose.Types.ObjectId;
@@ -161,6 +162,10 @@ const ProgramSchema = new Schema<IProgram>(
       default: [],
     },
     pdfUrl: {
+      type: String,
+      trim: true,
+    },
+    screenshotUrl: {
       type: String,
       trim: true,
     },
