@@ -433,6 +433,14 @@ export const generateBatchPrograms = async (req: AuthRequest, res: Response, nex
       console.log(''); // Blank line
       // ══════════ END FINAL VERIFICATION ══════════
 
+      // ══════════ RESPONSE LOGGING ══════════
+      console.log('\n📤 [RESPONSE] Sending response to client:');
+      console.log('   Generated:', generated.length);
+      console.log('   Errors:', errors.length);
+      console.log('   Program IDs being sent:', programIds.slice(0, 3).join(', '), programIds.length > 3 ? '...' : '');
+      console.log(''); // Blank line
+      // ══════════ END RESPONSE LOGGING ══════════
+
       return res.status(201).json({
         success: true,
         data: {

@@ -382,7 +382,10 @@ const ProgramsPage = () => {
                 const sc = STATUS_CONFIG[prog.status] || STATUS_CONFIG.DRAFT
                 const StatusIcon = sc.icon
                 const nextSt = NEXT_STATUS[prog.status]
-                const assignedCount = (prog.assignments || []).filter((a: any) => a.person?.name).length
+                // Contar personas correctamente según tipo de programa
+                const assignedCount = (prog as any).generationType === 'cleaning_groups'
+                  ? ((prog as any).cleaningMembers?.length || 0)
+                  : (prog.assignments || []).filter((a: any) => a.person?.name).length
 
                 return (
                   <motion.div
@@ -547,7 +550,10 @@ const ProgramsPage = () => {
                   const sc = STATUS_CONFIG[prog.status] || STATUS_CONFIG.DRAFT
                   const StatusIcon = sc.icon
                   const nextSt = NEXT_STATUS[prog.status]
-                  const assignedCount = (prog.assignments || []).filter((a: any) => a.person?.name).length
+                  // Contar personas correctamente según tipo de programa
+                  const assignedCount = (prog as any).generationType === 'cleaning_groups'
+                    ? ((prog as any).cleaningMembers?.length || 0)
+                    : (prog.assignments || []).filter((a: any) => a.person?.name).length
 
                   return (
                     <motion.tr 
