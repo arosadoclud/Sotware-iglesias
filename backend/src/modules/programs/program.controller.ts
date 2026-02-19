@@ -21,13 +21,36 @@ export const downloadProgramFlyerPdf = async (req: AuthRequest, res: Response, n
 
     // ── CLEANING GROUPS PDF ──
     if (program.generationType === 'cleaning_groups') {
+      // Formatear hora igual que el frontend
+      let hour = '';
+      let ampm = 'AM';
+      if (program.defaultTime) {
+        hour = program.defaultTime;
+      }
+      if (program.ampm) {
+        ampm = program.ampm;
+      }
+      function formatTimeES(timeStr: string, ampm?: string): string {
+        if (!timeStr) return '';
+        const parts = timeStr.split(':');
+        let h = parseInt(parts[0]);
+        let m = parts[1] || '00';
+        const displayAmpm = ampm || 'AM';
+        const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
+        return `${h12}:${m.padStart(2, '0')} ${displayAmpm}`;
+      }
+      
       const cleaningData = {
         churchName: program.churchName || '',
         churchSub: program.churchSub || '',
         logoUrl: program.logoUrl || '',
+        activityType: program.activityType?.name || 'Programa de Limpieza',
         date: formatDateES(program.programDate),
+        time: formatTimeES(hour, ampm),
         groupNumber: program.assignedGroupNumber || 1,
         totalGroups: program.totalGroups || 1,
+        verse: program.verse || '',
+        verseText: (program as any).verseText || '',
         members: (program.cleaningMembers || []).map((m: any) => ({
           id: m.id?.toString() || '',
           name: m.name || '',
