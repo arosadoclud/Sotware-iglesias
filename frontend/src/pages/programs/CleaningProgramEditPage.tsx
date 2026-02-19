@@ -23,6 +23,7 @@ const CleaningProgramEditPage = () => {
 
   // Estados para datos editables
   const [churchName, setChurchName] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
   const [programDate, setProgramDate] = useState('');
   const [programTime, setProgramTime] = useState('');
   const [timePeriod, setTimePeriod] = useState<'AM' | 'PM'>('AM');
@@ -48,8 +49,9 @@ const CleaningProgramEditPage = () => {
         setProgram(prog);
         setCleaningMembers(prog.cleaningMembers || []);
         
-        // Cargar nombre de iglesia
+        // Cargar nombre de iglesia y logo
         setChurchName(prog.churchName || '');
+        setLogoUrl(prog.logoUrl || '');
 
         // Cargar fecha
         setProgramDate(prog.programDate ? prog.programDate.slice(0, 10) : '');
@@ -119,6 +121,8 @@ const CleaningProgramEditPage = () => {
 
       await programsApi.update(id, {
         ...program,
+        churchName,
+        logoUrl,
         programDate: programDate ? `${programDate}T12:00:00` : programDate,
         programTime: formattedTime,
         defaultTime: formattedTime,
@@ -243,6 +247,32 @@ const CleaningProgramEditPage = () => {
                     onChange={(e) => setChurchName(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    URL del Logo de la Iglesia
+                  </label>
+                  <input
+                    type="text"
+                    value={logoUrl}
+                    onChange={(e) => setLogoUrl(e.target.value)}
+                    placeholder="https://ejemplo.com/logo.png"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                  {logoUrl && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <img 
+                        src={logoUrl} 
+                        alt="Vista previa del logo" 
+                        className="w-12 h-12 object-contain rounded border"
+                        onError={(e) => {
+                          e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="48" height="48"%3E%3Crect width="48" height="48" fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-size="12" fill="%23999"%3E❌%3C/text%3E%3C/svg%3E';
+                        }}
+                      />
+                      <span className="text-xs text-gray-500">Vista previa</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -397,15 +427,25 @@ const CleaningProgramEditPage = () => {
               {/* Flyer Preview */}
               <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-[#2c4875] to-[#3d5a80] px-8 py-6 flex items-center justify-between">
-                  <div className="flex-1">
-                    <h1 className="text-white text-2xl font-bold uppercase tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
-                      {churchName || 'Nombre de la Iglesia'}
-                    </h1>
-                  </div>
-                  <div className="w-20 h-20 bg-white/15 border-2 border-white/30 rounded-xl flex items-center justify-center text-4xl">
-                    🕊
-                  </div>
+                <div className="bg-gradient-to-r from-[#2c4875] to-[#3d5a80] px-8 py-6 flex flex-col items-center justify-center text-center gap-4">
+                  {logoUrl ? (
+                    <img 
+                      src={logoUrl} 
+                      alt="Logo de la iglesia" 
+                      className="w-24 h-24 object-contain rounded-xl bg-white/10 p-2"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                  ) : (
+                    <div className="w-24 h-24 bg-white/15 border-2 border-white/30 rounded-xl flex items-center justify-center text-5xl">
+                      🕊
+                    </div>
+                  )}
+                  <h1 className="text-white text-2xl font-bold uppercase tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
+                    {churchName || 'Nombre de la Iglesia'}
+                  </h1>
                 </div>
 
                 {/* Gold Band */}
