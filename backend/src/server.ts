@@ -2,6 +2,7 @@ import app, { setupQueues } from './app';
 import database from './config/database';
 import envConfig from './config/env';
 import logger from './utils/logger';
+import { backupScheduler } from './services/backupScheduler.service';
 
 const PORT = envConfig.port;
 
@@ -13,7 +14,13 @@ async function start() {
     // 2. Iniciar colas de notificaciones (Bull + Redis si disponible)
     setupQueues();
 
-    // 3. Iniciar servidor HTTP
+    // 3. Iniciar backups automáticos (solo en producción)
+    if (envConfig.nodeEnv === 'production') {
+      backupScheduler.startDailyBackup(); // Backup diario a las 2 AM
+      logger.info('✅ Backups automáticos activados (diario 2 AM)');
+    }
+
+    // 4. Iniciar servidor HTTP
     const server = app.listen(PORT, () => {
       logger.info('');
       logger.info('╔═══════════════════════════════════════════╗');
@@ -26,6 +33,7 @@ async function start() {
       logger.info('║  Pasos implementados:                     ║');
       logger.info('║  ✅ 1. Tenant Guard (seguridad multi-tenant)║');
       logger.info('║  ✅ 2. RBAC 6 roles granulares            ║');
+      logger.info('║  ✅ 9. Backups automáticos MongoDB        ║');
       logger.info('║  ✅ 3. AssignmentEngine v2 (algoritmo)    ║');
       logger.info('║  ✅ 4. Índices MongoDB optimizados        ║');
       logger.info('║  ✅ 5. PDF con Puppeteer + Handlebars     ║');

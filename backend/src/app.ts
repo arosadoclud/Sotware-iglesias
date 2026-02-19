@@ -10,12 +10,19 @@ import envConfig from './config/env';
 import logger from './utils/logger';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware';
 import { initQueues } from './infrastructure/queue/QueueManager';
+import { initSentry, sentryRequestHandler, sentryErrorHandler } from './config/sentry';
 // Inicializar email service (registra el handler en la queue)
 import './infrastructure/email/EmailService';
 // Inicializar notification service (registra WhatsApp handler)
 import './modules/notifications/notification.service';
 
+// Inicializar Sentry ANTES de crear la app
+initSentry();
+
 const app: Express = express();
+
+// Sentry request handler - DEBE ir antes de todo
+app.use(sentryRequestHandler());
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const allowedOrigins = [
@@ -167,6 +174,8 @@ export function setupQueues() {
 }
 
 // ── ERROR HANDLERS ─────────────────────────────────────────────────────────────
+// Sentry error handler - DEBE ir antes de los handlers personalizados
+app.use(sentryErrorHandler());
 app.use(notFoundHandler);
 app.use(errorHandler);
 

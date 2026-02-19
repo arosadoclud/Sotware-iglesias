@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App.tsx'
 import './index.css'
+import { initSentry } from './lib/sentry.ts'
+
+// Inicializar Sentry ANTES de todo
+initSentry();
 
 // Configuración de React Query
 const queryClient = new QueryClient({
