@@ -173,6 +173,7 @@ export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer
         .member-row {
           display: flex;
           align-items: center;
+          justify-content: center;
           padding: 15px 20px;
           border-radius: 10px;
           margin-bottom: 8px;
@@ -198,20 +199,19 @@ export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer
           flex-shrink: 0;
         }
         .member-info {
-          margin-left: 15px;
           flex: 1;
+          text-align: center;
         }
         .member-name {
           font-size: 14px;
           font-weight: 600;
-          color: #374151;
-          font-style: italic;
-          font-family: 'Cormorant Garamond', serif;
+          color: #111827;
+          font-family: 'Playfair Display', serif;
         }
         .member-phone {
           font-size: 11px;
           color: #6b7280;
-          margin-top: 2px;
+          margin-top: 4px;
         }
         .verse-section {
           text-align: center;

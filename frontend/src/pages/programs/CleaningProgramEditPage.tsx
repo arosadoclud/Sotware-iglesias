@@ -491,19 +491,19 @@ const CleaningProgramEditPage = () => {
                     cleaningMembers.map((member, index) => (
                       <div
                         key={member.id}
-                        className={`flex items-center px-4 py-3 rounded-lg ${
+                        className={`flex items-center justify-center px-4 py-3 rounded-lg ${
                           index % 2 === 0 ? 'bg-gray-100' : 'bg-white'
                         }`}
                       >
                         <div className="flex-shrink-0 w-8 h-8 bg-[#2c4875] text-amber-400 rounded-lg flex items-center justify-center text-xs font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>
                           {String(index + 1).padStart(2, '0')}
                         </div>
-                        <div className="ml-4 flex-1">
-                          <div className="text-sm font-semibold text-gray-800 italic" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                        <div className="flex-1 text-center">
+                          <div className="text-sm font-semibold text-gray-900" style={{ fontFamily: 'Playfair Display, serif' }}>
                             {member.name}
                           </div>
                           {member.phone && (
-                            <div className="text-xs text-gray-500">{member.phone}</div>
+                            <div className="text-xs text-gray-500 mt-1">{member.phone}</div>
                           )}
                         </div>
                       </div>
