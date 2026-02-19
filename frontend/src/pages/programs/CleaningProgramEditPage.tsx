@@ -141,7 +141,7 @@ const CleaningProgramEditPage = () => {
 
   const handleDownloadPDF = () => {
     if (id) {
-      window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/v1/programs/${id}/flyer`, '_blank');
+      window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/programs/${id}/flyer`, '_blank');
     }
   };
 
