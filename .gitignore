@@ -39,3 +39,6 @@ backend/uploads/*
 .claude/settings.local.json
 .vercel
 .env*.local
+
+# Credenciales privadas (no subir)
+CREDENTIALS-PRIVATE.md
