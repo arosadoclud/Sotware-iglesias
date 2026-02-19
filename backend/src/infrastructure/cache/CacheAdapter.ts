@@ -209,10 +209,10 @@ export const CacheKeys = {
 
 // TTLs en segundos
 export const CacheTTL = {
-  TENANT:       5 * 60,    // 5 min
-  SETTINGS:    10 * 60,    // 10 min
-  STATS:        5 * 60,    // 5 min
-  HISTORY:      1 * 60,    // 1 min
-  PERSONS:      2 * 60,    // 2 min
-  ACTIVITIES:  10 * 60,    // 10 min
+  TENANT:       5 * 60,     // 5 min
+  SETTINGS:    10 * 60,     // 10 min
+  STATS:       30 * 60,     // 30 min (optimizado - queries pesadas)
+  HISTORY:      1 * 60,     // 1 min
+  PERSONS:      5 * 60,     // 5 min (aumentado de 2 min)
+  ACTIVITIES:  10 * 60,     // 10 min
 };
