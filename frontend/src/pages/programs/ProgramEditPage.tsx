@@ -53,7 +53,8 @@ const ProgramEditPage = () => {
           if (hasPM || hasAM) {
             // Ya viene en formato 12h "7:00 PM"
             const clean = prog.programTime.replace(/\s*(AM|PM)\s*/gi, '').trim();
-            setProgramTime(clean);
+            const [h, m] = clean.split(':');
+            setProgramTime(`${h.padStart(2, '0')}:${m?.padStart(2, '0') || '00'}`);
             setTimePeriod(hasPM ? 'PM' : 'AM');
           } else {
             // Formato 24h "19:00" → convertir a 12h
@@ -62,11 +63,11 @@ const ProgramEditPage = () => {
             const m = parts[1] || '00';
             const isPM = h >= 12;
             const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-            setProgramTime(`${h12}:${m}`);
+            setProgramTime(`${String(h12).padStart(2, '0')}:${m.padStart(2, '0')}`);
             setTimePeriod(isPM ? 'PM' : 'AM');
           }
         } else {
-          setProgramTime('7:00');
+          setProgramTime('07:00');
           setTimePeriod('PM');
         }
         

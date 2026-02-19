@@ -62,7 +62,8 @@ const CleaningProgramEditPage = () => {
           const hasAM = /AM/i.test(prog.programTime);
           if (hasPM || hasAM) {
             const clean = prog.programTime.replace(/\s*(AM|PM)\s*/gi, '').trim();
-            setProgramTime(clean);
+            const [h, m] = clean.split(':');
+            setProgramTime(`${h.padStart(2, '0')}:${m?.padStart(2, '0') || '00'}`);
             setTimePeriod(hasPM ? 'PM' : 'AM');
           } else {
             const parts = prog.programTime.split(':');
@@ -70,7 +71,7 @@ const CleaningProgramEditPage = () => {
             const m = parts[1] || '00';
             const isPM = h >= 12;
             const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-            setProgramTime(`${h12}:${m}`);
+            setProgramTime(`${String(h12).padStart(2, '0')}:${m.padStart(2, '0')}`);
             setTimePeriod(isPM ? 'PM' : 'AM');
           }
         } else {
