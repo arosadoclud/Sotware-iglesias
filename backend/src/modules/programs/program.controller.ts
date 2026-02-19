@@ -245,6 +245,16 @@ export const generateProgram = async (req: AuthRequest, res: Response, next: Nex
 export const generateBatchPrograms = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { activityTypeId, startDate, endDate, numberOfGroups } = req.body;
+    
+    // ══════════ REQUEST LOGGING ══════════
+    console.log('\n📥 [BATCH-GENERATE] Request received:');
+    console.log('   ActivityTypeId:', activityTypeId);
+    console.log('   Date Range:', startDate, 'to', endDate);
+    console.log('   Number of Groups:', numberOfGroups);
+    console.log('   ChurchId:', req.churchId);
+    console.log('   UserId:', req.userId);
+    // ══════════ END REQUEST LOGGING ══════════
+    
     if (!activityTypeId || !startDate || !endDate) throw new BadRequestError('activityTypeId, startDate y endDate son requeridos');
 
     const activity = await ActivityType.findOne({ _id: activityTypeId, churchId: req.churchId });
@@ -342,6 +352,17 @@ export const generateBatchPrograms = async (req: AuthRequest, res: Response, nex
           const cleaningTime24 = activity.getTimeForDay(date.getDay()) || activity.defaultTime || '10:00';
           const cleaningTime = formatTime24to12(cleaningTime24);
 
+          // ══════════ DIAGNOSTIC LOGGING START ══════════
+          const membersToSave = groups[groupIndex];
+          console.log('\n🔍 [CREATE-DEBUG] Attempting to create cleaning program:');
+          console.log('   Date:', date.toISOString());
+          console.log('   Group Number:', groupNumber, '/', numGroups);
+          console.log('   Members Count:', membersToSave.length);
+          console.log('   First 2 Members:', JSON.stringify(membersToSave.slice(0, 2), null, 2));
+          console.log('   ChurchId:', req.churchId);
+          console.log('   Activity:', activity.name);
+          // ══════════ DIAGNOSTIC LOGGING END ══════════
+
           const program = await Program.create({
             churchId: req.churchId,
             activityType: { id: activity._id, name: activity.name },
@@ -350,7 +371,7 @@ export const generateBatchPrograms = async (req: AuthRequest, res: Response, nex
             generationType: 'cleaning_groups',
             assignedGroupNumber: groupNumber,
             totalGroups: numGroups,
-            cleaningMembers: groups[groupIndex],
+            cleaningMembers: membersToSave,
             assignments: [], // No role assignments for cleaning
             churchName: church?.name || '',
             churchSub: church?.subTitle || '',
@@ -364,14 +385,53 @@ export const generateBatchPrograms = async (req: AuthRequest, res: Response, nex
             generatedAt: new Date(),
           });
 
+          // ══════════ VERIFICATION START ══════════
+          console.log('✅ [CREATE-DEBUG] Create returned successfully:');
+          console.log('   Program ID:', program._id.toString());
+          console.log('   GenerationType:', program.generationType);
+          console.log('   AssignedGroupNumber:', program.assignedGroupNumber);
+          console.log('   Members in returned doc:', program.cleaningMembers?.length || 0);
+          
+          // Immediate verification query
+          const immediateVerify = await Program.findById(program._id);
+          console.log('🔎 [CREATE-DEBUG] Immediate DB verification:');
+          console.log('   Found in DB:', immediateVerify ? 'YES ✅' : 'NO ❌');
+          if (immediateVerify) {
+            console.log('   Members persisted:', immediateVerify.cleaningMembers?.length || 0);
+            console.log('   GenerationType in DB:', immediateVerify.generationType);
+          }
+          console.log(''); // Blank line for readability
+          // ══════════ VERIFICATION END ══════════
+
           results.push({ date, success: true, programId: program._id.toString(), groupNumber });
         } catch (err: any) {
+          console.error('❌ [CREATE-DEBUG] Error creating program:', err.message);
+          console.error('   Stack:', err.stack);
           results.push({ date, success: false, error: err.message });
         }
       }
 
       const generated = results.filter((r) => r.success);
       const errors = results.filter((r) => !r.success);
+
+      // ══════════ FINAL VERIFICATION ══════════
+      console.log('\n🏁 [FINAL-VERIFICATION] Confirming programs in database:');
+      const finalCount = await Program.countDocuments({
+        churchId: req.churchId,
+        generationType: 'cleaning_groups'
+      });
+      console.log('   Programs created in this call:', generated.length);
+      console.log('   Total cleaning programs in DB:', finalCount);
+      const programIds = generated.map(g => g.programId).filter(Boolean);
+      console.log('   Program IDs created:', programIds.join(', '));
+      
+      // Verify each created program
+      for (const id of programIds) {
+        const exists = await Program.findById(id);
+        console.log(`   - ${id}: ${exists ? '✅ EXISTS' : '❌ MISSING'} ${exists ? `(${exists.cleaningMembers?.length || 0} members)` : ''}`);
+      }
+      console.log(''); // Blank line
+      // ══════════ END FINAL VERIFICATION ══════════
 
       return res.status(201).json({
         success: true,
