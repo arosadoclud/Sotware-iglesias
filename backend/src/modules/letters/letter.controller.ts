@@ -128,14 +128,25 @@ export const downloadLetterPdf = async (req: AuthRequest, res: Response, next: N
       path.join(process.cwd(), 'uploads', 'logo.png'),
       path.join(process.cwd(), '..', 'uploads', 'logo.png'),
       path.join(process.cwd(), '..', 'frontend', 'public', 'logo.png'),
+      path.join(process.cwd(), '..', 'frontend', 'dist', 'logo.png'),
+      path.join(process.cwd(), 'public', 'logo.png'),
     ];
     
+    console.log('🔍 Buscando logo de la iglesia...');
+    console.log('process.cwd():', process.cwd());
+    
     for (const logoPath of possibleLogoPaths) {
+      console.log('Intentando:', logoPath);
       if (fs.existsSync(logoPath)) {
         const logoBuffer = fs.readFileSync(logoPath);
         logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+        console.log('✅ Logo encontrado en:', logoPath);
         break;
       }
+    }
+    
+    if (!logoBase64) {
+      console.warn('⚠️ No se encontró el logo en ninguna ubicación');
     }
 
     // Datos de la iglesia para el encabezado
