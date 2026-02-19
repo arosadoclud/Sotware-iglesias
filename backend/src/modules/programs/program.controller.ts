@@ -304,6 +304,13 @@ export const generateBatchPrograms = async (req: AuthRequest, res: Response, nex
         });
       });
 
+      // Logging de grupos formados
+      console.log(`\n🔄 [CLEANING GROUPS] Distribución de ${activePersons.length} miembros en ${numGroups} grupos:`);
+      groups.forEach((group, idx) => {
+        console.log(`   📋 Grupo ${idx + 1}: ${group.length} personas`)
+      });
+      console.log(`   📊 Promedio: ${(activePersons.length / numGroups).toFixed(1)} personas por grupo\n`);
+
       // Obtener datos de la iglesia
       const church = await Church.findById(req.churchId).lean();
 
@@ -376,6 +383,11 @@ export const generateBatchPrograms = async (req: AuthRequest, res: Response, nex
           numberOfGroups: numGroups,
           totalMembers: activePersons.length,
           membersPerGroup: Math.ceil(activePersons.length / numGroups),
+          groupDetails: groups.map((group, idx) => ({
+            groupNumber: idx + 1,
+            memberCount: group.length,
+            members: group.map(m => m.name)
+          })),
           results: results.map((r) => ({
             date: r.date,
             success: r.success,

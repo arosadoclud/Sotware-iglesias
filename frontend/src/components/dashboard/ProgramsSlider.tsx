@@ -224,7 +224,10 @@ export default function ProgramsSlider() {
   const date = safeDateParse(prog.programDate)
   const st = STATUS_STYLES[prog.status] || STATUS_STYLES.DRAFT
   const StatusIcon = st.icon
-  const assignedCount = prog.assignments?.length || 0
+  // Count assignments or cleaning members depending on program type
+  const assignedCount = (prog as any).generationType === 'cleaning_groups' 
+    ? ((prog as any).cleaningMembers?.length || 0)
+    : (prog.assignments?.length || 0)
 
   const slideVariants = {
     enter: (direction: number) => ({

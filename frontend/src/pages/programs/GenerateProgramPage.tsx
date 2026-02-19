@@ -371,7 +371,22 @@ const GenerateProgramPage = () => {
         console.log('📊 Generated:', gen, 'Errors:', errors, 'Results:', batchData.results)
         
         if (gen > 0) {
-          toast.success(`✅ ${gen} programa${gen !== 1 ? 's' : ''} generado${gen !== 1 ? 's' : ''}`)
+          if (isCleaningActivity && batchData.groupDetails) {
+            // Mensaje informativo para grupos de limpieza
+            const groupInfo = batchData.groupDetails.map((g: any) => 
+              `Grupo ${g.groupNumber}: ${g.memberCount} personas`
+            ).join('\\n')
+            
+            toast.success(
+              `✅ ${gen} programa${gen !== 1 ? 's' : ''} de limpieza generado${gen !== 1 ? 's' : ''}`,
+              {
+                description: `${batchData.totalMembers} miembros divididos en ${batchData.numberOfGroups} grupos:\\n${groupInfo}`,
+                duration: 8000
+              }
+            )
+          } else {
+            toast.success(`✅ ${gen} programa${gen !== 1 ? 's' : ''} generado${gen !== 1 ? 's' : ''}`)
+          }
         }
         
         // Mostrar errores si hubo fallos
@@ -704,8 +719,8 @@ const GenerateProgramPage = () => {
                 </Card>
               </motion.div>
 
-              {/* Cleaning Groups Configuration - only shown for cleaning activities */}
-              {selectedAct?.generationType === 'cleaning_groups' && mode === 'batch' && (
+              {/* Cleaning Groups Configuration - shown for cleaning activities in both single and batch modes */}
+              {selectedAct?.generationType === 'cleaning_groups' && (
                 <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}>
                   <Card className="border-amber-200 bg-amber-50/50">
                     <CardHeader>
@@ -721,17 +736,33 @@ const GenerateProgramPage = () => {
                         </p>
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-amber-800">Número de Grupos</label>
-                          <input
-                            type="number"
-                            min={2}
-                            max={20}
-                            value={numberOfGroups}
-                            onChange={(e) => setNumberOfGroups(Math.max(2, Math.min(20, parseInt(e.target.value) || 4)))}
-                            className="w-full px-4 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
-                          />
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setNumberOfGroups(Math.max(2, numberOfGroups - 1))}
+                              className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xl transition-colors shadow-md active:scale-95"
+                            >
+                              −
+                            </button>
+                            <input
+                              type="number"
+                              min={2}
+                              max={20}
+                              value={numberOfGroups}
+                              onChange={(e) => setNumberOfGroups(Math.max(2, Math.min(20, parseInt(e.target.value) || 4)))}
+                              className="flex-1 px-4 py-2 sm:py-3 text-center text-lg sm:text-xl font-bold border-2 border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setNumberOfGroups(Math.min(20, numberOfGroups + 1))}
+                              className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xl transition-colors shadow-md active:scale-95"
+                            >
+                              +
+                            </button>
+                          </div>
                           <p className="text-xs text-amber-600">
                             Los miembros activos se dividirán equitativamente en {numberOfGroups} grupos.
-                            Cada fecha recibirá un grupo diferente en rotación.
+                            {mode === 'batch' && ' Cada fecha recibirá un grupo diferente en rotación.'}
                           </p>
                         </div>
                       </div>

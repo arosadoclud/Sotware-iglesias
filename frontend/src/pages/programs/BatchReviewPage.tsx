@@ -165,7 +165,7 @@ const FlyerMiniPreview = ({ prog, churchInfo }: { prog: ProgramData; churchInfo?
 
       {/* Section title */}
       <div style={{ textAlign: 'center', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: C.navy, paddingBottom: '0.4rem' }}>
-        {prog.generationType === 'cleaning_groups' ? `Grupo ${prog.assignedGroupNumber} de ${prog.totalGroups}` : 'Orden del Culto'}
+        {prog.generationType === 'cleaning_groups' ? `GRUPO ${prog.assignedGroupNumber}` : 'Orden del Culto'}
       </div>
 
       {/* Assignments/Members table */}
