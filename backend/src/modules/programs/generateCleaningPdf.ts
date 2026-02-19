@@ -1,4 +1,6 @@
 import puppeteer from 'puppeteer';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 export interface CleaningMember {
   id: string;
@@ -21,6 +23,16 @@ export interface CleaningPdfData {
 }
 
 export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer> {
+  // Leer logo local
+  let logoBase64 = '';
+  try {
+    const logoPath = path.join(process.cwd(), 'uploads', 'logo.png');
+    const logoBuffer = await fs.readFile(logoPath);
+    logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+  } catch (error) {
+    console.warn('No se pudo cargar el logo desde uploads/logo.png:', error);
+  }
+
   // Build HTML inline for cleaning schedule - matching frontend preview style
   const membersHtml = data.members
     .map((m, idx) => `
@@ -249,8 +261,8 @@ export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer
       <div class="container">
         <div class="header">
           <div class="logo-container">
-            ${data.logoUrl 
-              ? `<img src="${data.logoUrl}" class="logo" alt="Logo" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\"logo-emoji\">🕊</span>';">`
+            ${logoBase64 
+              ? `<img src="${logoBase64}" class="logo" alt="Logo">`
               : '<span class="logo-emoji">🕊</span>'
             }
           </div>

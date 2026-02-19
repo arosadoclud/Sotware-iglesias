@@ -444,21 +444,18 @@ const CleaningProgramEditPage = () => {
               <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-[#2c4875] to-[#3d5a80] px-8 py-6 flex flex-col items-center justify-center text-center gap-4">
-                  {logoUrl ? (
-                    <img 
-                      src={logoUrl} 
-                      alt="Logo de la iglesia" 
-                      className="w-24 h-24 object-contain rounded-xl bg-white/10 p-2"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
-                  ) : (
-                    <div className="w-24 h-24 bg-white/15 border-2 border-white/30 rounded-xl flex items-center justify-center text-5xl">
-                      🕊
-                    </div>
-                  )}
+                  <img 
+                    src="/logo.png" 
+                    alt="Logo de la iglesia" 
+                    className="w-24 h-24 object-contain rounded-xl bg-white/10 p-2"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const fallback = document.createElement('div');
+                      fallback.className = 'w-24 h-24 bg-white/15 border-2 border-white/30 rounded-xl flex items-center justify-center text-5xl';
+                      fallback.textContent = '🕊';
+                      e.currentTarget.parentElement?.appendChild(fallback);
+                    }}
+                  />
                   <h1 className="text-white text-2xl font-bold uppercase tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
                     {churchName || 'Nombre de la Iglesia'}
                   </h1>
