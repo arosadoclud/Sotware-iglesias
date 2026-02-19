@@ -139,9 +139,24 @@ const CleaningProgramEditPage = () => {
     setSaving(false);
   };
 
-  const handleDownloadPDF = () => {
-    if (id) {
-      window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/programs/${id}/flyer`, '_blank');
+  const handleDownloadPDF = async () => {
+    if (!id) return;
+    try {
+      setSaving(true);
+      const res = await programsApi.downloadFlyer(id);
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      const filename = `limpieza-grupo-${program?.assignedGroupNumber || 'X'}-${new Date().toISOString().split('T')[0]}.pdf`;
+      a.download = filename;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success('✅ PDF descargado');
+    } catch (error) {
+      toast.error('❌ Error al descargar el PDF');
+      console.error(error);
+    } finally {
+      setSaving(false);
     }
   };
 
