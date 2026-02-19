@@ -7,6 +7,38 @@ import { Permission, DEFAULT_ROLE_PERMISSIONS, PERMISSION_DESCRIPTIONS, PERMISSI
 import { BadRequestError, NotFoundError, ForbiddenError } from '../../utils/errors';
 
 /**
+ * Helper: Detectar rol automáticamente basado en los permisos
+ */
+function detectRoleFromPermissions(permissions: string[]): UserRole | null {
+  if (!permissions || permissions.length === 0) return null;
+  
+  const sortedPermissions = [...permissions].sort();
+  
+  // Comparar con cada rol (de menor a mayor jerarquía para asignar el rol más bajo que coincida)
+  const rolesOrder: UserRole[] = [
+    UserRole.VIEWER,
+    UserRole.EDITOR,
+    UserRole.MINISTRY_LEADER,
+    UserRole.ADMIN,
+    UserRole.PASTOR,
+  ];
+  
+  for (const role of rolesOrder) {
+    const rolePermissions = (DEFAULT_ROLE_PERMISSIONS[role] || []).map(p => p.toString()).sort();
+    
+    // Si los permisos coinciden exactamente con un rol
+    if (
+      sortedPermissions.length === rolePermissions.length &&
+      sortedPermissions.every((p, i) => p === rolePermissions[i])
+    ) {
+      return role;
+    }
+  }
+  
+  return null; // Permisos personalizados que no coinciden con ningún rol
+}
+
+/**
  * Obtener todos los usuarios de la iglesia
  */
 export const getUsers = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -254,24 +286,44 @@ export const updateUserPermissions = async (req: AuthRequest, res: Response, nex
 
     const previousPermissions = user.permissions;
     const previousUseCustom = user.useCustomPermissions;
+    const previousRole = user.role;
 
     user.permissions = permissions || [];
     user.useCustomPermissions = useCustomPermissions ?? true;
 
+    // Si está usando permisos personalizados, detectar automáticamente el rol
+    if (user.useCustomPermissions && permissions && permissions.length > 0) {
+      const detectedRole = detectRoleFromPermissions(permissions);
+      if (detectedRole) {
+        user.role = detectedRole;
+      }
+    }
+
     await user.save();
 
     // Audit log
+    const roleChanged = previousRole !== user.role;
     await AuditService.logFromRequest(req, AuditAction.USER_PERMISSION_CHANGE, AuditCategory.USERS, 'User', {
       resourceId: user._id.toString(),
       resourceName: user.fullName,
-      previousValue: { permissions: previousPermissions, useCustomPermissions: previousUseCustom },
-      newValue: { permissions: user.permissions, useCustomPermissions: user.useCustomPermissions },
+      previousValue: { 
+        permissions: previousPermissions, 
+        useCustomPermissions: previousUseCustom,
+        ...(roleChanged && { role: previousRole })
+      },
+      newValue: { 
+        permissions: user.permissions, 
+        useCustomPermissions: user.useCustomPermissions,
+        ...(roleChanged && { role: user.role })
+      },
       severity: AuditSeverity.WARNING,
     });
 
     res.json({
       success: true,
-      message: 'Permisos actualizados exitosamente',
+      message: roleChanged 
+        ? `Permisos actualizados. Rol cambiado automáticamente a ${user.role}`
+        : 'Permisos actualizados exitosamente',
       data: {
         ...user.toObject(),
         effectivePermissions: user.getEffectivePermissions(),
