@@ -33,13 +33,15 @@ export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer
     console.warn('No se pudo cargar el logo desde uploads/logo.png:', error);
   }
 
-  // Build HTML for cleaning schedule - matching flyer format
+  // Build HTML for cleaning schedule - matching preview format
   const membersHtml = data.members
     .map((m, idx) => `
-      <div class="flyer-row">
-        <div class="flyer-row-num">${String(idx + 1).padStart(2, '0')}</div>
-        <div class="flyer-row-person">${m.name}</div>
-        ${m.phone ? `<div class="flyer-row-phone">${m.phone}</div>` : ''}
+      <div class="member-row">
+        <div class="member-number">${String(idx + 1).padStart(2, '0')}</div>
+        <div class="member-info">
+          <div class="member-name">${m.name}</div>
+          ${m.phone ? `<div class="member-phone">${m.phone}</div>` : ''}
+        </div>
       </div>
     `)
     .join('');
@@ -51,281 +53,251 @@ export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Programa de Limpieza</title>
-      <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
       <style>
-        :root {
-          --navy: #1B2D5B;
-          --navy-mid: #2A4080;
-          --navy-light: #3B5BA8;
-          --gold: #C8A84B;
-          --gold-light: #E8C96A;
-          --gold-pale: #FBF4E2;
-          --gray-900: #111827;
-          --gray-700: #374151;
-          --gray-500: #6B7280;
-          --gray-300: #D1D5DB;
-          --gray-100: #F3F4F6;
-          --bg: #F7F8FC;
-          --white: #FFFFFF;
-          --shadow-lg: 0 10px 40px rgba(0,0,0,0.14);
-          --r: 12px;
-        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-          font-family: 'DM Sans', sans-serif;
-          background: var(--bg);
-          color: var(--gray-900);
-          min-height: 100vh;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background: #F7F8FC;
           margin: 0;
           padding: 0;
         }
-        .flyer-container {
-          background: var(--white);
-          border-radius: var(--r);
-          box-shadow: var(--shadow-lg);
+        .container {
+          background: white;
+          border-radius: 16px;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.1);
           overflow: hidden;
           width: 100%;
           max-width: 540px;
           margin: 40px auto;
-          position: relative;
         }
-        .flyer-header {
-          background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 60%, var(--navy) 100%);
-          padding: 1.8rem 2rem 1.5rem;
-          position: relative;
-          overflow: hidden;
-        }
-        .flyer-header::before {
-          content: '';
-          position: absolute;
-          top: -40px; right: -40px;
-          width: 160px; height: 160px;
-          background: rgba(200,168,75,0.08);
-          border-radius: 50%;
-        }
-        .flyer-header::after {
-          content: '';
-          position: absolute;
-          bottom: -20px; left: -30px;
-          width: 120px; height: 120px;
-          background: rgba(200,168,75,0.05);
-          border-radius: 50%;
-        }
-        .header-inner {
+        /* Header */
+        .header {
+          background: linear-gradient(to right, #2c4875, #3d5a80);
+          padding: 32px;
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 1.1rem;
-          position: relative;
-          z-index: 1;
+          justify-content: center;
+          text-align: center;
+          gap: 16px;
         }
-        .logo-circle {
-          width: 60px;
-          height: 60px;
+        .logo {
+          width: 96px;
+          height: 96px;
+          object-fit: contain;
+          border-radius: 12px;
           background: rgba(255,255,255,0.1);
-          border: 2px solid rgba(200,168,75,0.5);
+          padding: 8px;
+        }
+        .logo-fallback {
+          width: 96px;
+          height: 96px;
+          background: rgba(255,255,255,0.15);
+          border: 2px solid rgba(255,255,255,0.3);
           border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.6rem;
-          flex-shrink: 0;
-          backdrop-filter: blur(4px);
+          font-size: 48px;
         }
-        .logo-img {
-          width: 60px;
-          height: 60px;
-          border-radius: 10px;
-          object-fit: contain;
-          border: 2px solid rgba(200,168,75,0.4);
-        }
-        .header-text { flex: 1; }
-        .flyer-church-name {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.35rem;
-          font-weight: 700;
+        .church-name {
           color: white;
-          line-height: 1.1;
-          letter-spacing: 0.02em;
+          font-size: 24px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          font-family: 'Playfair Display', serif;
         }
-        .flyer-church-sub {
-          font-size: 0.75rem;
-          color: var(--gold-light);
-          margin-top: 2px;
-          letter-spacing: 0.05em;
-        }
+        /* Gold band */
         .gold-band {
-          height: 4px;
-          background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+          height: 6px;
+          background: linear-gradient(to right, transparent, #F59E0B, transparent);
         }
-        .flyer-badge-row {
+        /* Badge */
+        .badge-section {
           display: flex;
           justify-content: center;
-          padding: 1.1rem 2rem 0.4rem;
+          padding: 24px 0;
         }
-        .flyer-badge {
-          background: var(--gold);
-          color: var(--navy);
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.1rem;
+        .badge {
+          background: linear-gradient(to right, #F59E0B, #FBBF24);
+          color: #1B2D5B;
+          padding: 8px 32px;
+          border-radius: 9999px;
           font-weight: 700;
-          padding: 6px 24px;
-          border-radius: 30px;
-          letter-spacing: 0.06em;
+          font-size: 14px;
           text-transform: uppercase;
+          letter-spacing: 0.08em;
+          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+          font-family: 'Playfair Display', serif;
         }
-        .flyer-date-row {
+        /* Date & Time */
+        .date-section {
           text-align: center;
-          padding: 0.4rem 2rem 0.2rem;
+          padding: 0 32px 8px;
         }
-        .flyer-date {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.05rem;
-          color: var(--navy);
+        .date {
+          color: #1B2D5B;
+          font-size: 18px;
           font-weight: 600;
+          text-transform: capitalize;
+          font-family: 'Playfair Display', serif;
         }
-        .flyer-time {
-          font-size: 0.8rem;
-          color: var(--gray-500);
-          margin-top: 2px;
+        .time {
+          color: #6B7280;
+          font-size: 16px;
+          margin-top: 4px;
         }
+        /* Ornament */
         .ornament {
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 0.5rem 2rem;
+          gap: 12px;
+          padding: 16px 32px;
         }
         .ornament-line {
           flex: 1;
           height: 1px;
-          background: linear-gradient(90deg, transparent, var(--gray-300), transparent);
+          background: linear-gradient(to right, transparent, #D1D5DB, transparent);
         }
         .ornament-diamonds {
           display: flex;
-          gap: 4px;
+          gap: 6px;
         }
         .ornament-diamonds span {
-          display: block;
-          width: 5px;
-          height: 5px;
-          background: var(--gold);
+          width: 6px;
+          height: 6px;
+          background: #F59E0B;
           transform: rotate(45deg);
-          opacity: 0.7;
+          opacity: 0.6;
         }
-        .ornament-diamonds span:nth-child(2) { opacity: 1; }
-        .flyer-section-title {
+        .ornament-diamonds span:nth-child(2) {
+          opacity: 1;
+        }
+        /* Group title */
+        .group-title {
           text-align: center;
-          font-size: 0.65rem;
+          font-size: 12px;
           font-weight: 700;
+          text-transform: uppercase;
           letter-spacing: 0.15em;
-          text-transform: uppercase;
-          color: var(--navy);
-          padding-bottom: 0.5rem;
+          color: #2c4875;
+          padding-bottom: 16px;
+          font-family: 'Playfair Display', serif;
         }
-        .flyer-table {
-          padding: 0 1.5rem 1rem;
+        /* Members list */
+        .members-section {
+          padding: 0 24px 24px;
         }
-        .flyer-row {
+        .member-row {
           display: flex;
           align-items: center;
-          padding: 10px 12px;
+          justify-content: center;
+          padding: 12px 16px;
           border-radius: 8px;
-          margin-bottom: 4px;
-          min-height: 44px;
-          transition: background 0.15s;
+          margin-bottom: 8px;
         }
-        .flyer-row:nth-child(odd) { background: var(--gray-100); }
-        .flyer-row:nth-child(even) { background: var(--white); border: 1px solid var(--gray-100); }
-        .flyer-row-num {
+        .member-row:nth-child(odd) {
+          background: #F3F4F6;
+        }
+        .member-row:nth-child(even) {
+          background: white;
+        }
+        .member-number {
           flex-shrink: 0;
-          width: 28px;
-          height: 28px;
-          background: var(--navy);
-          color: var(--gold-light);
-          border-radius: 6px;
-          font-size: 0.75rem;
-          font-weight: 700;
+          width: 32px;
+          height: 32px;
+          background: #2c4875;
+          color: #FBBF24;
+          border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-right: 12px;
+          font-size: 12px;
+          font-weight: 700;
+          font-family: 'Playfair Display', serif;
         }
-        .flyer-row-person {
+        .member-info {
           flex: 1;
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.05rem;
-          font-weight: 600;
-          color: var(--gray-900);
-          font-style: italic;
-        }
-        .flyer-row-phone {
-          flex-shrink: 0;
-          font-size: 0.75rem;
-          color: var(--gray-500);
-          margin-left: 12px;
-        }
-        .flyer-verse {
           text-align: center;
-          padding: 0.8rem 2rem 0.5rem;
-          border-top: 1px solid var(--gray-100);
-          margin: 0 1.5rem;
         }
-        .flyer-verse p {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 0.88rem;
-          font-style: italic;
-          color: var(--gray-500);
-          line-height: 1.5;
-        }
-        .flyer-verse cite {
-          font-size: 0.72rem;
-          font-weight: 700;
-          color: var(--gold);
-          font-style: normal;
-          letter-spacing: 0.05em;
-          display: block;
-          margin-top: 3px;
-        }
-        .flyer-footer {
-          background: var(--navy);
-          padding: 10px 2rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-top: 0.8rem;
-        }
-        .flyer-footer-text {
-          font-size: 0.72rem;
+        .member-name {
+          font-size: 14px;
           font-weight: 600;
-          color: rgba(255,255,255,0.7);
-          letter-spacing: 0.08em;
+          color: #111827;
+          font-family: 'Playfair Display', serif;
+        }
+        .member-phone {
+          font-size: 12px;
+          color: #6B7280;
+          margin-top: 4px;
+        }
+        .no-members {
+          text-align: center;
+          padding: 32px 0;
+          color: #9CA3AF;
+          font-style: italic;
+        }
+        /* Verse */
+        .verse-section {
+          text-align: center;
+          padding: 0 32px 16px;
+        }
+        .verse-text {
+          font-size: 12px;
+          font-style: italic;
+          color: #6B7280;
+          font-family: 'Playfair Display', serif;
+          margin-bottom: 4px;
+        }
+        .verse-ref {
+          font-size: 12px;
+          color: #EA580C;
+          font-weight: 600;
+        }
+        /* Footer */
+        .footer {
+          background: #2c4875;
+          padding: 16px;
+          text-align: center;
+        }
+        .footer-text {
+          color: rgba(255,255,255,0.85);
+          font-size: 14px;
+          font-weight: 600;
           text-transform: uppercase;
+          letter-spacing: 0.08em;
+          font-family: 'Playfair Display', serif;
         }
       </style>
     </head>
     <body>
-      <div class="flyer-container">
-        <div class="flyer-header">
-          <div class="header-inner">
-            <div class="logo-circle">
-              ${logoBase64 
-                ? `<img src="${logoBase64}" class="logo-img" alt="Logo"/>`
-                : '✝'
-              }
-            </div>
-            <div class="header-text">
-              <div class="flyer-church-name">${data.churchName || 'Nombre de la Iglesia'}</div>
-              ${data.churchSub ? `<div class="flyer-church-sub">${data.churchSub}</div>` : ''}
-            </div>
-          </div>
+      <div class="container">
+        <!-- Header -->
+        <div class="header">
+          ${logoBase64 
+            ? `<img src="${logoBase64}" class="logo" alt="Logo de la iglesia"/>`
+            : '<div class="logo-fallback">🕊</div>'
+          }
+          <h1 class="church-name">${data.churchName || 'Nombre de la Iglesia'}</h1>
         </div>
+
+        <!-- Gold Band -->
         <div class="gold-band"></div>
-        <div class="flyer-badge-row">
-          <div class="flyer-badge">GRUPO ${data.groupNumber}</div>
+
+        <!-- Badge -->
+        <div class="badge-section">
+          <div class="badge">${data.activityType || 'Programa de Limpieza'}</div>
         </div>
-        <div class="flyer-date-row">
-          <div class="flyer-date">${data.date}</div>
-          ${data.time ? `<div class="flyer-time">${data.time}</div>` : ''}
+
+        <!-- Date & Time -->
+        <div class="date-section">
+          <div class="date">${data.date}</div>
+          ${data.time ? `<div class="time">${data.time}</div>` : ''}
         </div>
+
+        <!-- Ornament -->
         <div class="ornament">
           <div class="ornament-line"></div>
           <div class="ornament-diamonds">
@@ -333,21 +305,29 @@ export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer
           </div>
           <div class="ornament-line"></div>
         </div>
-        <div class="flyer-section-title">${data.activityType || 'PROGRAMA DE LIMPIEZA'}</div>
-        <div class="flyer-table">
+
+        <!-- Group Title -->
+        <div class="group-title">Grupo ${data.groupNumber}</div>
+
+        <!-- Members List -->
+        <div class="members-section">
           ${data.members.length === 0 
-            ? '<div style="text-align: center; color: #9ca3af; font-style: italic; padding: 40px 0; font-size: 0.85rem;">No hay miembros asignados</div>'
+            ? '<div class="no-members">No hay miembros asignados</div>'
             : membersHtml
           }
         </div>
+
+        <!-- Verse -->
         ${data.verse || data.verseText ? `
-          <div class="flyer-verse">
-            ${data.verseText ? `<p>"${data.verseText}"</p>` : ''}
-            ${data.verse ? `<cite>${data.verse}</cite>` : ''}
+          <div class="verse-section">
+            ${data.verseText ? `<div class="verse-text">"${data.verseText}"</div>` : ''}
+            ${data.verse ? `<div class="verse-ref">${data.verse}</div>` : ''}
           </div>
         ` : ''}
-        <div class="flyer-footer">
-          <span class="flyer-footer-text">${(data.churchName || 'NOMBRE DE LA IGLESIA').toUpperCase()}</span>
+
+        <!-- Footer -->
+        <div class="footer">
+          <div class="footer-text">${(data.churchName || 'Nombre de la Iglesia').toUpperCase()}</div>
         </div>
       </div>
     </body>
