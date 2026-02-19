@@ -43,7 +43,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar TODAS las dependencias primero (necesarias para compilar TypeScript)
-RUN npm ci
+# Usando npm install en lugar de npm ci para auto-corregir lockfile si es necesario
+RUN npm install
 
 # Copiar código fuente
 COPY . .
