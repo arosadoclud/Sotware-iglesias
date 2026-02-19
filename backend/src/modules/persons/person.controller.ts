@@ -25,7 +25,8 @@ export const getPersons = async (req: AuthRequest, res: Response, next: NextFunc
         .select(projection)
         .sort({ fullName: 1 })
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .lean(),  // Objetos planos (más rápido)
       Person.countDocuments(filter)
     ]);
 

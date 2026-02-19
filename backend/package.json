@@ -14,6 +14,7 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
     "ensure-indexes": "tsx src/scripts/ensureIndexes.ts",
+    "check-indexes": "tsx src/scripts/checkIndexes.ts",
     "create-admin": "tsx src/scripts/createAdminUser.ts"
   },
   "keywords": [

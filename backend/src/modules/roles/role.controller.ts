@@ -4,7 +4,7 @@ import Role from '../../models/Role.model';
 
 export const getRoles = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const roles = await Role.find({ churchId: req.churchId }).sort({ name: 1 });
+    const roles = await Role.find({ churchId: req.churchId }).sort({ name: 1 }).lean();
     res.json({ success: true, data: roles });
   } catch (error) { next(error); }
 };

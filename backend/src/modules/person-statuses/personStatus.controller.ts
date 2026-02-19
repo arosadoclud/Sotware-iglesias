@@ -5,7 +5,7 @@ import PersonStatus from '../../models/PersonStatus.model';
 // Obtener todos los estados de persona
 export const getPersonStatuses = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const statuses = await PersonStatus.find({ churchId: req.churchId, isActive: true }).sort({ order: 1, name: 1 });
+    const statuses = await PersonStatus.find({ churchId: req.churchId, isActive: true }).sort({ order: 1, name: 1 }).lean();
     res.json({ success: true, data: statuses });
   } catch (error) { next(error); }
 };
@@ -13,7 +13,7 @@ export const getPersonStatuses = async (req: AuthRequest, res: Response, next: N
 // Obtener todos los estados (incluyendo inactivos) para administración
 export const getAllPersonStatuses = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const statuses = await PersonStatus.find({ churchId: req.churchId }).sort({ order: 1, name: 1 });
+    const statuses = await PersonStatus.find({ churchId: req.churchId }).sort({ order: 1, name: 1 }).lean();
     res.json({ success: true, data: statuses });
   } catch (error) { next(error); }
 };

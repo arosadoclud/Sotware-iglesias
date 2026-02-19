@@ -52,9 +52,36 @@ class Database {
       logger.info(`🌍 Entorno: ${envConfig.nodeEnv}`);
       logger.info(`📊 Base de datos: ${mongoose.connection.name}`);
 
+      // Asegurar índices en producción
+      if (envConfig.nodeEnv === 'production') {
+        await this.ensureIndexes();
+      }
+
     } catch (error) {
       logger.error('❌ Error al conectar a MongoDB:', error);
       process.exit(1);
+    }
+  }
+
+  /**
+   * Asegurar que todos los índices estén creados
+   */
+  async ensureIndexes(): Promise<void> {
+    try {
+      logger.info('🔍 Verificando índices de MongoDB...');
+      
+      // Obtener todos los modelos registrados
+      const models = mongoose.modelNames();
+      
+      for (const modelName of models) {
+        const model = mongoose.model(modelName);
+        await model.syncIndexes();
+      }
+      
+      logger.info('✅ Índices verificados y sincronizados');
+    } catch (error) {
+      logger.error('⚠️  Error al verificar índices:', error);
+      // No fallar el servidor si los índices no se crean
     }
   }
 
