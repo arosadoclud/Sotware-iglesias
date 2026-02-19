@@ -1,0 +1,22 @@
+name: Keep Render Backend Alive
+
+on:
+  schedule:
+    # Ejecutar cada 10 minutos (evita que Render hiberne después de 15min)
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Permite ejecutar manualmente
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Backend Health Endpoint
+        run: |
+          echo "🔔 Pinging backend to keep alive..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://sotware-iglesias.onrender.com/api/v1/health/health)
+          echo "✅ Health endpoint responded with: $response"
+          if [ $response -eq 200 ]; then
+            echo "✅ Backend is healthy and active"
+          else
+            echo "⚠️  Backend responded with: $response"
+          fi
