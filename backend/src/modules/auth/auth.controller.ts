@@ -166,7 +166,7 @@ export const register = async (req: Request, res: Response) => {
         isActive: false, // Inactivo hasta verificar email
         isEmailVerified: false,
         emailVerificationToken: hashedToken,
-        emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 horas
+        emailVerificationExpires: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 horas (3 días)
       });
 
       await newUser.save();
@@ -1239,15 +1239,29 @@ export const verifyEmail = async (req: Request, res: Response) => {
 
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
+    // Buscar usuario con el token (sin importar si expiró)
     const user = await User.findOne({
       emailVerificationToken: hashedToken,
-      emailVerificationExpires: { $gt: new Date() },
     }).select('+emailVerificationToken +emailVerificationExpires');
 
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: 'El enlace de verificación es inválido o ha expirado.',
+        message: 'El enlace de verificación es inválido.',
+        error: 'INVALID_TOKEN'
+      });
+    }
+
+    // Verificar si el token expiró
+    if (user.emailVerificationExpires && user.emailVerificationExpires < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: 'El enlace de verificación ha expirado. Te enviaremos un nuevo correo.',
+        error: 'TOKEN_EXPIRED',
+        data: {
+          email: user.email,
+          canResend: true
+        }
       });
     }
 
@@ -1337,7 +1351,7 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
     const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
 
     user.emailVerificationToken = hashedToken;
-    user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
+    user.emailVerificationExpires = new Date(Date.now() + 72 * 60 * 60 * 1000); // 72 horas (3 días)
     await user.save();
 
     // Enviar email
