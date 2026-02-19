@@ -456,7 +456,12 @@ const ProgramsPage = () => {
                         {/* Editar (solo DRAFT) */}
                         {canEdit && prog.status === 'DRAFT' && (
                           <button
-                            onClick={() => navigate(`/programs/${prog._id}/flyer`)}
+                            onClick={() => {
+                              const editPath = (prog as any).generationType === 'cleaning_groups'
+                                ? `/programs/edit-cleaning/${prog._id}`
+                                : `/programs/${prog._id}/edit`;
+                              navigate(editPath);
+                            }}
                             className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Editar programa"
                           >
@@ -620,7 +625,12 @@ const ProgramsPage = () => {
                           {/* Editar (solo DRAFT) */}
                           {canEdit && prog.status === 'DRAFT' && (
                             <button
-                              onClick={() => navigate(`/programs/${prog._id}/flyer`)}
+                              onClick={() => {
+                                const editPath = (prog as any).generationType === 'cleaning_groups'
+                                  ? `/programs/edit-cleaning/${prog._id}`
+                                  : `/programs/${prog._id}/edit`;
+                                navigate(editPath);
+                              }}
                               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-200"
                               title="Editar programa"
                             >
