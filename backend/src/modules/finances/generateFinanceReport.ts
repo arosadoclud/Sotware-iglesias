@@ -700,6 +700,7 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
   
   // Cargar logo local como base64
   const logoBase64 = await loadLogoBase64();
+  console.log('📷 Logo cargado:', logoBase64 ? `${logoBase64.substring(0, 50)}... (${logoBase64.length} caracteres)` : 'NO HAY LOGO');
 
   const html = `
 <!DOCTYPE html>
@@ -1147,6 +1148,15 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
   console.log('📄 HTML generado - Últimos 500 caracteres:');
   console.log(html.substring(html.length - 500));
   console.log('📄 Tamaño total del HTML:', html.length, 'caracteres');
+  
+  // Buscar y mostrar una sección con datos importantes
+  const councilAmountIndex = html.indexOf('Total a Remitir al Concilio');
+  if (councilAmountIndex !== -1) {
+    console.log('💰 Sección de montos encontrada en posición:', councilAmountIndex);
+    console.log('Contexto:', html.substring(councilAmountIndex, councilAmountIndex + 500));
+  } else {
+    console.log('⚠️ NO SE ENCONTRÓ la sección "Total a Remitir al Concilio" en el HTML');
+  }
 
   const browser = await puppeteer.launch({
     headless: true,
@@ -1154,6 +1164,16 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
   })
 
   const page = await browser.newPage()
+  
+  // Guardar HTML temporalmente para debugging
+  try {
+    const tempHtmlPath = path.join(process.cwd(), 'temp-annual-council-report.html');
+    await fs.writeFile(tempHtmlPath, html, 'utf-8');
+    console.log('💾 HTML guardado temporalmente en:', tempHtmlPath);
+  } catch (err) {
+    console.log('⚠️ No se pudo guardar HTML temporal:', err);
+  }
+  
   await page.setContent(html, { waitUntil: 'networkidle0' })
   
   const pdfBuffer = await page.pdf({
