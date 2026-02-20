@@ -698,9 +698,15 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
   console.log('  - Monthly Breakdown length:', data.monthlyBreakdown?.length);
   console.log('  - Tithes Details length:', data.tithesDetails?.length);
   
-  // Cargar logo local como base64
-  const logoBase64 = await loadLogoBase64();
-  console.log('📷 Logo cargado:', logoBase64 ? `${logoBase64.substring(0, 50)}... (${logoBase64.length} caracteres)` : 'NO HAY LOGO');
+  // Cargar logo local como base64 (con manejo de errores)
+  let logoBase64 = '';
+  try {
+    logoBase64 = await loadLogoBase64();
+    console.log('📷 Logo cargado correctamente:', logoBase64 ? `${logoBase64.substring(0, 50)}... (${logoBase64.length} caracteres)` : 'VACIO');
+  } catch (error) {
+    console.log('⚠️ Error al cargar logo (continuando sin logo):', error);
+    logoBase64 = ''; // Continuar sin logo
+  }
 
   const html = `
 <!DOCTYPE html>
@@ -956,7 +962,8 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
     }
   </style>
 </head>
-<body>
+<body style="display: block !important; visibility: visible !important; opacity: 1 !important;">
+<div class="main-content" style="display: block; visibility: visible; position: relative;">
   <!-- Header -->
   <div class="header">
     ${logoBase64 ? `<div class="logo-container"><img src="${logoBase64}" class="logo" alt="Logo"></div>` : ''}
@@ -1138,7 +1145,7 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
       Los valores corresponden a las transacciones de diezmos registradas y aprobadas durante el año ${data.year}.
     </div>
   </div>
-  
+</div><!-- Cierre main-content -->
 </body>
 </html>
   `
@@ -1160,10 +1167,19 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--disable-gpu'
+    ],
   })
 
   const page = await browser.newPage()
+  
+  // Configurar viewport para asegurar renderizado correcto
+  await page.setViewport({ width: 1280, height: 1024 })
   
   // Guardar HTML temporalmente para debugging
   try {
@@ -1174,16 +1190,22 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
     console.log('⚠️ No se pudo guardar HTML temporal:', err);
   }
   
-  await page.setContent(html, { waitUntil: 'networkidle0' })
+  // Cargar el HTML con timeout extendido
+  await page.setContent(html, { waitUntil: 'load', timeout: 30000 })
+  
+  // Esperar un momento adicional para asegurar renderizado
+  await page.waitForTimeout(1000)
+  
+  console.log('🎨 Página cargada, generando PDF...');
   
   const pdfBuffer = await page.pdf({
     format: 'Letter',
     printBackground: true,
     displayHeaderFooter: true,
-    headerTemplate: '<span></span>',
+    headerTemplate: '<div></div>',
     footerTemplate: `
-      <div style="width: 100%; text-align: center; font-size: 9px; color: #64748b; font-family: 'Segoe UI', sans-serif;">
-        <span style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); padding: 4px 16px; border-radius: 12px; border: 1px solid #e2e8f0;">Página <span class="pageNumber"></span> de <span class="totalPages"></span></span>
+      <div style="width: 100%; text-align: center; font-size: 9px; color: #666; padding: 5px;">
+        <span>Página <span class="pageNumber"></span> de <span class="totalPages"></span></span>
       </div>
     `,
     margin: {
@@ -1192,6 +1214,7 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
       bottom: '50px',
       left: '20px',
     },
+    preferCSSPageSize: false,
   })
 
   await browser.close()
