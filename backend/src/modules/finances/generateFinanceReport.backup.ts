@@ -715,16 +715,16 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
       padding-bottom: 18px;
       border-bottom: 3px solid #0f2b46;
       margin-bottom: 5px;
+      position: relative;
     }
     .logo-container {
-      width: 75px;
-      height: 75px;
-      margin-right: 18px;
+      width: 70px;
+      height: 70px;
       flex-shrink: 0;
     }
     .logo {
-      width: 75px;
-      height: 75px;
+      width: 70px;
+      height: 70px;
       object-fit: contain;
       border-radius: 6px;
     }
@@ -734,7 +734,7 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
       padding: 0 10px;
     }
     .church-name {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 800;
       color: #0f2b46;
       text-transform: uppercase;
@@ -742,12 +742,12 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
       margin-bottom: 3px;
     }
     .church-address {
-      font-size: 11px;
+      font-size: 10.5px;
       color: #4a5568;
       line-height: 1.5;
     }
     .church-phone {
-      font-size: 11px;
+      font-size: 10.5px;
       color: #4a5568;
       margin-top: 2px;
     }
@@ -766,11 +766,10 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
       letter-spacing: 1.5px;
       margin-bottom: 3px;
     }
-    .title-bar .period {
+    .title-bar p {
       font-size: 13px;
       font-weight: 400;
       opacity: 0.9;
-      text-transform: uppercase;
     }
     
     /* ---- INFO BOX ---- */
@@ -947,7 +946,7 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
     
     @media print {
       body { padding: 20px; }
-      .section, .council-highlight, table { break-inside: avoid; }
+      .council-highlight, table { break-inside: avoid; }
     }
   </style>
 </head>
@@ -966,7 +965,7 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
   <!-- Title -->
   <div class="title-bar">
     <h1>REPORTE ANUAL DEL CONCILIO</h1>
-    <div class="period">Año ${data.year}</div>
+    <p>Año ${data.year}</p>
   </div>
 
   <!-- Info -->
@@ -1070,6 +1069,23 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
   </div>
   ` : ''}
 
+  <!-- Distribution Summary -->
+  <div class="section">
+    <div class="section-title">Distribución de Diezmos</div>
+    <div style="width:100%; margin-bottom:15px;">
+      <div style="background:#eff6ff; border:2px solid #0f2b46; border-radius:6px; padding:16px; text-align:center; width:48%; display:inline-block; vertical-align:top; margin-right:4%;">
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#6b7280; margin-bottom:6px; font-weight:700;">Para el Concilio</div>
+        <div style="font-size:22px; font-weight:800; font-family:'Courier New',monospace; color:#0f2b46;">RD$ ${data.summary.councilAmount.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+        <div style="font-size:12px; color:#6b7280; margin-top:4px; font-weight:600;">${data.summary.councilPercentage}% del total</div>
+      </div>
+      <div style="background:#f0fdf4; border:2px solid #16a34a; border-radius:6px; padding:16px; text-align:center; width:48%; display:inline-block; vertical-align:top;">
+        <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#6b7280; margin-bottom:6px; font-weight:700;">Retención Iglesia</div>
+        <div style="font-size:22px; font-weight:800; font-family:'Courier New',monospace; color:#16a34a;">RD$ ${data.summary.churchRetention.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+        <div style="font-size:12px; color:#6b7280; margin-top:4px; font-weight:600;">${data.summary.churchPercentage}% del total</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Period Summary -->
   <div class="section">
     <div class="section-title">Resumen del Período</div>
@@ -1121,6 +1137,12 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
 </html>
   `
 
+  console.log('📄HTML generado - Primeros 500 caracteres:');
+  console.log(html.substring(0, 500));
+  console.log('📄 HTML generado - Últimos 500 caracteres:');
+  console.log(html.substring(html.length - 500));
+  console.log('📄 Tamaño total del HTML:', html.length, 'caracteres');
+
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -1148,6 +1170,8 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
   })
 
   await browser.close()
+  
+  console.log('✅ PDF Annual Council generado exitosamente. Tamaño:', pdfBuffer.length, 'bytes');
   
   return Buffer.from(pdfBuffer)
 }
