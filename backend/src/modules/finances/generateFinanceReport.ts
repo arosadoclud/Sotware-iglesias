@@ -4,6 +4,29 @@ import fs from 'fs/promises'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
+// Función para cargar el logo como base64
+async function loadLogoBase64(): Promise<string> {
+  const possibleLogoPaths = [
+    path.join(process.cwd(), 'uploads', 'logo.png'),
+    path.join(process.cwd(), '..', 'uploads', 'logo.png'),
+    path.join(process.cwd(), '..', 'frontend', 'public', 'logo.png'),
+    path.join(process.cwd(), '..', 'frontend', 'dist', 'logo.png'),
+    path.join(process.cwd(), 'public', 'logo.png'),
+  ];
+  
+  for (const logoPath of possibleLogoPaths) {
+    try {
+      const logoBuffer = await fs.readFile(logoPath);
+      return `data:image/png;base64,${logoBuffer.toString('base64')}`;
+    } catch (error) {
+      // Continuar buscando en la siguiente ubicación
+    }
+  }
+  
+  console.warn('⚠️ No se encontró el logo para el reporte financiero');
+  return '';
+}
+
 interface MonthlyReportData {
   church: {
     name: string
@@ -48,9 +71,8 @@ interface MonthlyReportData {
 }
 
 export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise<Buffer> {
-  const logoUrl = data.church.logoUrl 
-    ? (data.church.logoUrl.startsWith('http') ? data.church.logoUrl : `https://sotware-iglesias-backend.onrender.com${data.church.logoUrl}`)
-    : ''
+  // Cargar logo local como base64
+  const logoBase64 = await loadLogoBase64();
 
   const html = `
 <!DOCTYPE html>
@@ -395,13 +417,13 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
 <body>
   <!-- Header -->
   <div class="header">
-    ${logoUrl ? `<div class="logo-container"><img src="${logoUrl}" class="logo" alt="Logo" onerror="this.parentElement.style.display='none'"></div>` : ''}
+    ${logoBase64 ? `<div class="logo-container"><img src="${logoBase64}" class="logo" alt="Logo"></div>` : ''}
     <div class="header-text">
       <div class="church-name">${data.church.name.toUpperCase()}</div>
       <div class="church-address">${data.church.location || 'C/ Principal No. 168. Manoguayabo, Santo Domingo Oeste, después del Mercado'}</div>
       ${data.church.phone ? `<div class="church-phone">Tel: ${data.church.phone}</div>` : ''}
     </div>
-    ${logoUrl ? `<div style="width:70px; flex-shrink:0;"></div>` : ''}
+    ${logoBase64 ? `<div style="width:70px; flex-shrink:0;"></div>` : ''}
   </div>
   
   <!-- Title Bar -->
@@ -667,9 +689,8 @@ interface AnnualCouncilReportData {
 }
 
 export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportData): Promise<Buffer> {
-  const logoUrl = data.church.logoUrl 
-    ? (data.church.logoUrl.startsWith('http') ? data.church.logoUrl : `https://sotware-iglesias-backend.onrender.com${data.church.logoUrl}`)
-    : ''
+  // Cargar logo local como base64
+  const logoBase64 = await loadLogoBase64();
 
   const html = `
 <!DOCTYPE html>
@@ -928,13 +949,13 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
 <body>
   <!-- Header -->
   <div class="header">
-    ${logoUrl ? `<div class="logo-container"><img src="${logoUrl}" class="logo" alt="Logo" onerror="this.parentElement.style.display='none'"></div>` : ''}
+    ${logoBase64 ? `<div class="logo-container"><img src="${logoBase64}" class="logo" alt="Logo"></div>` : ''}
     <div class="header-text">
       <div class="church-name">${data.church.name.toUpperCase()}</div>
       <div class="church-address">${data.church.location || 'C/ Principal No. 168. Manoguayabo, Santo Domingo Oeste, después del Mercado'}</div>
       ${data.church.phone ? `<div class="church-phone">Tel: ${data.church.phone}</div>` : ''}
     </div>
-    ${logoUrl ? `<div style="width:70px; flex-shrink:0;"></div>` : ''}
+    ${logoBase64 ? `<div style="width:70px; flex-shrink:0;"></div>` : ''}
   </div>
 
   <!-- Title -->

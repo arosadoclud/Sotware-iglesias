@@ -372,8 +372,8 @@ export const downloadLetterPdf = async (req: AuthRequest, res: Response, next: N
         <!-- Firma centrada con logo -->
         <div class="signature-section">
           <div class="signature-line"></div>
-          <p class="pastor-name">${pastorName}</p>
           <p class="pastor-title">${pastorTitle}</p>
+          <p class="pastor-name">${pastorName}</p>
           ${logoBase64 ? `<img src="${logoBase64}" class="signature-logo" alt="Logo"/>` : ''}
         </div>
       </body>
