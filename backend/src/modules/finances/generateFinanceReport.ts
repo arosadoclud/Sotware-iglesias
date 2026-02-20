@@ -1073,13 +1073,13 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
   <!-- Distribution Summary -->
   <div class="section">
     <div class="section-title">Distribución de Diezmos</div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
-      <div style="background:#eff6ff; border:2px solid #0f2b46; border-radius:6px; padding:16px; text-align:center;">
+    <div style="width:100%; margin-bottom:15px;">
+      <div style="background:#eff6ff; border:2px solid #0f2b46; border-radius:6px; padding:16px; text-align:center; width:48%; display:inline-block; vertical-align:top; margin-right:4%;">
         <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#6b7280; margin-bottom:6px; font-weight:700;">Para el Concilio</div>
         <div style="font-size:22px; font-weight:800; font-family:'Courier New',monospace; color:#0f2b46;">RD$ ${data.summary.councilAmount.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
         <div style="font-size:12px; color:#6b7280; margin-top:4px; font-weight:600;">${data.summary.councilPercentage}% del total</div>
       </div>
-      <div style="background:#f0fdf4; border:2px solid #16a34a; border-radius:6px; padding:16px; text-align:center;">
+      <div style="background:#f0fdf4; border:2px solid #16a34a; border-radius:6px; padding:16px; text-align:center; width:48%; display:inline-block; vertical-align:top;">
         <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#6b7280; margin-bottom:6px; font-weight:700;">Retención Iglesia</div>
         <div style="font-size:22px; font-weight:800; font-family:'Courier New',monospace; color:#16a34a;">RD$ ${data.summary.churchRetention.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
         <div style="font-size:12px; color:#6b7280; margin-top:4px; font-weight:600;">${data.summary.churchPercentage}% del total</div>
