@@ -30,6 +30,18 @@ export const getPersons = async (req: AuthRequest, res: Response, next: NextFunc
       Person.countDocuments(filter)
     ]);
 
+    console.log('📋 GET PERSONS - Resultados:');
+    console.log('  Total personas encontradas:', total);
+    console.log('  Personas en esta página:', persons.length);
+    console.log('  Filtros aplicados:', JSON.stringify({ status, ministry, search, roleId }));
+    if (roleId) {
+      console.log('  🎯 Filtro por rol aplicado. Personas con ese rol:');
+      persons.forEach(p => {
+        console.log(`    - ${p.fullName}: ${p.roles.length} roles`);
+        p.roles.forEach((r: any) => console.log(`       • ${r.roleName}`));
+      });
+    }
+
     res.json({
       success: true,
       data: persons,
@@ -51,21 +63,51 @@ export const getPerson = async (req: AuthRequest, res: Response, next: NextFunct
 
 export const createPerson = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    console.log('\n🆕 CREATE PERSON - Datos recibidos:');
+    console.log('  Body completo:', JSON.stringify(req.body, null, 2));
+    console.log('  Roles en body:', req.body.roles);
+    console.log('  RoleIds en body:', req.body.roleIds);
+    
     const person = await Person.create({ ...req.body, churchId: req.churchId });
+    
+    console.log('  ✅ Person creada:');
+    console.log('  Nombre:', person.fullName);
+    console.log('  Roles después de crear:', person.roles);
+    console.log('  Cantidad de roles:', person.roles.length);
+    
     res.status(201).json({ success: true, data: person });
-  } catch (error) { next(error); }
+  } catch (error) {
+    console.error('❌ Error al crear persona:', error);
+    next(error);
+  }
 };
 
 export const updatePerson = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    console.log('\n📝 UPDATE PERSON - Datos recibidos:');
+    console.log('  Person ID:', req.params.id);
+    console.log('  Body completo:', JSON.stringify(req.body, null, 2));
+    console.log('  Roles en body:', req.body.roles);
+    console.log('  RoleIds en body:', req.body.roleIds);
+    
     const person = await Person.findOneAndUpdate(
       { _id: req.params.id, churchId: req.churchId },
       req.body,
       { new: true, runValidators: true }
     );
+    
     if (!person) return res.status(404).json({ success: false, message: 'Persona no encontrada' });
+    
+    console.log('  ✅ Person actualizada:');
+    console.log('  Nombre:', person.fullName);
+    console.log('  Roles después de actualizar:', person.roles);
+    console.log('  Cantidad de roles:', person.roles.length);
+    
     res.json({ success: true, data: person });
-  } catch (error) { next(error); }
+  } catch (error) { 
+    console.error('❌ Error al actualizar persona:', error);
+    next(error); 
+  }
 };
 
 export const deletePerson = async (req: AuthRequest, res: Response, next: NextFunction) => {
