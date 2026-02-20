@@ -153,12 +153,18 @@ export class AssignmentEngine {
     for (const roleConfig of sortedRoleConfigs) {
       const roleId = roleConfig.role.id.toString();
       
+      console.log(`\n📋 Procesando rol: ${roleConfig.sectionName} (${roleConfig.role.name})`);
+      console.log(`   Orden: ${roleConfig.sectionOrder}, Personas necesarias: ${roleConfig.peopleNeeded}, Requerido: ${roleConfig.isRequired}`);
+      
       // Encontrar personas que tienen este rol
       const candidates = allPersons.filter(person => 
         person.roles.some(role => 
           role && role.roleId && role.roleId.toString() === roleId
         )
       );
+      
+      console.log(`   👥 Candidatos con el rol: ${candidates.length}`);
+      console.log(`   Nombres: ${candidates.map(p => p.fullName).join(', ') || 'NINGUNO'}`);
 
       // Filtrar elegibles: disponibles en la fecha, no ya asignados en este programa
       let eligible = candidates.filter(
@@ -166,6 +172,16 @@ export class AssignmentEngine {
           !assignedIds.has(p._id.toString()) &&
           p.isAvailableOn(targetDate)
       );
+      
+      console.log(`   ✅ Elegibles (disponibles y no asignados): ${eligible.length}`);
+      if (eligible.length !== candidates.length) {
+        const ineligible = candidates.filter(p => !eligible.includes(p));
+        console.log(`   ❌ No elegibles: ${ineligible.map(p => {
+          const alreadyAssigned = assignedIds.has(p._id.toString());
+          const notAvailable = !p.isAvailableOn(targetDate);
+          return `${p.fullName} (${alreadyAssigned ? 'Ya asignado' : ''}${alreadyAssigned && notAvailable ? ', ' : ''}${notAvailable ? 'No disponible' : ''})`;
+        }).join(', ')}`);
+      }
 
       // Preferir personas que NO fueron asignadas en otros programas del lote
       // Si no hay suficientes personas "frescas", usar también las ya usadas en el lote
@@ -220,6 +236,13 @@ export class AssignmentEngine {
 
       const selected = shuffled.slice(0, roleConfig.peopleNeeded);
       const backupCandidate = shuffled[roleConfig.peopleNeeded] || null;
+      
+      console.log(`   🎯 Seleccionados: ${selected.length} de ${roleConfig.peopleNeeded} necesarios`);
+      if (selected.length > 0) {
+        console.log(`   ✓ Asignados: ${selected.map(p => p.fullName).join(', ')}`);
+      } else {
+        console.log(`   ⚠️ NO SE PUDO ASIGNAR NADIE PARA ESTE ROL`);
+      }
 
       // Generar breakdowns simples para UI
       const simpleBreakdowns = selected.map(person => ({
@@ -276,6 +299,16 @@ export class AssignmentEngine {
       personsUsed: assignedIds.size,
       scoringBreakdowns: allBreakdowns,
     };
+    
+    console.log(`\n📊 RESUMEN DE ASIGNACIÓN:`);
+    console.log(`   Total de roles necesarios: ${totalNeeded}`);
+    console.log(`   Total asignado: ${assignments.length}`);
+    console.log(`   Cobertura: ${stats_result.coveragePercent}%`);
+    console.log(`   Personas usadas: ${assignedIds.size}`);
+    console.log(`   Advertencias: ${warnings.length}`);
+    if (warnings.length > 0) {
+      warnings.forEach(w => console.log(`   ⚠️ ${w.message}`));
+    }
 
     return {
       assignments,
