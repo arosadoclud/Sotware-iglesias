@@ -1551,6 +1551,10 @@ export const generateAnnualCouncilReport = async (req: AuthRequest, res: Respons
       type: 'INCOME'
     })
 
+    console.log('🔍 Buscando categoría de diezmos...');
+    console.log('Church ID:', churchId);
+    console.log('Categoría encontrada:', tithesCategory ? `${tithesCategory.name} (${tithesCategory.code})` : 'NO ENCONTRADA');
+
     if (!tithesCategory) {
       throw new AppError('Categoría de Diezmos (ING-01) no encontrada', 404)
     }
@@ -1565,6 +1569,13 @@ export const generateAnnualCouncilReport = async (req: AuthRequest, res: Respons
     })
     .populate('person', 'fullName')
     .sort({ date: 1 })
+
+    console.log('📊 Transacciones de diezmos encontradas:', tithesTransactions.length);
+    console.log('Período:', startDate, 'al', endDate);
+
+    if (tithesTransactions.length === 0) {
+      console.warn('⚠️ No se encontraron transacciones de diezmos para el año', year);
+    }
 
     // Calcular total de diezmos del año
     const totalTithesYear = tithesTransactions.reduce((sum, t) => sum + t.amount, 0)
@@ -1630,6 +1641,13 @@ export const generateAnnualCouncilReport = async (req: AuthRequest, res: Respons
       generatedBy,
       generatedAt: new Date(),
     }
+
+    console.log('📝 Datos del reporte:');
+    console.log('  - Total Diezmos:', totalTithesYear);
+    console.log('  - Monto Concilio:', councilAmount);
+    console.log('  - Transacciones:', tithesTransactions.length);
+    console.log('  - Desglose mensual:', monthlyBreakdown.length, 'meses');
+    console.log('  - Detalles individuales:', tithesDetails.length, 'registros');
 
     // Generar PDF
     const pdfBuffer = await generateAnnualCouncilReportPDF(reportData)
