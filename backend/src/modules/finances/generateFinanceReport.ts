@@ -689,24 +689,8 @@ interface AnnualCouncilReportData {
 }
 
 export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportData): Promise<Buffer> {
-  // Logs para debugging
-  console.log('🎯 generateAnnualCouncilReportPDF - Datos recibidos:');
-  console.log('  - Church Name:', data.church?.name);
-  console.log('  - Year:', data.year);
-  console.log('  - Total Tithes:', data.summary?.totalTithesYear);
-  console.log('  - Transaction Count:', data.summary?.transactionCount);
-  console.log('  - Monthly Breakdown length:', data.monthlyBreakdown?.length);
-  console.log('  - Tithes Details length:', data.tithesDetails?.length);
-  
-  // Cargar logo local como base64 (con manejo de errores)
-  let logoBase64 = '';
-  try {
-    logoBase64 = await loadLogoBase64();
-    console.log('📷 Logo cargado correctamente:', logoBase64 ? `${logoBase64.substring(0, 50)}... (${logoBase64.length} caracteres)` : 'VACIO');
-  } catch (error) {
-    console.log('⚠️ Error al cargar logo (continuando sin logo):', error);
-    logoBase64 = ''; // Continuar sin logo
-  }
+  // Cargar logo local como base64
+  const logoBase64 = await loadLogoBase64();
 
   const html = `
 <!DOCTYPE html>
@@ -822,9 +806,7 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
       border-bottom: 2px solid #e5e7eb;
     }
     .amounts-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
+      width: 100%;
       margin-bottom: 15px;
     }
     .amount-card {
@@ -832,6 +814,13 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
       border-radius: 6px;
       padding: 14px;
       text-align: center;
+      margin-bottom: 15px;
+      width: 48%;
+      display: inline-block;
+      vertical-align: top;
+    }
+    .amount-card:first-child {
+      margin-right: 4%;
     }
     .amount-card.total { border-color: #16a34a; background: #f0fdf4; }
     .amount-card.council { border-color: #0f2b46; background: #eff6ff; }
@@ -962,8 +951,7 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
     }
   </style>
 </head>
-<body style="display: block !important; visibility: visible !important; opacity: 1 !important;">
-<div class="main-content" style="display: block; visibility: visible; position: relative;">
+<body>
   <!-- Header -->
   <div class="header">
     ${logoBase64 ? `<div class="logo-container"><img src="${logoBase64}" class="logo" alt="Logo"></div>` : ''}
@@ -1145,67 +1133,33 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
       Los valores corresponden a las transacciones de diezmos registradas y aprobadas durante el año ${data.year}.
     </div>
   </div>
-</div><!-- Cierre main-content -->
+  
 </body>
 </html>
   `
 
-  console.log('📄 HTML generado - Primeros 500 caracteres:');
+  console.log('📄HTML generado - Primeros 500 caracteres:');
   console.log(html.substring(0, 500));
   console.log('📄 HTML generado - Últimos 500 caracteres:');
   console.log(html.substring(html.length - 500));
   console.log('📄 Tamaño total del HTML:', html.length, 'caracteres');
-  
-  // Buscar y mostrar una sección con datos importantes
-  const councilAmountIndex = html.indexOf('Total a Remitir al Concilio');
-  if (councilAmountIndex !== -1) {
-    console.log('💰 Sección de montos encontrada en posición:', councilAmountIndex);
-    console.log('Contexto:', html.substring(councilAmountIndex, councilAmountIndex + 500));
-  } else {
-    console.log('⚠️ NO SE ENCONTRÓ la sección "Total a Remitir al Concilio" en el HTML');
-  }
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--disable-gpu'
-    ],
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   })
 
   const page = await browser.newPage()
-  
-  // Configurar viewport para asegurar renderizado correcto
-  await page.setViewport({ width: 1280, height: 1024 })
-  
-  // Guardar HTML temporalmente para debugging
-  try {
-    const tempHtmlPath = path.join(process.cwd(), 'temp-annual-council-report.html');
-    await fs.writeFile(tempHtmlPath, html, 'utf-8');
-    console.log('💾 HTML guardado temporalmente en:', tempHtmlPath);
-  } catch (err) {
-    console.log('⚠️ No se pudo guardar HTML temporal:', err);
-  }
-  
-  // Cargar el HTML con timeout extendido
-  await page.setContent(html, { waitUntil: 'load', timeout: 30000 })
-  
-  // Esperar un momento adicional para asegurar renderizado
-  await page.waitForTimeout(1000)
-  
-  console.log('🎨 Página cargada, generando PDF...');
+  await page.setContent(html, { waitUntil: 'networkidle0' })
   
   const pdfBuffer = await page.pdf({
     format: 'Letter',
     printBackground: true,
     displayHeaderFooter: true,
-    headerTemplate: '<div></div>',
+    headerTemplate: '<span></span>',
     footerTemplate: `
-      <div style="width: 100%; text-align: center; font-size: 9px; color: #666; padding: 5px;">
-        <span>Página <span class="pageNumber"></span> de <span class="totalPages"></span></span>
+      <div style="width: 100%; text-align: center; font-size: 9px; color: #64748b; font-family: 'Segoe UI', sans-serif;">
+        <span style="background: linear-gradient(135deg, #f8fafc, #f1f5f9); padding: 4px 16px; border-radius: 12px; border: 1px solid #e2e8f0;">Página <span class="pageNumber"></span> de <span class="totalPages"></span></span>
       </div>
     `,
     margin: {
@@ -1214,7 +1168,6 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
       bottom: '50px',
       left: '20px',
     },
-    preferCSSPageSize: false,
   })
 
   await browser.close()
