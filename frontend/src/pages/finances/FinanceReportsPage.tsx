@@ -271,8 +271,8 @@ const FinanceReportsPage = () => {
 
   // Descargar PDF del reporte anual del concilio
   const downloadAnnualCouncilPDF = async () => {
-    if (activeReport !== 'monthly') {
-      toast.error('Esta opción solo está disponible para el reporte mensual')
+    if (activeReport !== 'monthly' && activeReport !== 'annual') {
+      toast.error('Esta opción solo está disponible para reportes mensuales o anuales')
       return
     }
 
@@ -452,6 +452,22 @@ const FinanceReportsPage = () => {
                 <span className="sm:hidden">Concilio</span>
               </Button>
             </>
+          )}
+
+          {activeReport === 'annual' && (
+            <Button 
+              onClick={downloadAnnualCouncilPDF} 
+              disabled={loadingAnnualPDF} 
+              className="flex-1 min-w-[160px] sm:flex-none bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800"
+            >
+              {loadingAnnualPDF ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Church className="w-4 h-4 mr-2" />
+              )}
+              <span className="hidden sm:inline">Reporte Anual Concilio</span>
+              <span className="sm:hidden">Concilio</span>
+            </Button>
           )}
           
           <Button 
