@@ -317,8 +317,13 @@ export const financesApi = {
     })
     return response
   },
-  getAnnualCouncilReport: (params: { year: number }) =>
-    api.get('/finances/reports/council-annual', { params }),
+  getAnnualCouncilReport: async (params: { year: number }) => {
+    const response = await api.get('/finances/reports/council-annual', { 
+      params,
+      responseType: 'blob'
+    })
+    return response
+  },
 }
 
 // ── NEW MEMBERS (Seguimiento) ─────────────────────────────────────────────────
