@@ -689,6 +689,15 @@ interface AnnualCouncilReportData {
 }
 
 export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportData): Promise<Buffer> {
+  // Logs para debugging
+  console.log('🎯 generateAnnualCouncilReportPDF - Datos recibidos:');
+  console.log('  - Church Name:', data.church?.name);
+  console.log('  - Year:', data.year);
+  console.log('  - Total Tithes:', data.summary?.totalTithesYear);
+  console.log('  - Transaction Count:', data.summary?.transactionCount);
+  console.log('  - Monthly Breakdown length:', data.monthlyBreakdown?.length);
+  console.log('  - Tithes Details length:', data.tithesDetails?.length);
+  
   // Cargar logo local como base64
   const logoBase64 = await loadLogoBase64();
 
@@ -1133,6 +1142,12 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
 </html>
   `
 
+  console.log('📄 HTML generado - Primeros 500 caracteres:');
+  console.log(html.substring(0, 500));
+  console.log('📄 HTML generado - Últimos 500 caracteres:');
+  console.log(html.substring(html.length - 500));
+  console.log('📄 Tamaño total del HTML:', html.length, 'caracteres');
+
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -1160,5 +1175,8 @@ export async function generateAnnualCouncilReportPDF(data: AnnualCouncilReportDa
   })
 
   await browser.close()
+  
+  console.log('✅ PDF Annual Council generado exitosamente. Tamaño:', pdfBuffer.length, 'bytes');
+  
   return Buffer.from(pdfBuffer)
 }
