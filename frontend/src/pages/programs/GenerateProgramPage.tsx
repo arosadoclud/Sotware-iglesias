@@ -329,7 +329,9 @@ const GenerateProgramPage = () => {
   // Filtrar personas que tienen el rol de Mensaje
   // Buscar directamente en los roles de las personas, no en la configuración de la actividad
   const eligibleMessagePersons = allPersons.filter((person: any) => {
-    if (!person.isActive) return false
+    // El campo es 'status' con valor 'Activo', no 'isActive'
+    const isActive = person.status?.toLowerCase() === 'activo' || person.status?.toLowerCase() === 'active'
+    if (!isActive) return false
     // Verificar si la persona tiene algún rol que incluya "mensaje" en su nombre
     const hasMessageRole = person.roles?.some((role: any) => {
       const roleName = role.roleName || role.name || ''
@@ -341,14 +343,19 @@ const GenerateProgramPage = () => {
   // Debug: mostrar información en consola
   useEffect(() => {
     if (isSundayEvangelistic) {
-      const personasConRoles = allPersons.filter((p: any) => p.isActive && p.roles?.length > 0)
+      const personasActivas = allPersons.filter((p: any) => 
+        p.status?.toLowerCase() === 'activo' || p.status?.toLowerCase() === 'active'
+      )
+      const personasConRoles = personasActivas.filter((p: any) => p.roles?.length > 0)
       console.log('🔍 Debug Selector Mensaje:', {
         actividadSeleccionada: selectedAct?.name,
-        totalPersonasActivas: allPersons.filter((p: any) => p.isActive).length,
+        totalPersonas: allPersons.length,
+        totalPersonasActivas: personasActivas.length,
         personasConRolesAsignados: personasConRoles.length,
         personasConRolMensaje: eligibleMessagePersons.length,
         muestraPersonasConRoles: personasConRoles.slice(0, 5).map((p: any) => ({
           nombre: `${p.firstName} ${p.lastName}`,
+          status: p.status,
           roles: p.roles?.map((r: any) => ({
             roleName: r.roleName,
             name: r.name,
@@ -816,22 +823,26 @@ const GenerateProgramPage = () => {
                           <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-2">
                             <p className="text-sm text-yellow-800 font-medium">⚠️ No hay personas con el rol "Mensaje" asignado</p>
                             <p className="text-xs text-yellow-700">
-                              Personas activas: {allPersons.filter((p: any) => p.isActive).length}
+                              Personas activas: {allPersons.filter((p: any) => p.status?.toLowerCase() === 'activo' || p.status?.toLowerCase() === 'active').length}
                               {' • '}
-                              Con roles asignados: {allPersons.filter((p: any) => p.isActive && p.roles?.length > 0).length}
+                              Con roles asignados: {allPersons.filter((p: any) => (p.status?.toLowerCase() === 'activo' || p.status?.toLowerCase() === 'active') && p.roles?.length > 0).length}
                             </p>
                             <p className="text-xs text-yellow-700 mt-1">
                               Ve a la sección de <strong>Personas</strong> → selecciona una persona → pestaña <strong>Roles</strong> → asigna el rol <strong>"Mensaje"</strong> a los miembros que pueden predicar.
                             </p>
                             <button
                               onClick={() => {
+                                const personasActivas = allPersons.filter((p: any) => 
+                                  p.status?.toLowerCase() === 'activo' || p.status?.toLowerCase() === 'active'
+                                )
                                 console.log('📊 Detalles de personas cargadas:')
                                 console.log('Total personas:', allPersons.length)
-                                console.log('Personas activas:', allPersons.filter((p: any) => p.isActive).length)
-                                const conRoles = allPersons.filter((p: any) => p.isActive && p.roles?.length > 0)
+                                console.log('Personas activas:', personasActivas.length)
+                                const conRoles = personasActivas.filter((p: any) => p.roles?.length > 0)
                                 console.log('Con roles asignados:', conRoles.length)
                                 console.log('Detalle personas con roles:', conRoles.map((p: any) => ({
                                   nombre: `${p.firstName} ${p.lastName}`,
+                                  status: p.status,
                                   roles: p.roles?.map((r: any) => r.roleName || r.name)
                                 })))
                               }}
