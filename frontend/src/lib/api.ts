@@ -191,6 +191,7 @@ export const adminApi = {
     isActive?: boolean;
     permissions?: string[];
     useCustomPermissions?: boolean;
+    isSuperUser?: boolean;
   }) => api.put(`/admin/users/${id}`, data),
   updateUserPermissions: (id: string, data: {
     permissions: string[];
