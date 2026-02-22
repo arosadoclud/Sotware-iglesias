@@ -302,11 +302,15 @@ const GenerateProgramPage = () => {
   useEffect(() => {
     Promise.all([
       activitiesApi.getAll(),
-      personsApi.getAll()
+      personsApi.getAll({ limit: 1000 }) // Cargar hasta 1000 personas (todas)
     ])
       .then(([activitiesRes, personsRes]) => {
         setActivities(activitiesRes.data.data)
-        setAllPersons(personsRes.data.data || [])
+        // El backend devuelve { success, data, page, limit, total }
+        const persons = personsRes.data.data || []
+        setAllPersons(persons)
+        console.log('✅ Personas cargadas:', persons.length)
+        console.log('✅ Personas con roles:', persons.filter((p: any) => p.roles?.length > 0).length)
         if (activitiesRes.data.data.length > 0) setSelectedActivity(activitiesRes.data.data[0]._id)
       })
       .finally(() => setLoading(false))
@@ -322,19 +326,42 @@ const GenerateProgramPage = () => {
     selectedAct.daysOfWeek?.includes(0) || selectedAct.dayOfWeek === 0
   )
 
-  // Encontrar el rol "Mensaje" en la configuración de la actividad
-  const messageRoleId = selectedAct?.roleConfig?.find((rc: any) => 
-    rc.role?.name?.toLowerCase().includes('mensaje')
-  )?.role?.id
-
   // Filtrar personas que tienen el rol de Mensaje
+  // Buscar directamente en los roles de las personas, no en la configuración de la actividad
   const eligibleMessagePersons = allPersons.filter((person: any) => {
     if (!person.isActive) return false
-    if (!messageRoleId) return false
-    return person.roles?.some((role: any) => 
-      role.roleId?.toString() === messageRoleId.toString()
-    )
+    // Verificar si la persona tiene algún rol que incluya "mensaje" en su nombre
+    const hasMessageRole = person.roles?.some((role: any) => {
+      const roleName = role.roleName || role.name || ''
+      return roleName.toLowerCase().includes('mensaje')
+    })
+    return hasMessageRole
   })
+
+  // Debug: mostrar información en consola
+  useEffect(() => {
+    if (isSundayEvangelistic) {
+      const personasConRoles = allPersons.filter((p: any) => p.isActive && p.roles?.length > 0)
+      console.log('🔍 Debug Selector Mensaje:', {
+        actividadSeleccionada: selectedAct?.name,
+        totalPersonasActivas: allPersons.filter((p: any) => p.isActive).length,
+        personasConRolesAsignados: personasConRoles.length,
+        personasConRolMensaje: eligibleMessagePersons.length,
+        muestraPersonasConRoles: personasConRoles.slice(0, 5).map((p: any) => ({
+          nombre: `${p.firstName} ${p.lastName}`,
+          roles: p.roles?.map((r: any) => ({
+            roleName: r.roleName,
+            name: r.name,
+            roleId: r.roleId?.toString().substring(0, 8)
+          }))
+        })),
+        personasElegiblesParaMensaje: eligibleMessagePersons.map((p: any) => ({
+          nombre: `${p.firstName} ${p.lastName}`,
+          roles: p.roles?.map((r: any) => r.roleName || r.name).join(', ')
+        }))
+      })
+    }
+  }, [isSundayEvangelistic, eligibleMessagePersons.length, allPersons.length])
 
   // Limpiar selección de personas cuando cambia la actividad
   useEffect(() => {
@@ -786,11 +813,32 @@ const GenerateProgramPage = () => {
                           Selecciona las personas que el algoritmo tomará en cuenta para el rol de Mensaje en este Culto Evangelístico. Solo se muestran personas que tienen el rol "Mensaje" asignado.
                         </p>
                         {eligibleMessagePersons.length === 0 ? (
-                          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-2">
                             <p className="text-sm text-yellow-800 font-medium">⚠️ No hay personas con el rol "Mensaje" asignado</p>
-                            <p className="text-xs text-yellow-700 mt-1">
-                              Ve a la sección de Personas y asigna el rol "Mensaje" a los miembros que pueden predicar.
+                            <p className="text-xs text-yellow-700">
+                              Personas activas: {allPersons.filter((p: any) => p.isActive).length}
+                              {' • '}
+                              Con roles asignados: {allPersons.filter((p: any) => p.isActive && p.roles?.length > 0).length}
                             </p>
+                            <p className="text-xs text-yellow-700 mt-1">
+                              Ve a la sección de <strong>Personas</strong> → selecciona una persona → pestaña <strong>Roles</strong> → asigna el rol <strong>"Mensaje"</strong> a los miembros que pueden predicar.
+                            </p>
+                            <button
+                              onClick={() => {
+                                console.log('📊 Detalles de personas cargadas:')
+                                console.log('Total personas:', allPersons.length)
+                                console.log('Personas activas:', allPersons.filter((p: any) => p.isActive).length)
+                                const conRoles = allPersons.filter((p: any) => p.isActive && p.roles?.length > 0)
+                                console.log('Con roles asignados:', conRoles.length)
+                                console.log('Detalle personas con roles:', conRoles.map((p: any) => ({
+                                  nombre: `${p.firstName} ${p.lastName}`,
+                                  roles: p.roles?.map((r: any) => r.roleName || r.name)
+                                })))
+                              }}
+                              className="text-xs text-yellow-600 underline hover:text-yellow-800"
+                            >
+                              Ver detalles en consola (F12)
+                            </button>
                           </div>
                         ) : (
                           <div className="space-y-2 max-h-80 overflow-y-auto">
