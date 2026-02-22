@@ -125,15 +125,17 @@ export default function BibleStudiesPage() {
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-navy-700 to-navy-900 text-white py-12 px-4 shadow-xl">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-12 px-4 shadow-lg">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-4 mb-4">
-            <BookOpen className="w-12 h-12 text-gold-400" />
+          <div className="flex items-center gap-4">
+            <div className="bg-white/10 p-3 rounded-lg">
+              <BookOpen className="w-10 h-10" />
+            </div>
             <div>
-              <h1 className="text-4xl font-bold">Estudios Bíblicos</h1>
-              <p className="text-blue-100 mt-2">Recursos para tu crecimiento espiritual</p>
+              <h1 className="text-3xl md:text-4xl font-bold">Estudios Bíblicos</h1>
+              <p className="text-blue-100 mt-1 text-sm md:text-base">Recursos para tu crecimiento espiritual</p>
             </div>
           </div>
         </div>
@@ -151,19 +153,19 @@ export default function BibleStudiesPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar por título, tema o maestro..."
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-navy-500"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
             {/* Filter Toggle */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition"
+              className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
               <Filter className="w-5 h-5" />
               Filtros
               {(selectedMonth || selectedSeries) && (
-                <span className="bg-gold-400 text-navy-900 px-2 py-0.5 rounded-full text-xs font-bold">
+                <span className="bg-amber-400 text-blue-900 px-2 py-0.5 rounded-full text-xs font-bold">
                   {(selectedMonth ? 1 : 0) + (selectedSeries ? 1 : 0)}
                 </span>
               )}
@@ -179,7 +181,7 @@ export default function BibleStudiesPage() {
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   {years.map((year) => (
                     <option key={year} value={year}>{year}</option>
@@ -193,7 +195,7 @@ export default function BibleStudiesPage() {
                 <select
                   value={selectedMonth || ''}
                   onChange={(e) => setSelectedMonth(e.target.value ? Number(e.target.value) : null)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Todos</option>
                   {months.map((month) => (
@@ -208,7 +210,7 @@ export default function BibleStudiesPage() {
                   <select
                     value={selectedSeries}
                     onChange={(e) => setSelectedSeries(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500"
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Todas</option>
                     {series.map((s) => (
@@ -222,7 +224,7 @@ export default function BibleStudiesPage() {
               <div className="flex items-end">
                 <button
                   onClick={clearFilters}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-navy-600 transition"
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-blue-600 transition"
                 >
                   <X className="w-4 h-4" />
                   Limpiar filtros
@@ -235,7 +237,7 @@ export default function BibleStudiesPage() {
         {/* Studies Grid */}
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-navy-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : studies.length === 0 ? (
           <div className="text-center py-12">
@@ -257,9 +259,9 @@ export default function BibleStudiesPage() {
                 className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
               >
                 {/* Header with gradient */}
-                <div className="bg-gradient-to-r from-navy-600 to-navy-800 p-6 text-white">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
                   <div className="flex items-start justify-between mb-3">
-                    <Calendar className="w-6 h-6 text-gold-400 flex-shrink-0" />
+                    <Calendar className="w-6 h-6 text-amber-300 flex-shrink-0" />
                     <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">
                       {formatDate(study.studyDate)}
                     </span>
@@ -271,9 +273,9 @@ export default function BibleStudiesPage() {
                 <div className="p-6">
                   <div className="mb-4">
                     <div className="flex items-start gap-2 mb-2">
-                      <BookOpen className="w-5 h-5 text-navy-600 flex-shrink-0 mt-0.5" />
+                      <BookOpen className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="font-semibold text-navy-700">{study.theme}</p>
+                        <p className="font-semibold text-gray-900">{study.theme}</p>
                         {study.verse && (
                           <p className="text-sm text-gray-600 italic">"{study.verse}"</p>
                         )}
@@ -307,7 +309,7 @@ export default function BibleStudiesPage() {
                   {/* Download button */}
                   <button
                     onClick={() => handleDownload(study)}
-                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-gold-400 to-gold-500 hover:from-gold-500 hover:to-gold-600 text-navy-900 font-semibold py-3 px-4 rounded-lg transition-all duration-200 group-hover:scale-[1.02]"
+                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 group-hover:scale-[1.02] shadow-md hover:shadow-lg"
                   >
                     <Download className="w-5 h-5" />
                     Descargar PDF

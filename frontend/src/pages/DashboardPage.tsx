@@ -32,6 +32,7 @@ import { Badge } from '@/components/ui/badge'
 import { programsApi } from '@/lib/api'
 import ProgramsSlider from '@/components/dashboard/ProgramsSlider'
 import ImageSlider from '@/components/dashboard/ImageSlider'
+import BibleStudiesWidget from '@/components/dashboard/BibleStudiesWidget'
 import ProgramScreenshotsGallery from '@/components/dashboard/ProgramScreenshotsGallery'
 
 interface DashboardStats {
@@ -261,6 +262,15 @@ const DashboardPage = () => {
         transition={{ delay: 0.22 }}
       >
         <ImageSlider />
+      </motion.div>
+
+      {/* ── Widget de Estudios Bíblicos Recientes ─────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.24 }}
+      >
+        <BibleStudiesWidget />
       </motion.div>
 
       {/* ── Galería de Capturas de Programas Publicados ─────────────────── */}
