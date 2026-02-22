@@ -24,7 +24,8 @@ export type Resource =
   | 'users'
   | 'churches'
   | 'finances'
-  | 'billing';
+  | 'billing'
+  | 'bible_studies';
 
 // Acciones posibles sobre cada recurso
 export type Action = 'read' | 'create' | 'update' | 'delete';
