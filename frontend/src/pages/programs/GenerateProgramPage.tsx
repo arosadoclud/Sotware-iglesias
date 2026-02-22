@@ -322,6 +322,20 @@ const GenerateProgramPage = () => {
     selectedAct.daysOfWeek?.includes(0) || selectedAct.dayOfWeek === 0
   )
 
+  // Encontrar el rol "Mensaje" en la configuración de la actividad
+  const messageRoleId = selectedAct?.roleConfig?.find((rc: any) => 
+    rc.role?.name?.toLowerCase().includes('mensaje')
+  )?.role?.id
+
+  // Filtrar personas que tienen el rol de Mensaje
+  const eligibleMessagePersons = allPersons.filter((person: any) => {
+    if (!person.isActive) return false
+    if (!messageRoleId) return false
+    return person.roles?.some((role: any) => 
+      role.roleId?.toString() === messageRoleId.toString()
+    )
+  })
+
   // Limpiar selección de personas cuando cambia la actividad
   useEffect(() => {
     setSelectedMessagePersons([])
@@ -363,10 +377,11 @@ const GenerateProgramPage = () => {
     if (!selectedActivity) return toast.error('Selecciona una actividad')
     
     // Verificar si necesita configuración especial para Mensaje en Culto Evangelístico
-    if (isSundayEvangelistic && selectedMessagePersons.length === 0 && !showMessagePersonSelector) {
-      setShowMessagePersonSelector(true)
-      toast.info('Por favor selecciona las personas disponibles para el Mensaje del Culto Evangelístico')
-      return
+    if (isSundayEvangelistic && eligibleMessagePersons.length > 0) {
+      if (selectedMessagePersons.length === 0) {
+        toast.warning('Debes seleccionar al menos una persona para el rol de Mensaje')
+        return
+      }
     }
     
     setGenerating(true)
@@ -393,12 +408,16 @@ const GenerateProgramPage = () => {
         }
         const isCleaningActivity = selectedAct?.generationType === 'cleaning_groups'
         console.log('📤 Enviando petición batch:', { activityTypeId: selectedActivity, startDate, endDate })
-        const res = await programsApi.generateBatch({ 
+        const payload: any = { 
           activityTypeId: selectedActivity, 
           startDate, 
           endDate,
           ...(isCleaningActivity && { numberOfGroups })
-        })
+        }
+        if (isSundayEvangelistic && selectedMessagePersons.length > 0) {
+          payload.restrictedPersonsForMessage = selectedMessagePersons
+        }
+        const res = await programsApi.generateBatch(payload)
         console.log('📥 Respuesta batch:', res.data)
         console.log('📥 Respuesta batch data completa:', JSON.stringify(res.data.data, null, 2))
         const batchData = res.data.data
@@ -764,30 +783,38 @@ const GenerateProgramPage = () => {
                     <CardContent>
                       <div className="space-y-4">
                         <p className="text-sm text-indigo-700">
-                          Selecciona las personas que el algoritmo tomará en cuenta para el rol de Mensaje en este Culto Evangelístico.
+                          Selecciona las personas que el algoritmo tomará en cuenta para el rol de Mensaje en este Culto Evangelístico. Solo se muestran personas que tienen el rol "Mensaje" asignado.
                         </p>
-                        <div className="space-y-2 max-h-80 overflow-y-auto">
-                          <div className="flex items-center gap-2 mb-3">
-                            <button
-                              type="button"
-                              onClick={() => setSelectedMessagePersons(allPersons.filter(p => p.isActive).map(p => p._id))}
-                              className="text-xs px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                            >
-                              Seleccionar todos
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedMessagePersons([])}
-                              className="text-xs px-3 py-1 bg-neutral-400 text-white rounded-md hover:bg-neutral-500"
-                            >
-                              Limpiar selección
-                            </button>
-                            <span className="text-xs text-indigo-700 font-medium ml-auto">
-                              {selectedMessagePersons.length} seleccionadas
-                            </span>
+                        {eligibleMessagePersons.length === 0 ? (
+                          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-sm text-yellow-800 font-medium">⚠️ No hay personas con el rol "Mensaje" asignado</p>
+                            <p className="text-xs text-yellow-700 mt-1">
+                              Ve a la sección de Personas y asigna el rol "Mensaje" a los miembros que pueden predicar.
+                            </p>
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {allPersons.filter(p => p.isActive).map(person => (
+                        ) : (
+                          <div className="space-y-2 max-h-80 overflow-y-auto">
+                            <div className="flex items-center gap-2 mb-3 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedMessagePersons(eligibleMessagePersons.map(p => p._id))}
+                                className="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                              >
+                                ✓ Seleccionar todos
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedMessagePersons([])}
+                                className="text-xs px-3 py-1.5 bg-neutral-400 text-white rounded-md hover:bg-neutral-500 transition-colors"
+                              >
+                                ✗ Limpiar selección
+                              </button>
+                              <span className="text-xs text-indigo-700 font-medium ml-auto bg-indigo-100 px-3 py-1.5 rounded-md">
+                                {selectedMessagePersons.length} de {eligibleMessagePersons.length} seleccionadas
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {eligibleMessagePersons.map(person => (
                               <label
                                 key={person._id}
                                 className={`flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
@@ -812,9 +839,10 @@ const GenerateProgramPage = () => {
                                   {person.firstName} {person.lastName}
                                 </span>
                               </label>
-                            ))}
+                              ))}
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

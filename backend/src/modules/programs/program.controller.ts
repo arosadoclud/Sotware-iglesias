@@ -268,7 +268,7 @@ export const generateProgram = async (req: AuthRequest, res: Response, next: Nex
 
 export const generateBatchPrograms = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { activityTypeId, startDate, endDate, numberOfGroups } = req.body;
+    const { activityTypeId, startDate, endDate, numberOfGroups, restrictedPersonsForMessage } = req.body;
     if (!activityTypeId || !startDate || !endDate) throw new BadRequestError('activityTypeId, startDate y endDate son requeridos');
 
     const activity = await ActivityType.findOne({ _id: activityTypeId, churchId: req.churchId });
@@ -434,6 +434,7 @@ export const generateBatchPrograms = async (req: AuthRequest, res: Response, nex
       activityTypeId,
       dates,
       generatedBy: { id: req.userId!, name: req.user?.fullName || 'Sistema' },
+      ...(restrictedPersonsForMessage && { restrictedPersonsForMessage }),
     });
 
     const generated = results.filter((r) => r.success);

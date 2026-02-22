@@ -343,6 +343,7 @@ export class AssignmentEngine {
     activityTypeId: string;
     dates: Date[];
     generatedBy: { id: string; name: string };
+    restrictedPersonsForMessage?: string[];
   }): Promise<BatchResult[]> {
     const results: BatchResult[] = [];
 
@@ -403,6 +404,7 @@ export class AssignmentEngine {
           targetDate: date,
           generatedBy: params.generatedBy,
           excludePersonIds: batchAssignedIds, // Evitar repetición entre programas del lote
+          ...(params.restrictedPersonsForMessage && { restrictedPersonsForMessage: params.restrictedPersonsForMessage }),
         });
 
         // Agregar las personas asignadas al tracking global del lote
