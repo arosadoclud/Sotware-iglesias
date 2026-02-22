@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   ChevronLeft,
+  ChevronDown,
   Shield,
   UserCog,
   DollarSign,
@@ -21,6 +22,8 @@ import {
   Image,
   HelpCircle,
   BookOpen,
+  Megaphone,
+  ClipboardList,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { toast } from 'react-hot-toast'
@@ -99,6 +102,89 @@ const NavItem = ({ item, collapsed, isActive }: NavItemProps) => {
   )
 }
 
+interface NavGroupProps {
+  groupKey: string
+  label: string
+  icon: any
+  items: { name: string; href: string; icon: any; className?: string }[]
+  collapsed: boolean // sidebar collapsed to 80px
+  isActive: (path: string) => boolean
+  onNavigate?: () => void
+}
+
+const NavGroup = ({ groupKey, label, icon: GroupIcon, items, collapsed, isActive, onNavigate }: NavGroupProps) => {
+  const storageKey = `navgroup-${groupKey}`
+  const [open, setOpen] = useState(() => {
+    const saved = localStorage.getItem(storageKey)
+    return saved !== null ? saved === 'true' : true // open by default
+  })
+
+  const hasActive = items.some((item) => isActive(item.href))
+
+  const toggle = () => {
+    const next = !open
+    setOpen(next)
+    localStorage.setItem(storageKey, String(next))
+  }
+
+  // When sidebar is collapsed to icons, render items flat without group header
+  if (collapsed) {
+    return (
+      <div className="space-y-1">
+        {items.map((item) => (
+          <NavItem key={item.href} item={item} collapsed={collapsed} isActive={isActive(item.href)} />
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      {/* Group header button */}
+      <button
+        onClick={toggle}
+        className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors ${
+          hasActive
+            ? 'text-primary-700'
+            : 'text-neutral-400 hover:text-neutral-600'
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          <GroupIcon className="w-3.5 h-3.5" />
+          <span>{label}</span>
+        </div>
+        <ChevronDown
+          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+            open ? 'rotate-0' : '-rotate-90'
+          }`}
+        />
+      </button>
+
+      {/* Group items */}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="ml-2 pl-2 border-l border-neutral-200 mt-0.5 mb-1 space-y-0.5">
+              {items.map((item) => (
+                <div key={item.href} onClick={onNavigate}>
+                  <NavItem item={item} collapsed={false} isActive={isActive(item.href)} />
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 const DashboardLayoutImproved = () => {
   const location = useLocation()
   const navigate = useNavigate()
@@ -125,31 +211,75 @@ const DashboardLayoutImproved = () => {
   // Módulos permitidos para VIEWER
   const VIEWER_ALLOWED_PATHS = ['/', '/letters', '/new-members', '/calendar', '/estudios-biblicos']
 
-  // Navegación filtrada por permisos del usuario
-  const allNav = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard, show: true, className: 'sidebar-dashboard' },
-    { name: 'Personas', href: '/persons', icon: Users, show: hasPermission(P.PERSONS_VIEW), className: 'sidebar-personas' },
-    { name: 'Actividades', href: '/activities', icon: Calendar, show: hasPermission(P.ACTIVITIES_VIEW), className: 'sidebar-activities' },
-    { name: 'Programas', href: '/programs', icon: FileText, show: hasPermission(P.PROGRAMS_VIEW), className: 'sidebar-programs' },
-    { name: 'Calendario', href: '/calendar', icon: CalendarDays, show: hasPermission(P.CALENDAR_VIEW), className: 'sidebar-calendar' },
-    { name: 'Eventos', href: '/events', icon: Image, show: true, className: 'sidebar-events' },
-    { name: 'Estudios Bíblicos', href: '/estudios-biblicos', icon: BookOpen, show: hasPermission(P.BIBLE_STUDIES_VIEW), className: 'sidebar-bible-studies' },
-    { name: 'Cartas Invitación', href: '/letters', icon: Mail, show: hasPermission(P.LETTERS_VIEW), className: 'sidebar-letters' },
-    { name: 'Nuevos Miembros', href: '/new-members', icon: UserPlus, show: hasPermission(P.PERSONS_VIEW), className: 'sidebar-new-members' },
-    { name: 'Finanzas', href: '/finances', icon: DollarSign, show: hasPermission(P.FINANCES_VIEW) || isAdmin(), className: 'sidebar-finances' },
-    { name: 'Configuración', href: '/settings', icon: Settings, show: hasPermission(P.SETTINGS_VIEW) || isAdmin(), className: 'sidebar-settings' },
+  // ── Definición de grupos de navegación ────────────────────────────────────
+  const navGroups = [
+    {
+      key: 'congregacion',
+      label: 'Congregación',
+      icon: Users,
+      show: !isViewer,
+      items: [
+        { name: 'Personas',       href: '/persons',     icon: Users,    show: hasPermission(P.PERSONS_VIEW),     className: 'sidebar-personas' },
+        { name: 'Actividades',    href: '/activities',  icon: Calendar, show: hasPermission(P.ACTIVITIES_VIEW), className: 'sidebar-activities' },
+        { name: 'Nuevos Miembros',href: '/new-members', icon: UserPlus, show: hasPermission(P.PERSONS_VIEW),     className: 'sidebar-new-members' },
+      ],
+    },
+    {
+      key: 'contenido',
+      label: 'Contenido',
+      icon: BookOpen,
+      show: true,
+      items: [
+        { name: 'Programas',        href: '/programs',          icon: FileText,    show: hasPermission(P.PROGRAMS_VIEW),      className: 'sidebar-programs' },
+        { name: 'Calendario',       href: '/calendar',          icon: CalendarDays,show: hasPermission(P.CALENDAR_VIEW),      className: 'sidebar-calendar' },
+        { name: 'Eventos',          href: '/events',            icon: Image,       show: true,                                className: 'sidebar-events' },
+        { name: 'Estudios Bíblicos',href: '/estudios-biblicos', icon: BookOpen,    show: hasPermission(P.BIBLE_STUDIES_VIEW), className: 'sidebar-bible-studies' },
+      ],
+    },
+    {
+      key: 'comunicacion',
+      label: 'Comunicación',
+      icon: Megaphone,
+      show: !isViewer || hasPermission(P.LETTERS_VIEW),
+      items: [
+        { name: 'Cartas Invitación', href: '/letters', icon: Mail, show: hasPermission(P.LETTERS_VIEW), className: 'sidebar-letters' },
+      ],
+    },
+    {
+      key: 'secretaria',
+      label: 'Secretaría',
+      icon: ClipboardList,
+      show: !isViewer && (hasPermission(P.FINANCES_VIEW) || isAdmin()),
+      items: [
+        { name: 'Finanzas', href: '/finances', icon: DollarSign, show: hasPermission(P.FINANCES_VIEW) || isAdmin(), className: 'sidebar-finances' },
+      ],
+    },
+    {
+      key: 'administracion',
+      label: 'Administración',
+      icon: Shield,
+      show: !isViewer && isAdmin(),
+      items: [
+        { name: 'Usuarios',       href: '/admin/users', icon: UserCog,  show: isAdmin() },
+        { name: 'Auditoría',      href: '/admin/audit', icon: Shield,   show: isAdmin() },
+        { name: 'Configuración',  href: '/settings',    icon: Settings, show: hasPermission(P.SETTINGS_VIEW) || isAdmin(), className: 'sidebar-settings' },
+      ],
+    },
   ]
 
-  // Si es VIEWER, filtrar solo los módulos permitidos
-  const nav = isViewer
-    ? allNav.filter(item => VIEWER_ALLOWED_PATHS.includes(item.href))
-    : allNav.filter(item => item.show)
+  // Filtrar grupos y sus ítems según permisos
+  const visibleGroups = navGroups
+    .filter(g => g.show)
+    .map(g => ({ ...g, items: g.items.filter(i => i.show) }))
+    .filter(g => g.items.length > 0)
 
-  // Admin navigation items (only for admins, never for viewers)
-  const adminNav = (!isViewer && isAdmin()) ? [
-    { name: 'Usuarios', href: '/admin/users', icon: UserCog },
-    { name: 'Auditoría', href: '/admin/audit', icon: Shield },
-  ] : []
+  // VIEWER: solo Comunicación + Contenido limitado
+  const viewerNav = [
+    { name: 'Calendario',        href: '/calendar',          icon: CalendarDays, className: 'sidebar-calendar' },
+    { name: 'Estudios Bíblicos', href: '/estudios-biblicos', icon: BookOpen,     className: 'sidebar-bible-studies' },
+    { name: 'Cartas Invitación', href: '/letters',           icon: Mail,         className: 'sidebar-letters' },
+    { name: 'Nuevos Miembros',   href: '/new-members',       icon: UserPlus,     className: 'sidebar-new-members' },
+  ]
 
   const isActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
@@ -236,42 +366,37 @@ const DashboardLayoutImproved = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-          {nav.map((item) => (
-            <NavItem
-              key={item.name}
-              item={item}
-              collapsed={collapsed}
-              isActive={isActive(item.href)}
-            />
-          ))}
-          
-          {/* Admin Section */}
-          {adminNav.length > 0 && (
+        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+          {/* Dashboard - siempre visible solo */}
+          <NavItem
+            item={{ name: 'Dashboard', href: '/', icon: LayoutDashboard, className: 'sidebar-dashboard' }}
+            collapsed={collapsed}
+            isActive={isActive('/')}
+          />
+
+          {isViewer ? (
+            // VIEWER: lista simple sin grupos
+            viewerNav.map((item) => (
+              <NavItem key={item.href} item={item} collapsed={collapsed} isActive={isActive(item.href)} />
+            ))
+          ) : (
+            // Resto de roles: grupos colapsables
             <>
-              <AnimatePresence>
-                {!collapsed && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="pt-4 pb-1"
-                  >
-                    <p className="px-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-                      Administración
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              {collapsed && <div className="border-t border-neutral-200 my-3" />}
-              {adminNav.map((item) => (
-                <NavItem
-                  key={item.name}
-                  item={item}
-                  collapsed={collapsed}
-                  isActive={isActive(item.href)}
-                />
-              ))}
+              {!collapsed && <div className="border-t border-neutral-100 my-2" />}
+              {collapsed && <div className="my-1" />}
+              <div className="space-y-1">
+                {visibleGroups.map((group) => (
+                  <NavGroup
+                    key={group.key}
+                    groupKey={group.key}
+                    label={group.label}
+                    icon={group.icon}
+                    items={group.items}
+                    collapsed={collapsed}
+                    isActive={isActive}
+                  />
+                ))}
+              </div>
             </>
           )}
         </nav>
@@ -366,26 +491,39 @@ const DashboardLayoutImproved = () => {
                   </p>
                 </div>
               </div>
-              <nav className="flex-1 overflow-y-auto p-4 space-y-1 pb-4">
-                {nav.map((item) => (
-                  <div key={item.name} onClick={() => setMobileMenuOpen(false)}>
-                    <NavItem item={item} collapsed={false} isActive={isActive(item.href)} />
-                  </div>
-                ))}
-                
-                {/* Admin Section - Mobile */}
-                {adminNav.length > 0 && (
-                  <>
-                    <div className="pt-4 pb-1">
-                      <p className="px-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
-                        Administración
-                      </p>
+              <nav className="flex-1 overflow-y-auto p-3 space-y-1 pb-4">
+                {/* Dashboard */}
+                <div onClick={() => setMobileMenuOpen(false)}>
+                  <NavItem
+                    item={{ name: 'Dashboard', href: '/', icon: LayoutDashboard, className: 'sidebar-dashboard' }}
+                    collapsed={false}
+                    isActive={isActive('/')}
+                  />
+                </div>
+
+                {isViewer ? (
+                  viewerNav.map((item) => (
+                    <div key={item.href} onClick={() => setMobileMenuOpen(false)}>
+                      <NavItem item={item} collapsed={false} isActive={isActive(item.href)} />
                     </div>
-                    {adminNav.map((item) => (
-                      <div key={item.name} onClick={() => setMobileMenuOpen(false)}>
-                        <NavItem item={item} collapsed={false} isActive={isActive(item.href)} />
-                      </div>
-                    ))}
+                  ))
+                ) : (
+                  <>
+                    <div className="border-t border-neutral-100 my-2" />
+                    <div className="space-y-1">
+                      {visibleGroups.map((group) => (
+                        <NavGroup
+                          key={group.key}
+                          groupKey={group.key}
+                          label={group.label}
+                          icon={group.icon}
+                          items={group.items}
+                          collapsed={false}
+                          isActive={isActive}
+                          onNavigate={() => setMobileMenuOpen(false)}
+                        />
+                      ))}
+                    </div>
                   </>
                 )}
               </nav>
