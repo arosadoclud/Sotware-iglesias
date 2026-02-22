@@ -114,6 +114,70 @@ export const uploadPdf = async (req: AuthRequest, res: Response, next: NextFunct
 };
 
 /**
+ * @desc    Subir imagen de portada a Cloudinary
+ * @route   POST /api/v1/bible-studies/upload/image
+ * @access  Private (EDITOR+)
+ */
+export const uploadImage = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    if (!req.file) {
+      throw new ValidationError('Por favor sube una imagen');
+    }
+
+    console.log('🖼️ Uploading image to Cloudinary:', {
+      filename: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
+    });
+
+    const result = await new Promise<any>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'bible-studies/thumbnails',
+          resource_type: 'image',
+          type: 'upload',
+          access_mode: 'public',
+          public_id: `thumbnail-${Date.now()}`,
+          transformation: [{ width: 800, height: 450, crop: 'fill', gravity: 'auto' }],
+        },
+        (error, result) => {
+          if (error) {
+            console.error('❌ Cloudinary image upload error:', error);
+            reject(error);
+          } else {
+            console.log('✅ Image uploaded successfully:', result.secure_url);
+            resolve(result);
+          }
+        }
+      );
+      uploadStream.end(req.file!.buffer);
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        url: result.secure_url,
+        publicId: result.public_id,
+      },
+    });
+  } catch (error: any) {
+    console.error('❌ Error in uploadImage controller:', error);
+    next(new ValidationError(`Error al subir imagen: ${error.message || 'Error desconocido'}`));
+  }
+};
+
+export const uploadImageMiddleware = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB para imágenes
+  fileFilter: (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    const allowed = /jpeg|jpg|png|webp/;
+    const ok = allowed.test(file.mimetype) && allowed.test(file.originalname.toLowerCase());
+    if (ok) cb(null, true);
+    else cb(new Error('Solo se permiten imágenes JPG, PNG o WebP'));
+  },
+});
+
+/**
  * @desc    Eliminar PDF de Cloudinary
  * @route   DELETE /api/v1/bible-studies/upload/pdf/:publicId
  * @access  Private (EDITOR+)

@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { useAuthStore } from '../../store/authStore';
 import { 
   Plus, Edit2, Trash2, Upload, X, Save, Calendar,
-  BookOpen, FileText, Loader2, Download
+  BookOpen, FileText, Loader2, Download, Image
 } from 'lucide-react';
 
 interface BibleStudy {
@@ -19,6 +19,8 @@ interface BibleStudy {
   pdfUrl: string;
   pdfPublicId?: string;
   fileSize?: number;
+  thumbnailUrl?: string;
+  thumbnailPublicId?: string;
   downloadCount: number;
   isActive: boolean;
   createdAt: string;
@@ -35,6 +37,8 @@ interface FormData {
   pdfUrl: string;
   pdfPublicId: string;
   fileSize: number;
+  thumbnailUrl: string;
+  thumbnailPublicId: string;
 }
 
 const INITIAL_FORM: FormData = {
@@ -48,6 +52,8 @@ const INITIAL_FORM: FormData = {
   pdfUrl: '',
   pdfPublicId: '',
   fileSize: 0,
+  thumbnailUrl: '',
+  thumbnailPublicId: '',
 };
 
 export default function BibleStudiesAdminPage() {
@@ -58,6 +64,7 @@ export default function BibleStudiesAdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM);
   const [uploading, setUploading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -76,6 +83,33 @@ export default function BibleStudiesAdminPage() {
       toast.error('Error al cargar estudios');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      toast.error('Solo se permiten imágenes JPG, PNG o WebP');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen es muy grande (máximo 5MB)');
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      const res = await bibleStudiesApi.uploadImage(file);
+      const { url, publicId } = res.data.data;
+      setFormData((prev) => ({ ...prev, thumbnailUrl: url, thumbnailPublicId: publicId }));
+      toast.success('Imagen subida correctamente');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Error al subir imagen');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -166,6 +200,8 @@ export default function BibleStudiesAdminPage() {
         pdfUrl: study.pdfUrl,
         pdfPublicId: study.pdfPublicId || '',
         fileSize: study.fileSize || 0,
+        thumbnailUrl: study.thumbnailUrl || '',
+        thumbnailPublicId: study.thumbnailPublicId || '',
       });
     } else {
       setEditingId(null);
@@ -415,6 +451,45 @@ export default function BibleStudiesAdminPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Breve descripción del contenido del estudio..."
                 />
+              </div>
+
+              {/* Thumbnail Image Upload */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Imagen de Portada <span className="text-gray-400 font-normal">(opcional)</span>
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
+                  {formData.thumbnailUrl ? (
+                    <div className="relative">
+                      <img
+                        src={formData.thumbnailUrl}
+                        alt="Portada"
+                        className="w-full h-40 object-cover"
+                      />
+                      <button
+                        onClick={() => setFormData({ ...formData, thumbnailUrl: '', thumbnailPublicId: '' })}
+                        className="absolute top-2 right-2 bg-red-600 text-white p-1.5 rounded-full hover:bg-red-700 shadow-lg transition"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="cursor-pointer flex flex-col items-center p-6 hover:bg-gray-50 transition">
+                      <Image className="w-10 h-10 text-gray-400 mb-2" />
+                      <span className="text-sm font-medium text-gray-700">
+                        {uploadingImage ? 'Subiendo imagen...' : 'Subir imagen de portada'}
+                      </span>
+                      <span className="text-xs text-gray-500 mt-1">JPG, PNG o WebP · Máx. 5MB</span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={handleUploadImage}
+                        disabled={uploadingImage}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
 
               {/* PDF Upload */}

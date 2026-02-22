@@ -8,7 +8,7 @@ import {
   trackDownload,
   getSeries,
 } from './bible-studies.controller';
-import { uploadPdf, deletePdf, upload } from './upload.controller';
+import { uploadPdf, deletePdf, upload, uploadImage, uploadImageMiddleware } from './upload.controller';
 import { authenticate } from '../../middleware/auth.middleware';
 import { tenantGuard } from '../../middleware/tenant.middleware';
 import { rbac } from '../../middleware/rbac.middleware';
@@ -41,8 +41,9 @@ router.post('/', rbac('bible_studies', 'create'), createBibleStudy);
 router.put('/:id', rbac('bible_studies', 'update'), updateBibleStudy);
 router.delete('/:id', rbac('bible_studies', 'delete'), deleteBibleStudy);
 
-// Rutas de subida de PDFs
+// Rutas de subida de archivos
 router.post('/upload/pdf', rbac('bible_studies', 'create'), upload.single('pdf'), uploadPdf);
 router.delete('/upload/pdf/:publicId', rbac('bible_studies', 'delete'), deletePdf);
+router.post('/upload/image', rbac('bible_studies', 'create'), uploadImageMiddleware.single('image'), uploadImage);
 
 export default router;

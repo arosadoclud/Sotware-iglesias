@@ -408,6 +408,13 @@ export const bibleStudiesApi = {
     const encoded = encodeURIComponent(publicId)
     return api.delete(`/bible-studies/upload/pdf/${encoded}`)
   },
+  uploadImage: (file: File) => {
+    const formData = new FormData()
+    formData.append('image', file)
+    return api.post('/bible-studies/upload/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
 }
 
 export default api
