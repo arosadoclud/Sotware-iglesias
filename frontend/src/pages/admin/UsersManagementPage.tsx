@@ -196,7 +196,8 @@ const UsersManagementPage = () => {
       await adminApi.updateUser(selectedUser._id, {
         fullName: formData.fullName,
         role: formData.role,
-        isSuperUser: formData.isSuperUser,
+        // Solo enviar isSuperUser si el usuario actual es SUPER_ADMIN
+        ...(isSuperAdmin() && { isSuperUser: formData.isSuperUser }),
       })
       toast.success('Usuario actualizado')
       setShowEditModal(false)
