@@ -20,6 +20,7 @@ import {
   UserPlus,
   Image,
   HelpCircle,
+  BookOpen,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { toast } from 'react-hot-toast'
@@ -122,7 +123,7 @@ const DashboardLayoutImproved = () => {
   }
 
   // Módulos permitidos para VIEWER
-  const VIEWER_ALLOWED_PATHS = ['/', '/letters', '/new-members', '/calendar']
+  const VIEWER_ALLOWED_PATHS = ['/', '/letters', '/new-members', '/calendar', '/estudios-biblicos']
 
   // Navegación filtrada por permisos del usuario
   const allNav = [
@@ -132,6 +133,7 @@ const DashboardLayoutImproved = () => {
     { name: 'Programas', href: '/programs', icon: FileText, show: hasPermission(P.PROGRAMS_VIEW), className: 'sidebar-programs' },
     { name: 'Calendario', href: '/calendar', icon: CalendarDays, show: hasPermission(P.CALENDAR_VIEW), className: 'sidebar-calendar' },
     { name: 'Eventos', href: '/events', icon: Image, show: true, className: 'sidebar-events' },
+    { name: 'Estudios Bíblicos', href: '/estudios-biblicos', icon: BookOpen, show: hasPermission(P.BIBLE_STUDIES_VIEW), className: 'sidebar-bible-studies' },
     { name: 'Cartas Invitación', href: '/letters', icon: Mail, show: hasPermission(P.LETTERS_VIEW), className: 'sidebar-letters' },
     { name: 'Nuevos Miembros', href: '/new-members', icon: UserPlus, show: hasPermission(P.PERSONS_VIEW), className: 'sidebar-new-members' },
     { name: 'Finanzas', href: '/finances', icon: DollarSign, show: hasPermission(P.FINANCES_VIEW) || isAdmin(), className: 'sidebar-finances' },

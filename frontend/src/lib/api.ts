@@ -367,4 +367,46 @@ export const eventsApi = {
   deleteImage: (filename: string) => api.delete(`/events/upload/${filename}`),
 }
 
+// ── BIBLE STUDIES (Estudios Bíblicos) ────────────────────────────────────────
+export const bibleStudiesApi = {
+  getAll: (params?: {
+    year?: number
+    month?: number
+    series?: string
+    isActive?: string
+    limit?: number
+    sort?: string
+    search?: string
+  }) => api.get('/bible-studies', { params }),
+  get: (id: string) => api.get(`/bible-studies/${id}`),
+  create: (data: {
+    title: string
+    studyDate: string
+    theme: string
+    verse?: string
+    description: string
+    teacher?: string
+    series?: string
+    pdfUrl: string
+    pdfPublicId?: string
+    fileSize?: number
+    thumbnailUrl?: string
+  }) => api.post('/bible-studies', data),
+  update: (id: string, data: any) => api.put(`/bible-studies/${id}`, data),
+  delete: (id: string) => api.delete(`/bible-studies/${id}`),
+  trackDownload: (id: string) => api.post(`/bible-studies/${id}/download`),
+  getSeries: () => api.get('/bible-studies/meta/series'),
+  uploadPdf: (file: File) => {
+    const formData = new FormData()
+    formData.append('pdf', file)
+    return api.post('/bible-studies/upload/pdf', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+  deletePdf: (publicId: string) => {
+    const encoded = encodeURIComponent(publicId)
+    return api.delete(`/bible-studies/upload/pdf/${encoded}`)
+  },
+}
+
 export default api

@@ -73,6 +73,13 @@ export enum Permission {
   FINANCES_DELETE = 'finances:delete',
   FINANCES_APPROVE = 'finances:approve',
   FINANCES_REPORTS = 'finances:reports',
+  
+  // ── ESTUDIOS BÍBLICOS ───────────────────────────────────────────────────────
+  BIBLE_STUDIES_VIEW = 'bible_studies:view',
+  BIBLE_STUDIES_CREATE = 'bible_studies:create',
+  BIBLE_STUDIES_EDIT = 'bible_studies:edit',
+  BIBLE_STUDIES_DELETE = 'bible_studies:delete',
+  BIBLE_STUDIES_DOWNLOAD = 'bible_studies:download',
 }
 
 // Permisos por defecto según el rol
@@ -131,6 +138,12 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.FINANCES_EDIT,
     Permission.FINANCES_APPROVE,
     Permission.FINANCES_REPORTS,
+    // Estudios Bíblicos
+    Permission.BIBLE_STUDIES_VIEW,
+    Permission.BIBLE_STUDIES_CREATE,
+    Permission.BIBLE_STUDIES_EDIT,
+    Permission.BIBLE_STUDIES_DELETE,
+    Permission.BIBLE_STUDIES_DOWNLOAD,
   ],
   
   MINISTRY_LEADER: [
@@ -165,6 +178,12 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.CLEANING_MANAGE,
     // WhatsApp
     Permission.WHATSAPP_SEND,
+    // Estudios Bíblicos
+    Permission.BIBLE_STUDIES_VIEW,
+    Permission.BIBLE_STUDIES_CREATE,
+    Permission.BIBLE_STUDIES_EDIT,
+    Permission.BIBLE_STUDIES_DELETE,
+    Permission.BIBLE_STUDIES_DOWNLOAD,
   ],
   
   EDITOR: [
@@ -190,6 +209,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.CALENDAR_VIEW,
     // Limpieza (ver)
     Permission.CLEANING_VIEW,
+    // Estudios Bíblicos (crear, ver, editar)
+    Permission.BIBLE_STUDIES_VIEW,
+    Permission.BIBLE_STUDIES_CREATE,
+    Permission.BIBLE_STUDIES_EDIT,
+    Permission.BIBLE_STUDIES_DOWNLOAD,
   ],
   
   VIEWER: [
@@ -198,6 +222,9 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.PERSONS_VIEW,
     // Cartas de invitación
     Permission.LETTERS_VIEW,
+    // Estudios Bíblicos (solo ver y descargar)
+    Permission.BIBLE_STUDIES_VIEW,
+    Permission.BIBLE_STUDIES_DOWNLOAD,
   ],
 };
 
@@ -274,6 +301,13 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, { label: string; descri
   [Permission.FINANCES_DELETE]: { label: 'Eliminar transacciones', description: 'Eliminar transacciones financieras', category: 'Finanzas' },
   [Permission.FINANCES_APPROVE]: { label: 'Aprobar transacciones', description: 'Aprobar/rechazar transacciones que requieren aprobación', category: 'Finanzas' },
   [Permission.FINANCES_REPORTS]: { label: 'Reportes financieros', description: 'Acceder a reportes y análisis financieros', category: 'Finanzas' },
+  
+  // Estudios Bíblicos
+  [Permission.BIBLE_STUDIES_VIEW]: { label: 'Ver estudios bíblicos', description: 'Ver lista de estudios bíblicos disponibles', category: 'Estudios Bíblicos' },
+  [Permission.BIBLE_STUDIES_CREATE]: { label: 'Crear estudios', description: 'Publicar nuevos estudios bíblicos', category: 'Estudios Bíblicos' },
+  [Permission.BIBLE_STUDIES_EDIT]: { label: 'Editar estudios', description: 'Modificar estudios bíblicos existentes', category: 'Estudios Bíblicos' },
+  [Permission.BIBLE_STUDIES_DELETE]: { label: 'Eliminar estudios', description: 'Eliminar estudios bíblicos', category: 'Estudios Bíblicos' },
+  [Permission.BIBLE_STUDIES_DOWNLOAD]: { label: 'Descargar estudios', description: 'Descargar PDFs de estudios bíblicos', category: 'Estudios Bíblicos' },
 };
 
 // Agrupar permisos por categoría para la UI
@@ -290,6 +324,7 @@ export const PERMISSION_CATEGORIES = [
   'Limpieza',
   'WhatsApp',
   'Finanzas',
+  'Estudios Bíblicos',
 ];
 
 // Helper para verificar si un usuario tiene un permiso

@@ -30,6 +30,8 @@ import { FinancesPage, FinanceReportsPage } from './pages/finances'
 import SettingsPage from './pages/SettingsPage'
 import NewMembersPage from './pages/new-members/NewMembersPage'
 import EventsManagementPage from './pages/events/EventsManagementPage'
+import BibleStudiesPage from './pages/bible-studies/BibleStudiesPage'
+import BibleStudiesAdminPage from './pages/bible-studies/BibleStudiesAdminPage'
 import UsersManagementPage from './pages/admin/UsersManagementPage'
 import AuditLogsPage from './pages/admin/AuditLogsPage'
 
@@ -40,7 +42,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 }
 
 // Rutas permitidas para el rol VIEWER
-const VIEWER_ALLOWED_ROUTES = ['/', '/letters', '/new-members', '/calendar']
+const VIEWER_ALLOWED_ROUTES = ['/', '/letters', '/new-members', '/calendar', '/estudios-biblicos']
 
 const ViewerGuard = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuthStore()
@@ -131,6 +133,16 @@ const AnimatedRoutes = () => {
           } />
           <Route path="/events" element={
             <ViewerGuard><PageTransition><EventsManagementPage /></PageTransition></ViewerGuard>
+          } />
+          <Route path="/estudios-biblicos" element={
+            <ViewerGuard><PageTransition><BibleStudiesPage /></PageTransition></ViewerGuard>
+          } />
+          <Route path="/estudios-biblicos/admin" element={
+            <ViewerGuard>
+              <PermissionRoute permissions={P.BIBLE_STUDIES_CREATE}>
+                <PageTransition><BibleStudiesAdminPage /></PageTransition>
+              </PermissionRoute>
+            </ViewerGuard>
           } />
           <Route path="/new-members" element={
             <PageTransition><NewMembersPage /></PageTransition>

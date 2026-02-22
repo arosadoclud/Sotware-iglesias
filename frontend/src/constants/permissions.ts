@@ -74,6 +74,13 @@ export const P = {
   FINANCES_DELETE: 'finances:delete',
   FINANCES_APPROVE: 'finances:approve',
   FINANCES_REPORTS: 'finances:reports',
+
+  // Estudios Bíblicos
+  BIBLE_STUDIES_VIEW: 'bible_studies:view',
+  BIBLE_STUDIES_CREATE: 'bible_studies:create',
+  BIBLE_STUDIES_EDIT: 'bible_studies:edit',
+  BIBLE_STUDIES_DELETE: 'bible_studies:delete',
+  BIBLE_STUDIES_DOWNLOAD: 'bible_studies:download',
 } as const
 
 export type PermissionKey = (typeof P)[keyof typeof P]
