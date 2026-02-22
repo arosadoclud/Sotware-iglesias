@@ -132,14 +132,14 @@ export default function BibleStudiesWidget() {
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
         {studies.map((study, index) => (
           <motion.div
             key={study._id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.08 }}
-            className="flex flex-col"
+            className="flex flex-col rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200"
           >
             {/* Card Image / Placeholder */}
             <div className="relative w-full aspect-video overflow-hidden">
