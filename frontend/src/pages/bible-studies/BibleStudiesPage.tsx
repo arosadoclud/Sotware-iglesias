@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { bibleStudiesApi } from '../../lib/api';
 import { toast } from 'sonner';
-import { Download, Calendar, BookOpen, FileText, Search, Filter, X } from 'lucide-react';
+import { Download, Calendar, BookOpen, FileText, Search, Filter, X, Settings } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { Link } from 'react-router-dom';
+import { P } from '../../constants/permissions';
 
 interface BibleStudy {
   _id: string;
@@ -21,7 +23,7 @@ interface BibleStudy {
 }
 
 export default function BibleStudiesPage() {
-  const { user } = useAuthStore();
+  const { user, hasPermission } = useAuthStore();
   const [studies, setStudies] = useState<BibleStudy[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -129,14 +131,25 @@ export default function BibleStudiesPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-12 px-4 shadow-lg">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-4">
-            <div className="bg-white/10 p-3 rounded-lg">
-              <BookOpen className="w-10 h-10" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/10 p-3 rounded-lg">
+                <BookOpen className="w-10 h-10" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold">Estudios Bíblicos</h1>
+                <p className="text-blue-100 mt-1 text-sm md:text-base">Recursos para tu crecimiento espiritual</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold">Estudios Bíblicos</h1>
-              <p className="text-blue-100 mt-1 text-sm md:text-base">Recursos para tu crecimiento espiritual</p>
-            </div>
+            {hasPermission(P.BIBLE_STUDIES_CREATE) && (
+              <Link
+                to="/estudios-biblicos/admin"
+                className="flex items-center gap-2 bg-white text-blue-600 hover:bg-blue-50 px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
+              >
+                <Settings className="w-5 h-5" />
+                <span className="hidden md:inline">Administrar</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>

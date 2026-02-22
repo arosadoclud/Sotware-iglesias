@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, Download, Calendar, ArrowRight } from 'lucide-react';
+import { BookOpen, Download, Calendar, ArrowRight, Settings } from 'lucide-react';
 import { bibleStudiesApi } from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { P } from '../../constants/permissions';
 
 interface BibleStudy {
   _id: string;
@@ -19,7 +20,7 @@ interface BibleStudy {
 }
 
 export default function BibleStudiesWidget() {
-  const { user } = useAuthStore();
+  const { user, hasPermission } = useAuthStore();
   const [studies, setStudies] = useState<BibleStudy[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -98,13 +99,24 @@ export default function BibleStudiesWidget() {
             <p className="text-sm text-gray-600">Recursos recientes disponibles</p>
           </div>
         </div>
-        <Link
-          to="/estudios-biblicos"
-          className="flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 transition"
-        >
-          Ver todos
-          <ArrowRight className="w-4 h-4" />
-        </Link>
+        <div className="flex items-center gap-2">
+          {hasPermission(P.BIBLE_STUDIES_CREATE) && (
+            <Link
+              to="/estudios-biblicos/admin"
+              className="flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-blue-600 transition p-2 hover:bg-blue-50 rounded-lg"
+              title="Administrar estudios"
+            >
+              <Settings className="w-5 h-5" />
+            </Link>
+          )}
+          <Link
+            to="/estudios-biblicos"
+            className="flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 transition"
+          >
+            Ver todos
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
 
       <div className="space-y-3">
