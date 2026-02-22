@@ -17,6 +17,7 @@ type TabKey = 'child-presentations' | 'weddings' | 'baptisms' | 'conversions' | 
 interface Tab {
   key: TabKey
   label: string
+  newLabel: string
   icon: React.ElementType
   color: string
   bg: string
@@ -26,12 +27,12 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { key: 'child-presentations', label: 'Niños',       icon: Baby,          color: 'text-pink-600',    bg: 'bg-pink-50',    border: 'border-pink-200',   accent: 'bg-pink-100',   badge: 'bg-pink-100 text-pink-700' },
-  { key: 'weddings',            label: 'Bodas',        icon: Heart,         color: 'text-rose-600',    bg: 'bg-rose-50',    border: 'border-rose-200',   accent: 'bg-rose-100',   badge: 'bg-rose-100 text-rose-700' },
-  { key: 'baptisms',            label: 'Bautizos',     icon: Droplets,      color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-200',   accent: 'bg-blue-100',   badge: 'bg-blue-100 text-blue-700' },
-  { key: 'conversions',         label: 'Conversiones', icon: Star,          color: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-200',  accent: 'bg-amber-100',  badge: 'bg-amber-100 text-amber-700' },
-  { key: 'board-minutes',       label: 'Actas',        icon: ClipboardList, color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-200', accent: 'bg-indigo-100', badge: 'bg-indigo-100 text-indigo-700' },
-  { key: 'preachers',           label: 'Predicadores', icon: Mic,           color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200',accent: 'bg-emerald-100',badge: 'bg-emerald-100 text-emerald-700' },
+  { key: 'child-presentations', label: 'Niños',       newLabel: 'Nuevo niño',        icon: Baby,          color: 'text-pink-600',    bg: 'bg-pink-50',    border: 'border-pink-200',   accent: 'bg-pink-100',   badge: 'bg-pink-100 text-pink-700' },
+  { key: 'weddings',            label: 'Bodas',        newLabel: 'Nueva boda',        icon: Heart,         color: 'text-rose-600',    bg: 'bg-rose-50',    border: 'border-rose-200',   accent: 'bg-rose-100',   badge: 'bg-rose-100 text-rose-700' },
+  { key: 'baptisms',            label: 'Bautizos',     newLabel: 'Nuevo bautizo',     icon: Droplets,      color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-200',   accent: 'bg-blue-100',   badge: 'bg-blue-100 text-blue-700' },
+  { key: 'conversions',         label: 'Conversiones', newLabel: 'Nuevo convertido',  icon: Star,          color: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-200',  accent: 'bg-amber-100',  badge: 'bg-amber-100 text-amber-700' },
+  { key: 'board-minutes',       label: 'Actas',        newLabel: 'Nueva acta',        icon: ClipboardList, color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-200', accent: 'bg-indigo-100', badge: 'bg-indigo-100 text-indigo-700' },
+  { key: 'preachers',           label: 'Predicadores', newLabel: 'Nuevo predicador',  icon: Mic,           color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200',accent: 'bg-emerald-100',badge: 'bg-emerald-100 text-emerald-700' },
 ]
 
 // ── Campos de cada recurso ────────────────────────────────────────────────────
@@ -735,7 +736,7 @@ export default function SecretaryPage() {
                 'bg-emerald-500 hover:bg-emerald-600'}`}
           >
             <Plus className="h-4 w-4" />
-            Nuevo {tab.label.slice(0, -1).toLowerCase()}
+            {tab.newLabel}
           </button>
         )}
       </div>
