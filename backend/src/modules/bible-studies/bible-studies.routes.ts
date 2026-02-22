@@ -12,8 +12,21 @@ import { uploadPdf, deletePdf, upload } from './upload.controller';
 import { authenticate } from '../../middleware/auth.middleware';
 import { tenantGuard } from '../../middleware/tenant.middleware';
 import { rbac } from '../../middleware/rbac.middleware';
+import envConfig from '../../config/env';
 
 const router = Router();
+
+// Ruta de verificación de configuración de Cloudinary (solo en desarrollo)
+if (process.env.NODE_ENV !== 'production') {
+  router.get('/cloudinary-check', (req, res) => {
+    res.json({
+      cloudinaryConfigured: !!(envConfig.cloudinaryCloudName && envConfig.cloudinaryApiKey && envConfig.cloudinaryApiSecret),
+      cloudName: !!envConfig.cloudinaryCloudName,
+      apiKey: !!envConfig.cloudinaryApiKey,
+      apiSecret: !!envConfig.cloudinaryApiSecret,
+    });
+  });
+}
 
 // Rutas públicas (sin autenticación requerida)
 router.get('/', getBibleStudies);

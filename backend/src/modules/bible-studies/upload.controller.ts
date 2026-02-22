@@ -12,6 +12,14 @@ cloudinary.config({
   api_secret: envConfig.cloudinaryApiSecret,
 });
 
+// Verificar configuración de Cloudinary
+if (!envConfig.cloudinaryCloudName || !envConfig.cloudinaryApiKey || !envConfig.cloudinaryApiSecret) {
+  console.error('⚠️ WARNING: Cloudinary credentials are not configured properly');
+  console.error('CLOUDINARY_CLOUD_NAME:', envConfig.cloudinaryCloudName ? '✓' : '✗');
+  console.error('CLOUDINARY_API_KEY:', envConfig.cloudinaryApiKey ? '✓' : '✗');
+  console.error('CLOUDINARY_API_SECRET:', envConfig.cloudinaryApiSecret ? '✓' : '✗');
+}
+
 // Configuración de multer para manejo temporal
 const storage = multer.memoryStorage();
 
@@ -46,6 +54,22 @@ export const uploadPdf = async (req: AuthRequest, res: Response, next: NextFunct
       throw new ValidationError('Por favor sube un archivo PDF');
     }
 
+    // Validar credenciales de Cloudinary
+    if (!envConfig.cloudinaryCloudName || !envConfig.cloudinaryApiKey || !envConfig.cloudinaryApiSecret) {
+      console.error('❌ Cloudinary credentials missing:', {
+        cloudName: !!envConfig.cloudinaryCloudName,
+        apiKey: !!envConfig.cloudinaryApiKey,
+        apiSecret: !!envConfig.cloudinaryApiSecret,
+      });
+      throw new ValidationError('Cloudinary no está configurado correctamente. Contacta al administrador.');
+    }
+
+    console.log('📤 Uploading PDF to Cloudinary:', {
+      filename: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
+    });
+
     // Subir a Cloudinary como recurso RAW (no imagen)
     const result = await new Promise<any>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
@@ -56,8 +80,13 @@ export const uploadPdf = async (req: AuthRequest, res: Response, next: NextFunct
           public_id: `study-${Date.now()}`,
         },
         (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
+          if (error) {
+            console.error('❌ Cloudinary upload error:', error);
+            reject(error);
+          } else {
+            console.log('✅ PDF uploaded successfully:', result.secure_url);
+            resolve(result);
+          }
         }
       );
       uploadStream.end(req.file!.buffer);
@@ -72,8 +101,13 @@ export const uploadPdf = async (req: AuthRequest, res: Response, next: NextFunct
         format: result.format,
       },
     });
-  } catch (error) {
-    next(error);
+  } catch (error: any) {
+    console.error('❌ Error in uploadPdf controller:', error);
+    if (error instanceof ValidationError) {
+      next(error);
+    } else {
+      next(new ValidationError(`Error al subir PDF: ${error.message || 'Error desconocido'}`));
+    }
   }
 };
 
