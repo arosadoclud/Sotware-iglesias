@@ -18,7 +18,7 @@ export const getPersons = async (req: AuthRequest, res: Response, next: NextFunc
     const skip = (page - 1) * limit;
 
     // Proyección de campos
-    const projection = 'fullName phone ministry status roles createdAt';
+    const projection = 'firstName lastName fullName phone ministry status roles createdAt';
 
     const [persons, total] = await Promise.all([
       Person.find(filter)

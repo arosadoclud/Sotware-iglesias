@@ -354,7 +354,7 @@ const GenerateProgramPage = () => {
         personasConRolesAsignados: personasConRoles.length,
         personasConRolMensaje: eligibleMessagePersons.length,
         muestraPersonasConRoles: personasConRoles.slice(0, 5).map((p: any) => ({
-          nombre: `${p.firstName} ${p.lastName}`,
+          nombre: p.fullName || `${p.firstName || ''} ${p.lastName || ''}`.trim(),
           status: p.status,
           roles: p.roles?.map((r: any) => ({
             roleName: r.roleName,
@@ -363,7 +363,7 @@ const GenerateProgramPage = () => {
           }))
         })),
         personasElegiblesParaMensaje: eligibleMessagePersons.map((p: any) => ({
-          nombre: `${p.firstName} ${p.lastName}`,
+          nombre: p.fullName || `${p.firstName || ''} ${p.lastName || ''}`.trim(),
           roles: p.roles?.map((r: any) => r.roleName || r.name).join(', ')
         }))
       })
@@ -841,7 +841,7 @@ const GenerateProgramPage = () => {
                                 const conRoles = personasActivas.filter((p: any) => p.roles?.length > 0)
                                 console.log('Con roles asignados:', conRoles.length)
                                 console.log('Detalle personas con roles:', conRoles.map((p: any) => ({
-                                  nombre: `${p.firstName} ${p.lastName}`,
+                                  nombre: p.fullName || `${p.firstName || ''} ${p.lastName || ''}`.trim(),
                                   status: p.status,
                                   roles: p.roles?.map((r: any) => r.roleName || r.name)
                                 })))
@@ -895,7 +895,7 @@ const GenerateProgramPage = () => {
                                   className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
                                 />
                                 <span className="text-sm font-medium text-neutral-900">
-                                  {person.firstName} {person.lastName}
+                                  {person.fullName || `${person.firstName || ''} ${person.lastName || ''}`.trim()}
                                 </span>
                               </label>
                               ))}
