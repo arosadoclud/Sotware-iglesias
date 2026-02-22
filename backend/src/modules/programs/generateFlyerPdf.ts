@@ -18,8 +18,17 @@ export async function generateFlyerPdf(data: any): Promise<Buffer> {
 
   // 3. Lanzar Puppeteer y generar PDF
   const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    headless: true,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--no-first-run',
+      '--no-zygote',
+      '--single-process',
+    ],
   });
   const page = await browser.newPage();
   await page.setContent(html, { waitUntil: 'networkidle0' });
