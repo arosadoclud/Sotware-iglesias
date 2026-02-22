@@ -980,7 +980,7 @@ const FlyerPreviewPage = () => {
               ✝ IGLESIA DIOS FUERTE <span style={{ color: C.goldLight }}>ARCA EVANGELICA</span>
             </span>
           </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="fe-topbar-actions" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <div style={styles.liveBadge} className="fe-live-badge-top">
               <div className="fe-live-dot" />
               <span className="fe-hide-mobile">Vista en tiempo real</span>
@@ -1001,11 +1001,12 @@ const FlyerPreviewPage = () => {
                 }
               }} 
               disabled={sharingWhatsApp}
-              className="fe-btn-whatsapp" 
+              className="fe-btn-whatsapp fe-action-btn" 
               style={{
-                ...styles.topbarSaveBtn, 
-                background: sharingWhatsApp ? '#999' : 'linear-gradient(135deg, #25D366, #128C7E)',
-                opacity: sharingWhatsApp ? 0.6 : 1,
+                ...styles.topbarActionBtn, 
+                background: sharingWhatsApp ? 'rgba(0,0,0,0.2)' : 'rgba(37,211,102,0.15)',
+                color: sharingWhatsApp ? 'rgba(255,255,255,0.5)' : '#25D366',
+                border: '1px solid ' + (sharingWhatsApp ? 'rgba(255,255,255,0.1)' : 'rgba(37,211,102,0.3)'),
               }}
               title="Compartir por WhatsApp"
             >
@@ -1014,18 +1015,23 @@ const FlyerPreviewPage = () => {
             <button 
               onClick={handleDirectDownloadPdf} 
               disabled={downloadingPdf} 
-              className="fe-btn-gold" 
+              className="fe-btn-download fe-action-btn" 
               style={{
-                ...styles.topbarSaveBtn,
-                background: downloadingPdf ? '#999' : 'linear-gradient(135deg, #D4AF37, #B8941E)',
-                opacity: downloadingPdf ? 0.6 : 1,
+                ...styles.topbarActionBtn,
+                background: downloadingPdf ? 'rgba(0,0,0,0.2)' : 'rgba(200,168,75,0.15)',
+                color: downloadingPdf ? 'rgba(255,255,255,0.5)' : C.goldLight,
+                border: '1px solid ' + (downloadingPdf ? 'rgba(255,255,255,0.1)' : 'rgba(200,168,75,0.3)'),
               }}
               title="Descargar PDF del programa guardado"
             >
-              {downloadingPdf ? '⏳' : '⬇️'} <span className="fe-btn-text">Descargar PDF</span>
+              {downloadingPdf ? '⏳' : '⬇️'} <span className="fe-btn-text">Descargar</span>
             </button>
-            <button onClick={handleSave} disabled={saving} className="fe-btn-primary" style={{
-              ...styles.topbarSaveBtn, opacity: saving ? 0.6 : 1,
+            <button onClick={handleSave} disabled={saving} className="fe-btn-save fe-action-btn" style={{
+              ...styles.topbarActionBtn,
+              background: saving ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.15)',
+              color: saving ? 'rgba(255,255,255,0.5)' : 'white',
+              border: '1px solid ' + (saving ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.25)'),
+              fontWeight: 600,
             }}
             title="Guardar cambios">
               {saving ? '⏳' : '💾'} <span className="fe-btn-text">Guardar</span>
@@ -1818,6 +1824,9 @@ const SCOPED_CSS = `
   .fe-btn-gold:hover { background: ${C.goldLight} !important; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(200,168,75,0.35); }
   .fe-btn-outline:hover { border-color: ${C.navy} !important; background: ${C.gray100} !important; }
   .fe-topbar-btn:hover { background: rgba(255,255,255,0.18) !important; }
+  .fe-action-btn:hover { transform: translateY(-1px); opacity: 0.9 !important; }
+  .fe-action-btn:active { transform: translateY(0); }
+  .fe-action-btn:disabled { cursor: not-allowed; opacity: 0.5 !important; }
   .fe-suggestion-item:hover { background: ${C.goldPale} !important; }
 
   .fe-live-dot {
@@ -1863,30 +1872,51 @@ const SCOPED_CSS = `
     .fe-mobile-vertical { display: block !important; }
     .fe-desktop-only { display: none !important; }
     .fe-workspace { display: block !important; padding: 0.75rem !important; }
-    .fe-topbar { height: 46px !important; flex-wrap: wrap !important; gap: 6px !important; }
+    .fe-topbar { 
+      height: auto !important; 
+      min-height: 48px !important;
+      padding: 0.5rem !important;
+      gap: 8px !important; 
+    }
+    .fe-topbar-actions {
+      flex-wrap: wrap !important;
+      justify-content: flex-end !important;
+      gap: 6px !important;
+    }
     .fe-topbar-brand { display: none !important; }
     .fe-hide-mobile { display: none !important; }
     .fe-btn-text { display: inline !important; }
-    .fe-topbar-save-btn { padding: 6px 12px !important; font-size: 0.75rem !important; }
+    .fe-action-btn { 
+      padding: 6px 10px !important; 
+      font-size: 0.7rem !important;
+      gap: 4px !important;
+    }
   }
 
   @media (max-width: 640px) {
     .fe-page { font-size: 14px; }
     .fe-topbar { 
-      padding: 0 0.5rem !important; 
+      padding: 0.4rem !important; 
       height: auto !important; 
-      min-height: 44px !important;
-      padding-top: 0.5rem !important;
-      padding-bottom: 0.5rem !important;
+      min-height: auto !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0.5rem !important;
     }
-    .fe-topbar-back-btn { font-size: 0.7rem !important; padding: 4px 8px !important; }
+    .fe-topbar-actions {
+      justify-content: space-between !important;
+      width: 100% !important;
+    }
+    .fe-topbar-back-btn { font-size: 0.7rem !important; padding: 5px 10px !important; }
     .fe-topbar-badge { display: none !important; }
-    .fe-topbar-save-btn { 
-      font-size: 0.7rem !important; 
+    .fe-action-btn { 
+      font-size: 0.65rem !important; 
       padding: 6px 8px !important;
       min-width: auto !important;
+      flex: 1 !important;
+      justify-content: center !important;
     }
-    .fe-live-badge-top { font-size: 0.6rem !important; }
+    .fe-live-badge-top { display: none !important; }
     .fe-live-badge { display: none !important; }
     .fe-btn-text { display: none !important; }
     .fe-panel-body { padding: 0.75rem !important; }
@@ -1951,6 +1981,13 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '6px 14px', cursor: 'pointer', fontFamily: F.body,
     fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center',
     gap: 6, transition: 'all 0.18s',
+  },
+  topbarActionBtn: {
+    border: 'none', borderRadius: 8,
+    padding: '7px 14px', cursor: 'pointer', fontFamily: F.body,
+    fontSize: '0.75rem', fontWeight: 500, display: 'flex', alignItems: 'center',
+    gap: 6, transition: 'all 0.2s', whiteSpace: 'nowrap',
+    backdropFilter: 'blur(10px)',
   },
   liveBadge: {
     display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.68rem',
