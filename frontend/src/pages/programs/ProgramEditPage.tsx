@@ -176,35 +176,36 @@ const ProgramEditPage = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/programs')}
                 className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition"
               >
                 <ArrowLeft className="w-5 h-5" />
-                <span className="font-medium">Volver a Programas</span>
+                <span className="font-medium hidden sm:inline">Volver a Programas</span>
               </button>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setShowPreview(!showPreview)}
-                className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                className="flex items-center gap-2 px-3 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-sm"
               >
                 <Eye className="w-4 h-4" />
-                {showPreview ? 'Ocultar' : 'Mostrar'} Preview
+                <span className="hidden sm:inline">{showPreview ? 'Ocultar' : 'Mostrar'} Preview</span>
               </button>
               <button
                 onClick={handleDownloadPDF}
-                className="flex items-center gap-2 px-4 py-2 text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition"
+                className="flex items-center gap-2 px-3 py-2 text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition text-sm"
+                title="Descargar PDF"
               >
                 <Download className="w-4 h-4" />
-                Descargar PDF
+                <span className="hidden sm:inline">Descargar PDF</span>
               </button>
               <button
                 onClick={() => navigate(`/programs/share-whatsapp?ids=${id}`)}
-                className="flex items-center gap-2 px-4 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg transition"
+                className="flex items-center gap-2 px-3 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg transition text-sm hidden sm:flex"
               >
                 <MessageCircle className="w-4 h-4" />
                 WhatsApp
@@ -212,17 +213,17 @@ const ProgramEditPage = () => {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition disabled:opacity-50"
+                className="flex items-center gap-2 px-3 py-2 text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition disabled:opacity-50 text-sm font-medium"
               >
                 {saving ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Guardando...
+                    <span className="hidden sm:inline">Guardando...</span>
                   </>
                 ) : (
                   <>
                     <Save className="w-4 h-4" />
-                    Guardar Cambios
+                    <span>Guardar</span>
                   </>
                 )}
               </button>
@@ -232,7 +233,7 @@ const ProgramEditPage = () => {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Editor */}
           <div className="space-y-6">

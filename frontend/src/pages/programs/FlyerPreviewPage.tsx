@@ -229,6 +229,12 @@ const FlyerPreviewPage = () => {
         if (cancelled) return
 
         const prog = progRes.data.data
+        
+        // ✅ Si es un programa de limpieza, redirigir al editor específico
+        if (prog.generationType === 'cleaning_groups') {
+          navigate(`/programs/edit-cleaning/${id}`, { replace: true })
+          return
+        }
         setForm({
           churchName: prog.church?.name || INITIAL_FORM.churchName,
           churchSub: prog.church?.subTitle || '',
@@ -654,7 +660,8 @@ const FlyerPreviewPage = () => {
   const handleDirectDownloadPdf = useCallback(async () => {
     setDownloadingPdf(true)
     try {
-      const res = await programsApi.downloadPdf(id as string, footerSummary)
+      // ✅ Usar downloadFlyer en lugar de downloadPdf para manejar correctamente ambos tipos de programas
+      const res = await programsApi.downloadFlyer(id as string)
       const blob = new Blob([res.data], { type: 'application/pdf' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -678,7 +685,7 @@ const FlyerPreviewPage = () => {
     } finally {
       setDownloadingPdf(false)
     }
-  }, [id, footerSummary])
+  }, [id, form.churchName, form.worshipType, form.dateInput])
 
   // ─── Download PDF (Guardar cambios y descargar desde configuración) ──────
 
@@ -687,7 +694,8 @@ const FlyerPreviewPage = () => {
     setDownloadingPdf(true)
     try {
       await programsApi.update(id as string, buildUpdatePayload(form, assignments))
-      const res = await programsApi.downloadPdf(id as string, footerSummary)
+      // ✅ Usar downloadFlyer en lugar de downloadPdf para manejar correctamente ambos tipos de programas
+      const res = await programsApi.downloadFlyer(id as string)
       const blob = new Blob([res.data], { type: 'application/pdf' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -972,12 +980,12 @@ const FlyerPreviewPage = () => {
               ✝ IGLESIA DIOS FUERTE <span style={{ color: C.goldLight }}>ARCA EVANGELICA</span>
             </span>
           </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <div style={styles.liveBadge}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={styles.liveBadge} className="fe-live-badge-top">
               <div className="fe-live-dot" />
-              Vista en tiempo real
+              <span className="fe-hide-mobile">Vista en tiempo real</span>
             </div>
-            <span style={styles.topbarBadge}>Editor de Programa</span>
+            <span style={styles.topbarBadge} className="fe-hide-mobile">Editor de Programa</span>
             <button 
               onClick={async () => {
                 if (!id || sharingWhatsApp) return
@@ -999,8 +1007,9 @@ const FlyerPreviewPage = () => {
                 background: sharingWhatsApp ? '#999' : 'linear-gradient(135deg, #25D366, #128C7E)',
                 opacity: sharingWhatsApp ? 0.6 : 1,
               }}
+              title="Compartir por WhatsApp"
             >
-              {sharingWhatsApp ? '⏳' : '📱'} WhatsApp
+              {sharingWhatsApp ? '⏳' : '📱'} <span className="fe-btn-text">WhatsApp</span>
             </button>
             <button 
               onClick={handleDirectDownloadPdf} 
@@ -1013,12 +1022,13 @@ const FlyerPreviewPage = () => {
               }}
               title="Descargar PDF del programa guardado"
             >
-              {downloadingPdf ? '⏳' : '⬇️'} Descargar PDF
+              {downloadingPdf ? '⏳' : '⬇️'} <span className="fe-btn-text">Descargar PDF</span>
             </button>
             <button onClick={handleSave} disabled={saving} className="fe-btn-primary" style={{
               ...styles.topbarSaveBtn, opacity: saving ? 0.6 : 1,
-            }}>
-              {saving ? '⏳' : '💾'} Guardar
+            }}
+            title="Guardar cambios">
+              {saving ? '⏳' : '💾'} <span className="fe-btn-text">Guardar</span>
             </button>
           </div>
         </div>
@@ -1853,17 +1863,32 @@ const SCOPED_CSS = `
     .fe-mobile-vertical { display: block !important; }
     .fe-desktop-only { display: none !important; }
     .fe-workspace { display: block !important; padding: 0.75rem !important; }
-    .fe-topbar { height: 46px !important; }
+    .fe-topbar { height: 46px !important; flex-wrap: wrap !important; gap: 6px !important; }
     .fe-topbar-brand { display: none !important; }
+    .fe-hide-mobile { display: none !important; }
+    .fe-btn-text { display: inline !important; }
+    .fe-topbar-save-btn { padding: 6px 12px !important; font-size: 0.75rem !important; }
   }
 
   @media (max-width: 640px) {
     .fe-page { font-size: 14px; }
-    .fe-topbar { padding: 0 0.75rem !important; height: 44px !important; }
+    .fe-topbar { 
+      padding: 0 0.5rem !important; 
+      height: auto !important; 
+      min-height: 44px !important;
+      padding-top: 0.5rem !important;
+      padding-bottom: 0.5rem !important;
+    }
     .fe-topbar-back-btn { font-size: 0.7rem !important; padding: 4px 8px !important; }
-    .fe-topbar-badge { font-size: 0.6rem !important; padding: 2px 6px !important; }
-    .fe-topbar-save-btn { font-size: 0.7rem !important; padding: 5px 10px !important; }
-    .fe-live-badge { font-size: 0.6rem !important; }
+    .fe-topbar-badge { display: none !important; }
+    .fe-topbar-save-btn { 
+      font-size: 0.7rem !important; 
+      padding: 6px 8px !important;
+      min-width: auto !important;
+    }
+    .fe-live-badge-top { font-size: 0.6rem !important; }
+    .fe-live-badge { display: none !important; }
+    .fe-btn-text { display: none !important; }
     .fe-panel-body { padding: 0.75rem !important; }
     
     /* Táctil-friendly inputs */
