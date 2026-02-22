@@ -42,46 +42,35 @@ export const upload = multer({
  */
 export const uploadPdf = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    // Usar multer con memoria
-    upload.single('pdf')(req, res, async (err) => {
-      if (err) {
-        throw new ValidationError(err.message);
-      }
+    if (!req.file) {
+      throw new ValidationError('Por favor sube un archivo PDF');
+    }
 
-      if (!req.file) {
-        throw new ValidationError('Por favor sube un archivo PDF');
-      }
+    // Subir a Cloudinary como recurso RAW (no imagen)
+    const result = await new Promise<any>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'bible-studies',
+          resource_type: 'raw',
+          format: 'pdf',
+          public_id: `study-${Date.now()}`,
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(req.file!.buffer);
+    });
 
-      try {
-        // Subir a Cloudinary como recurso RAW (no imagen)
-        const result = await new Promise<any>((resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            {
-              folder: 'bible-studies',
-              resource_type: 'raw',
-              format: 'pdf',
-              public_id: `study-${Date.now()}`,
-            },
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          );
-          uploadStream.end(req.file!.buffer);
-        });
-
-        res.status(200).json({
-          success: true,
-          data: {
-            url: result.secure_url,
-            publicId: result.public_id,
-            fileSize: result.bytes,
-            format: result.format,
-          },
-        });
-      } catch (uploadError: any) {
-        throw new ValidationError(`Error al subir PDF: ${uploadError.message}`);
-      }
+    res.status(200).json({
+      success: true,
+      data: {
+        url: result.secure_url,
+        publicId: result.public_id,
+        fileSize: result.bytes,
+        format: result.format,
+      },
     });
   } catch (error) {
     next(error);
