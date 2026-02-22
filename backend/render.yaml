@@ -74,5 +74,8 @@ services:
       - key: LOG_LEVEL
         value: info
     
-    healthCheckPath: /api/v1/health/health
+    # Health check configuration - Render lo usa para verificar si el servicio está up
+    healthCheckPath: /health
+    
+    # Auto deploy desde GitHub
     autoDeploy: true

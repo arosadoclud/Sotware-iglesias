@@ -3,6 +3,7 @@ import database from './config/database';
 import envConfig from './config/env';
 import logger from './utils/logger';
 import { backupScheduler } from './services/backupScheduler.service';
+import { keepAliveService } from './services/keepAlive.service';
 
 const PORT = envConfig.port;
 
@@ -20,7 +21,10 @@ async function start() {
       logger.info('✅ Backups automáticos activados (diario 2 AM)');
     }
 
-    // 4. Iniciar servidor HTTP
+    // 4. Iniciar keep-alive service (mantener servidor activo en Render)
+    keepAliveService.start();
+
+    // 5. Iniciar servidor HTTP
     const server = app.listen(PORT, () => {
       logger.info('');
       logger.info('╔═══════════════════════════════════════════╗');
@@ -47,6 +51,7 @@ async function start() {
     // Graceful shutdown
     const shutdown = (signal: string) => {
       logger.info(`${signal} recibido — cerrando servidor...`);
+      keepAliveService.stop();
       server.close(() => {
         logger.info('Servidor HTTP cerrado');
         process.exit(0);
