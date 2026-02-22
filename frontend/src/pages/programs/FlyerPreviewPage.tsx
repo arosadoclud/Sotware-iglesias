@@ -971,12 +971,12 @@ const FlyerPreviewPage = () => {
 
       <div className="fe-page">
         {/* ══════════════════════ TOP BAR ══════════════════════ */}
-        <div style={styles.topbar}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={styles.topbar} className="fe-topbar">
+          <div className="fe-topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={() => navigate(-1)} className="fe-topbar-btn" style={styles.topbarBackBtn}>
               ← Volver
             </button>
-            <span style={styles.topbarBrand}>
+            <span style={styles.topbarBrand} className="fe-topbar-brand">
               ✝ IGLESIA DIOS FUERTE <span style={{ color: C.goldLight }}>ARCA EVANGELICA</span>
             </span>
           </div>
@@ -1875,50 +1875,65 @@ const SCOPED_CSS = `
     .fe-topbar { 
       height: auto !important; 
       min-height: 48px !important;
-      padding: 0.5rem !important;
+      padding: 0.5rem 0.75rem !important;
       gap: 8px !important; 
     }
     .fe-topbar-actions {
-      flex-wrap: wrap !important;
+      flex-wrap: nowrap !important;
       justify-content: flex-end !important;
       gap: 6px !important;
     }
     .fe-topbar-brand { display: none !important; }
     .fe-hide-mobile { display: none !important; }
-    .fe-btn-text { display: inline !important; }
+    .fe-btn-text { display: none !important; }
     .fe-action-btn { 
-      padding: 6px 10px !important; 
-      font-size: 0.7rem !important;
-      gap: 4px !important;
+      padding: 8px 10px !important; 
+      font-size: 1rem !important;
+      gap: 0 !important;
+      border-radius: 8px !important;
+      min-width: 40px !important;
+      justify-content: center !important;
     }
+    .fe-live-badge-top { display: none !important; }
   }
 
   @media (max-width: 640px) {
     .fe-page { font-size: 14px; }
     .fe-topbar { 
-      padding: 0.4rem !important; 
+      padding: 0.4rem 0.6rem !important; 
       height: auto !important; 
-      min-height: auto !important;
-      flex-direction: column !important;
-      align-items: stretch !important;
+      min-height: 48px !important;
+      flex-direction: row !important;
+      align-items: center !important;
       gap: 0.5rem !important;
     }
-    .fe-topbar-actions {
-      justify-content: space-between !important;
-      width: 100% !important;
+    .fe-topbar-left {
+      flex: 1 !important;
+      min-width: 0 !important;
     }
-    .fe-topbar-back-btn { font-size: 0.7rem !important; padding: 5px 10px !important; }
+    .fe-topbar-actions {
+      justify-content: flex-end !important;
+      flex-shrink: 0 !important;
+      gap: 6px !important;
+    }
+    .fe-topbar-back-btn { 
+      font-size: 0.7rem !important; 
+      padding: 7px 10px !important;
+      white-space: nowrap !important;
+    }
     .fe-topbar-badge { display: none !important; }
     .fe-action-btn { 
-      font-size: 0.65rem !important; 
-      padding: 6px 8px !important;
-      min-width: auto !important;
-      flex: 1 !important;
+      font-size: 1.1rem !important; 
+      padding: 7px 9px !important;
+      min-width: 38px !important;
+      height: 38px !important;
       justify-content: center !important;
+      align-items: center !important;
+      border-radius: 8px !important;
     }
+    .fe-btn-text { display: none !important; }
     .fe-live-badge-top { display: none !important; }
     .fe-live-badge { display: none !important; }
-    .fe-btn-text { display: none !important; }
     .fe-panel-body { padding: 0.75rem !important; }
     
     /* Táctil-friendly inputs */
