@@ -61,19 +61,19 @@ const NavItem = ({ item, collapsed, isActive }: NavItemProps) => {
       <motion.div
         whileHover={{ scale: 1.02, x: 4 }}
         whileTap={{ scale: 0.98 }}
-        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
           item.className || ''
         } ${
           isActive
-            ? 'bg-primary-50 text-primary-700 shadow-sm'
-            : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+            ? 'bg-blue-50 text-blue-700 shadow-sm'
+            : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-sm'
         }`}
       >
         {/* Active indicator line */}
         {isActive && (
           <motion.div
             layoutId="activeNavIndicator"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-600 rounded-r-full"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-600 rounded-r-full"
             initial={{ opacity: 0, scaleY: 0 }}
             animate={{ opacity: 1, scaleY: 1 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -143,19 +143,23 @@ const NavGroup = ({ groupKey, label, icon: GroupIcon, items, collapsed, isActive
       {/* Group header button */}
       <button
         onClick={toggle}
-        className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors ${
+        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 group ${
           hasActive
-            ? 'text-primary-700'
-            : 'text-neutral-400 hover:text-neutral-600'
+            ? 'text-blue-600 bg-blue-50'
+            : 'text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100'
         }`}
       >
         <div className="flex items-center gap-2">
-          <GroupIcon className="w-3.5 h-3.5" />
-          <span>{label}</span>
+          <GroupIcon className={`w-4 h-4 transition-colors duration-200 ${
+            hasActive ? 'text-blue-500' : 'text-neutral-400 group-hover:text-neutral-600'
+          }`} />
+          <span className="tracking-widest">{label}</span>
         </div>
         <ChevronDown
-          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+          className={`w-4 h-4 transition-transform duration-200 ${
             open ? 'rotate-0' : '-rotate-90'
+          } ${
+            hasActive ? 'text-blue-400' : 'text-neutral-400 group-hover:text-neutral-500'
           }`}
         />
       </button>
@@ -171,7 +175,7 @@ const NavGroup = ({ groupKey, label, icon: GroupIcon, items, collapsed, isActive
             transition={{ duration: 0.2, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="ml-2 pl-2 border-l border-neutral-200 mt-0.5 mb-1 space-y-0.5">
+            <div className="ml-2 pl-2 border-l-2 border-neutral-200 mt-1 mb-1 space-y-0.5">
               {items.map((item) => (
                 <div key={item.href} onClick={onNavigate}>
                   <NavItem item={item} collapsed={false} isActive={isActive(item.href)} />
@@ -391,9 +395,9 @@ const DashboardLayoutImproved = () => {
           ) : (
             // Resto de roles: grupos colapsables
             <>
-              {!collapsed && <div className="border-t border-neutral-100 my-2" />}
-              {collapsed && <div className="my-1" />}
-              <div className="space-y-1">
+              {!collapsed && <div className="border-t border-neutral-200 my-3" />}
+              {collapsed && <div className="my-2" />}
+              <div className="space-y-2">
                 {visibleGroups.map((group) => (
                   <NavGroup
                     key={group.key}
@@ -518,8 +522,8 @@ const DashboardLayoutImproved = () => {
                   ))
                 ) : (
                   <>
-                    <div className="border-t border-neutral-100 my-2" />
-                    <div className="space-y-1">
+                    <div className="border-t border-neutral-200 my-3" />
+                    <div className="space-y-2">
                       {visibleGroups.map((group) => (
                         <NavGroup
                           key={group.key}
