@@ -246,9 +246,9 @@ const DashboardLayoutImproved = () => {
       ],
     },
     {
-      key: 'secretaria',
-      label: 'Secretaría',
-      icon: ClipboardList,
+      key: 'tesoreria',
+      label: 'Tesorería',
+      icon: DollarSign,
       show: !isViewer && (hasPermission(P.FINANCES_VIEW) || isAdmin()),
       items: [
         { name: 'Finanzas', href: '/finances', icon: DollarSign, show: hasPermission(P.FINANCES_VIEW) || isAdmin(), className: 'sidebar-finances' },
