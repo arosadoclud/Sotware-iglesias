@@ -418,3 +418,21 @@ export const bibleStudiesApi = {
 }
 
 export default api
+
+// ── Secretaría ──────────────────────────────────────────────────────────────────
+type SecretaryResource = 'child-presentations' | 'weddings' | 'baptisms' | 'conversions' | 'board-minutes' | 'preachers'
+
+export const secretaryApi = {
+  getAll: (resource: SecretaryResource, params?: Record<string, any>) =>
+    api.get(`/secretary/${resource}`, { params }),
+  getOne: (resource: SecretaryResource, id: string) =>
+    api.get(`/secretary/${resource}/${id}`),
+  create: (resource: SecretaryResource, data: Record<string, any>) =>
+    api.post(`/secretary/${resource}`, data),
+  update: (resource: SecretaryResource, id: string, data: Record<string, any>) =>
+    api.put(`/secretary/${resource}/${id}`, data),
+  delete: (resource: SecretaryResource, id: string) =>
+    api.delete(`/secretary/${resource}/${id}`),
+  getStats: (year?: number) =>
+    api.get('/secretary/stats', { params: { year } }),
+}

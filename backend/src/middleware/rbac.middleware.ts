@@ -25,7 +25,8 @@ export type Resource =
   | 'churches'
   | 'finances'
   | 'billing'
-  | 'bible_studies';
+  | 'bible_studies'
+  | 'secretary';
 
 // Acciones posibles sobre cada recurso
 export type Action = 'read' | 'create' | 'update' | 'delete';
@@ -53,6 +54,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     churches:   ['read', 'create', 'update', 'delete'],
     finances:   ['read', 'create', 'update', 'delete'],
     billing:    ['read', 'create', 'update', 'delete'],
+    secretary:  ['read', 'create', 'update', 'delete'],
   },
 
   [UserRole.PASTOR]: {
@@ -65,6 +67,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     churches:   ['read', 'update'], // Puede editar su iglesia
     finances:   ['read', 'create', 'update', 'delete'],
     billing:    ['read'],
+    secretary:  ['read', 'create', 'update', 'delete'],
   },
 
   [UserRole.ADMIN]: {
@@ -77,6 +80,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     churches:   ['read', 'update'],
     finances:   ['read', 'create', 'update'],    // No puede eliminar finanzas
     billing:    ['read'],
+    secretary:  ['read', 'create', 'update', 'delete'],
   },
 
   [UserRole.MINISTRY_LEADER]: {
@@ -89,6 +93,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     churches:   ['read'],
     finances:   ['read'],                        // Solo ver finanzas
     billing:    [],
+    secretary:  ['read', 'create', 'update'],    // Secretaría sin eliminar
   },
 
   [UserRole.EDITOR]: {
@@ -98,6 +103,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     activities: ['read'],
     letters:    ['read', 'create'],
     users:      [],
+    secretary:  ['read', 'create', 'update'],    // Secretaría sin eliminar
     churches:   ['read'],
     finances:   ['read'],                        // Solo ver finanzas
     billing:    [],
@@ -114,6 +120,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     churches:   ['read'],
     finances:   [],                              // Sin acceso a finanzas
     billing:    [],
+    secretary:  [],                              // Sin acceso a secretaría
   },
 };
 

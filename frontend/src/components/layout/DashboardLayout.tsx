@@ -255,6 +255,15 @@ const DashboardLayoutImproved = () => {
       ],
     },
     {
+      key: 'secretaria',
+      label: 'Secretaría',
+      icon: ClipboardList,
+      show: !isViewer && (hasPermission(P.SECRETARY_VIEW) || isAdmin()),
+      items: [
+        { name: 'Secretaría', href: '/secretaria', icon: ClipboardList, show: hasPermission(P.SECRETARY_VIEW) || isAdmin(), className: 'sidebar-secretary' },
+      ],
+    },
+    {
       key: 'administracion',
       label: 'Administración',
       icon: Shield,

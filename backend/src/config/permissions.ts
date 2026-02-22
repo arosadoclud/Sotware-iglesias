@@ -80,6 +80,12 @@ export enum Permission {
   BIBLE_STUDIES_EDIT = 'bible_studies:edit',
   BIBLE_STUDIES_DELETE = 'bible_studies:delete',
   BIBLE_STUDIES_DOWNLOAD = 'bible_studies:download',
+
+  // ── SECRETARÍA ───────────────────────────────────────────────
+  SECRETARY_VIEW   = 'secretary:view',
+  SECRETARY_CREATE = 'secretary:create',
+  SECRETARY_EDIT   = 'secretary:edit',
+  SECRETARY_DELETE = 'secretary:delete',
 }
 
 // Permisos por defecto según el rol
@@ -144,6 +150,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.BIBLE_STUDIES_EDIT,
     Permission.BIBLE_STUDIES_DELETE,
     Permission.BIBLE_STUDIES_DOWNLOAD,
+    // Secretaría
+    Permission.SECRETARY_VIEW,
+    Permission.SECRETARY_CREATE,
+    Permission.SECRETARY_EDIT,
+    Permission.SECRETARY_DELETE,
   ],
   
   MINISTRY_LEADER: [
@@ -184,6 +195,10 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.BIBLE_STUDIES_EDIT,
     Permission.BIBLE_STUDIES_DELETE,
     Permission.BIBLE_STUDIES_DOWNLOAD,
+    // Secretaría (sin eliminar)
+    Permission.SECRETARY_VIEW,
+    Permission.SECRETARY_CREATE,
+    Permission.SECRETARY_EDIT,
   ],
   
   EDITOR: [
@@ -214,6 +229,10 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.BIBLE_STUDIES_CREATE,
     Permission.BIBLE_STUDIES_EDIT,
     Permission.BIBLE_STUDIES_DOWNLOAD,
+    // Secretaría (sin eliminar)
+    Permission.SECRETARY_VIEW,
+    Permission.SECRETARY_CREATE,
+    Permission.SECRETARY_EDIT,
   ],
   
   VIEWER: [
@@ -308,6 +327,12 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, { label: string; descri
   [Permission.BIBLE_STUDIES_EDIT]: { label: 'Editar estudios', description: 'Modificar estudios bíblicos existentes', category: 'Estudios Bíblicos' },
   [Permission.BIBLE_STUDIES_DELETE]: { label: 'Eliminar estudios', description: 'Eliminar estudios bíblicos', category: 'Estudios Bíblicos' },
   [Permission.BIBLE_STUDIES_DOWNLOAD]: { label: 'Descargar estudios', description: 'Descargar PDFs de estudios bíblicos', category: 'Estudios Bíblicos' },
+
+  // Secretaría
+  [Permission.SECRETARY_VIEW]:   { label: 'Ver secretaría', description: 'Ver registros de secretaría (niños, bodas, bautizos, etc.)', category: 'Secretaría' },
+  [Permission.SECRETARY_CREATE]: { label: 'Crear registros', description: 'Crear nuevos registros de secretaría', category: 'Secretaría' },
+  [Permission.SECRETARY_EDIT]:   { label: 'Editar registros', description: 'Modificar registros de secretaría', category: 'Secretaría' },
+  [Permission.SECRETARY_DELETE]: { label: 'Eliminar registros', description: 'Eliminar registros de secretaría', category: 'Secretaría' },
 };
 
 // Agrupar permisos por categoría para la UI
@@ -325,6 +350,7 @@ export const PERMISSION_CATEGORIES = [
   'WhatsApp',
   'Finanzas',
   'Estudios Bíblicos',
+  'Secretaría',
 ];
 
 // Helper para verificar si un usuario tiene un permiso

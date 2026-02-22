@@ -81,6 +81,12 @@ export const P = {
   BIBLE_STUDIES_EDIT: 'bible_studies:edit',
   BIBLE_STUDIES_DELETE: 'bible_studies:delete',
   BIBLE_STUDIES_DOWNLOAD: 'bible_studies:download',
+
+  // Secretaría
+  SECRETARY_VIEW:   'secretary:view',
+  SECRETARY_CREATE: 'secretary:create',
+  SECRETARY_EDIT:   'secretary:edit',
+  SECRETARY_DELETE: 'secretary:delete',
 } as const
 
 export type PermissionKey = (typeof P)[keyof typeof P]
