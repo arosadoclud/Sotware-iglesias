@@ -20,7 +20,6 @@ import PersonDetailPage from './pages/persons/PersonDetailPage'
 import ActivityTypesPage from './pages/activities/ActivityTypesPage'
 import ProgramsPage from './pages/programs/ProgramsPage'
 import GenerateProgramPage from './pages/programs/GenerateProgramPage'
-import ProgramEditPage from './pages/programs/ProgramEditPage'
 import CleaningProgramEditPage from './pages/programs/CleaningProgramEditPage'
 import FlyerPreviewPage from './pages/programs/FlyerPreviewPage'
 import BatchReviewPage from './pages/programs/BatchReviewPage'
@@ -103,7 +102,7 @@ const AnimatedRoutes = () => {
           <Route path="/programs/:id/edit" element={
             <ViewerGuard>
               <PermissionRoute permissions={P.PROGRAMS_EDIT}>
-                <PageTransition><ProgramEditPage /></PageTransition>
+                <PageTransition><FlyerPreviewPage /></PageTransition>
               </PermissionRoute>
             </ViewerGuard>
           } />
