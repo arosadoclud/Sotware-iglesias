@@ -77,8 +77,15 @@ export default function BibleStudiesPage() {
       // Track download
       await bibleStudiesApi.trackDownload(study._id);
       
-      // Open PDF in new tab
-      window.open(study.pdfUrl, '_blank');
+      // Download PDF with proper filename
+      const link = document.createElement('a');
+      link.href = study.pdfUrl;
+      link.download = `${study.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
       toast.success('Descargando estudio bíblico');
     } catch (error) {

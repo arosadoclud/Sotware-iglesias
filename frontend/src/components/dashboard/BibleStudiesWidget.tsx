@@ -49,7 +49,16 @@ export default function BibleStudiesWidget() {
   const handleDownload = async (study: BibleStudy) => {
     try {
       await bibleStudiesApi.trackDownload(study._id);
-      window.open(study.pdfUrl, '_blank');
+      
+      // Download PDF with proper filename
+      const link = document.createElement('a');
+      link.href = study.pdfUrl;
+      link.download = `${study.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Error downloading:', error);
     }
