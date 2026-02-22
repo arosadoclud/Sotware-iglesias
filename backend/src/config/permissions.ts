@@ -77,65 +77,10 @@ export enum Permission {
 
 // Permisos por defecto según el rol
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
-  SUPER_ADMIN: Object.values(Permission), // Todos los permisos
-  
-  PASTOR: [
-    // Usuarios (solo ver)
-    Permission.USERS_VIEW,
-    // Personas (todos)
-    Permission.PERSONS_VIEW,
-    Permission.PERSONS_CREATE,
-    Permission.PERSONS_EDIT,
-    Permission.PERSONS_DELETE,
-    Permission.PERSONS_ASSIGN_ROLES,
-    Permission.PERSONS_EXPORT,
-    // Programas (todos)
-    Permission.PROGRAMS_VIEW,
-    Permission.PROGRAMS_CREATE,
-    Permission.PROGRAMS_EDIT,
-    Permission.PROGRAMS_DELETE,
-    Permission.PROGRAMS_GENERATE,
-    Permission.PROGRAMS_DOWNLOAD_PDF,
-    Permission.PROGRAMS_BATCH_GENERATE,
-    // Actividades (todos)
-    Permission.ACTIVITIES_VIEW,
-    Permission.ACTIVITIES_CREATE,
-    Permission.ACTIVITIES_EDIT,
-    Permission.ACTIVITIES_DELETE,
-    // Roles (todos)
-    Permission.ROLES_VIEW,
-    Permission.ROLES_CREATE,
-    Permission.ROLES_EDIT,
-    Permission.ROLES_DELETE,
-    // Cartas (todos)
-    Permission.LETTERS_VIEW,
-    Permission.LETTERS_CREATE,
-    Permission.LETTERS_EDIT,
-    Permission.LETTERS_DELETE,
-    Permission.LETTERS_GENERATE_PDF,
-    // Calendario
-    Permission.CALENDAR_VIEW,
-    Permission.CALENDAR_MANAGE,
-    // Configuración
-    Permission.SETTINGS_VIEW,
-    Permission.SETTINGS_EDIT,
-    Permission.CHURCH_EDIT,
-    // Auditoría (solo ver)
-    Permission.AUDIT_VIEW,
-    // Limpieza
-    Permission.CLEANING_VIEW,
-    Permission.CLEANING_GENERATE,
-    Permission.CLEANING_MANAGE,
-    // WhatsApp
-    Permission.WHATSAPP_SEND,
-    // Finanzas (todos)
-    Permission.FINANCES_VIEW,
-    Permission.FINANCES_CREATE,
-    Permission.FINANCES_EDIT,
-    Permission.FINANCES_DELETE,
-    Permission.FINANCES_APPROVE,
-    Permission.FINANCES_REPORTS,
-  ],
+  // SUPER_ADMIN y PASTOR tienen todos los permisos
+  // Diferencia: SUPER_ADMIN tiene control exclusivo sobre algunos endpoints críticos
+  SUPER_ADMIN: Object.values(Permission),
+  PASTOR: Object.values(Permission), // Pastor tiene acceso completo a todos los módulos
   
   ADMIN: [
     Permission.USERS_VIEW,

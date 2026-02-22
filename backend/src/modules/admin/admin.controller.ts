@@ -171,16 +171,16 @@ export const createUser = async (req: AuthRequest, res: Response, next: NextFunc
 export const updateUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const { fullName, role, isActive, permissions, useCustomPermissions } = req.body;
+    const { fullName, role, isActive, permissions, useCustomPermissions, isSuperUser } = req.body;
 
     const user = await User.findOne({ _id: id, churchId: req.churchId });
     if (!user) {
       throw new NotFoundError('Usuario no encontrado');
     }
 
-    // Solo superusuarios pueden modificar permisos
-    if ((permissions !== undefined || useCustomPermissions !== undefined) && !req.isSuperUser) {
-      throw new ForbiddenError('Solo el superusuario puede gestionar permisos de otros usuarios');
+    // Solo superusuarios o SUPER_ADMIN pueden modificar permisos
+    if ((permissions !== undefined || useCustomPermissions !== undefined) && !req.isSuperUser && req.userRole !== UserRole.SUPER_ADMIN) {
+      throw new ForbiddenError('Solo el superusuario o Super Admin puede gestionar permisos de otros usuarios');
     }
 
     // No permitir editar otro superusuario a menos que seas superusuario
@@ -198,6 +198,11 @@ export const updateUser = async (req: AuthRequest, res: Response, next: NextFunc
       throw new BadRequestError('No puede cambiar su propio rol');
     }
 
+    // Solo SUPER_ADMIN puede asignar/quitar el flag isSuperUser
+    if (isSuperUser !== undefined && req.userRole !== UserRole.SUPER_ADMIN) {
+      throw new ForbiddenError('Solo el Super Admin puede asignar el rol de Superusuario');
+    }
+
     // Guardar valores anteriores para auditoría
     const previousValue = {
       fullName: user.fullName,
@@ -210,20 +215,26 @@ export const updateUser = async (req: AuthRequest, res: Response, next: NextFunc
     // Actualizar campos
     if (fullName) user.fullName = fullName;
     
-    // Si cambia el rol
-    if (role && req.userRole === UserRole.SUPER_ADMIN) {
-      const roleChanged = role !== user.role;
+    // Si cambia el rol (SUPER_ADMIN, ADMIN o superusuarios pueden cambiar roles)
+    if (role && (req.userRole === UserRole.SUPER_ADMIN || req.userRole === UserRole.ADMIN || req.isSuperUser)) {
+      // No permitir asignar SUPER_ADMIN a menos que seas SUPER_ADMIN
+      if (role === UserRole.SUPER_ADMIN && req.userRole !== UserRole.SUPER_ADMIN) {
+        throw new ForbiddenError('Solo un Super Admin puede asignar el rol Super Admin');
+      }
       user.role = role;
-      
-      // Si no tiene permisos personalizados, actualizar permisos según el nuevo rol
-      if (roleChanged && !user.useCustomPermissions) {
-        user.permissions = DEFAULT_ROLE_PERMISSIONS[role] || [];
+      // Al cambiar el rol, limpiar permisos extras SOLO si no estaba en modo Custom
+      if (!user.useCustomPermissions) {
+        user.permissions = [];
       }
     }
     
     if (isActive !== undefined) user.isActive = isActive;
-    if (permissions !== undefined && req.isSuperUser) user.permissions = permissions;
-    if (useCustomPermissions !== undefined && req.isSuperUser) user.useCustomPermissions = useCustomPermissions;
+    // Actualizar isSuperUser (solo SUPER_ADMIN)
+    if (isSuperUser !== undefined && req.userRole === UserRole.SUPER_ADMIN) {
+      user.isSuperUser = isSuperUser;
+    }
+    if (permissions !== undefined && (req.isSuperUser || req.userRole === UserRole.SUPER_ADMIN)) user.permissions = permissions;
+    if (useCustomPermissions !== undefined && (req.isSuperUser || req.userRole === UserRole.SUPER_ADMIN)) user.useCustomPermissions = useCustomPermissions;
 
     await user.save();
 
@@ -291,39 +302,28 @@ export const updateUserPermissions = async (req: AuthRequest, res: Response, nex
     user.permissions = permissions || [];
     user.useCustomPermissions = useCustomPermissions ?? true;
 
-    // Si está usando permisos personalizados, detectar automáticamente el rol
-    if (user.useCustomPermissions && permissions && permissions.length > 0) {
-      const detectedRole = detectRoleFromPermissions(permissions);
-      if (detectedRole) {
-        user.role = detectedRole;
-      }
-    }
-
     await user.save();
 
     // Audit log
-    const roleChanged = previousRole !== user.role;
     await AuditService.logFromRequest(req, AuditAction.USER_PERMISSION_CHANGE, AuditCategory.USERS, 'User', {
       resourceId: user._id.toString(),
       resourceName: user.fullName,
       previousValue: { 
         permissions: previousPermissions, 
         useCustomPermissions: previousUseCustom,
-        ...(roleChanged && { role: previousRole })
+        role: previousRole,
       },
       newValue: { 
         permissions: user.permissions, 
         useCustomPermissions: user.useCustomPermissions,
-        ...(roleChanged && { role: user.role })
+        role: user.role, // rol no cambia
       },
       severity: AuditSeverity.WARNING,
     });
 
     res.json({
       success: true,
-      message: roleChanged 
-        ? `Permisos actualizados. Rol cambiado automáticamente a ${user.role}`
-        : 'Permisos actualizados exitosamente',
+      message: 'Permisos actualizados exitosamente. El rol base se mantiene.',
       data: {
         ...user.toObject(),
         effectivePermissions: user.getEffectivePermissions(),

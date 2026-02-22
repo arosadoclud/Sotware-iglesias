@@ -196,17 +196,22 @@ UserSchema.methods.getPublicProfile = function () {
 };
 
 // Método para obtener los permisos efectivos del usuario
+// Lógica empresarial aditiva: rol base + permisos personalizados extras
 UserSchema.methods.getEffectivePermissions = function (): string[] {
   // Si es super usuario, tiene todos los permisos
   if (this.isSuperUser) {
     return Object.values(Permission);
   }
-  // Si usa permisos personalizados, retornar esos
+  // Obtener permisos base del rol
+  const rolePermissions: string[] = DEFAULT_ROLE_PERMISSIONS[this.role] || [];
+  // Si tiene permisos personalizados, unirlos con los del rol (aditivos)
   if (this.useCustomPermissions && this.permissions && this.permissions.length > 0) {
-    return this.permissions;
+    // Unión de permisos del rol + extras personalizados (sin duplicados)
+    const combined = new Set([...rolePermissions, ...this.permissions]);
+    return Array.from(combined);
   }
-  // Si no, retornar los permisos por defecto del rol
-  return DEFAULT_ROLE_PERMISSIONS[this.role] || [];
+  // Si no, retornar solo los permisos por defecto del rol
+  return rolePermissions;
 };
 
 // Método estático para buscar por email
