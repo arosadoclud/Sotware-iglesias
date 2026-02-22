@@ -5,7 +5,7 @@ import {
   Baby, Heart, Droplets, Star, ClipboardList, Mic,
   Plus, Pencil, Trash2, Search, ChevronLeft, ChevronRight, X,
   Calendar, MapPin, User, Phone, Mail, LayoutGrid, TableIcon,
-  Users, FileText, CheckCircle2, Clock,
+  Users, FileText, CheckCircle2, Clock, Eye,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { P } from '../../constants/permissions'
@@ -121,12 +121,20 @@ function ActionMenu({ onEdit, onDelete, canEdit, canDelete, color }: any) {
   return (
     <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-2 flex-shrink-0">
       {canEdit && (
-        <button onClick={onEdit} className={`p-1.5 rounded-lg hover:bg-white/70 ${color} transition-colors`} title="Editar">
+        <button
+          onClick={e => { e.stopPropagation(); onEdit() }}
+          className={`p-1.5 rounded-lg hover:bg-white/70 ${color} transition-colors`}
+          title="Editar"
+        >
           <Pencil className="h-3.5 w-3.5" />
         </button>
       )}
       {canDelete && (
-        <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-white/70 text-red-400 hover:text-red-600 transition-colors" title="Eliminar">
+        <button
+          onClick={e => { e.stopPropagation(); onDelete() }}
+          className="p-1.5 rounded-lg hover:bg-white/70 text-red-400 hover:text-red-600 transition-colors"
+          title="Eliminar"
+        >
           <Trash2 className="h-3.5 w-3.5" />
         </button>
       )}
@@ -135,9 +143,9 @@ function ActionMenu({ onEdit, onDelete, canEdit, canDelete, color }: any) {
 }
 
 // ── Tarjetas especializadas ────────────────────────────────────────────────
-function ChildCard({ r, tab, onEdit, onDelete, canEdit, canDelete }: any) {
+function ChildCard({ r, tab, onEdit, onDelete, onView, canEdit, canDelete }: any) {
   return (
-    <div className={`bg-white rounded-2xl border ${tab.border} shadow-sm hover:shadow-md transition-all overflow-hidden group`}>
+    <div onClick={onView} className={`bg-white rounded-2xl border ${tab.border} shadow-sm hover:shadow-md transition-all overflow-hidden group cursor-pointer`}>
       <div className={`${tab.bg} px-4 pt-4 pb-3 flex items-start justify-between`}>
         <div className="flex items-center gap-3">
           <div className={`w-11 h-11 rounded-xl ${tab.accent} flex items-center justify-center`}>
@@ -161,9 +169,9 @@ function ChildCard({ r, tab, onEdit, onDelete, canEdit, canDelete }: any) {
   )
 }
 
-function WeddingCard({ r, tab, onEdit, onDelete, canEdit, canDelete }: any) {
+function WeddingCard({ r, tab, onEdit, onDelete, onView, canEdit, canDelete }: any) {
   return (
-    <div className={`bg-white rounded-2xl border ${tab.border} shadow-sm hover:shadow-md transition-all overflow-hidden group`}>
+    <div onClick={onView} className={`bg-white rounded-2xl border ${tab.border} shadow-sm hover:shadow-md transition-all overflow-hidden group cursor-pointer`}>
       <div className={`${tab.bg} px-4 pt-4 pb-3 flex items-start justify-between`}>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -188,9 +196,9 @@ function WeddingCard({ r, tab, onEdit, onDelete, canEdit, canDelete }: any) {
   )
 }
 
-function BaptismCard({ r, tab, onEdit, onDelete, canEdit, canDelete }: any) {
+function BaptismCard({ r, tab, onEdit, onDelete, onView, canEdit, canDelete }: any) {
   return (
-    <div className={`bg-white rounded-2xl border ${tab.border} shadow-sm hover:shadow-md transition-all overflow-hidden group`}>
+    <div onClick={onView} className={`bg-white rounded-2xl border ${tab.border} shadow-sm hover:shadow-md transition-all overflow-hidden group cursor-pointer`}>
       <div className={`${tab.bg} px-4 pt-4 pb-3 flex items-start justify-between`}>
         <div className="flex items-center gap-3">
           <div className={`w-11 h-11 rounded-xl ${tab.accent} flex items-center justify-center`}>
@@ -223,9 +231,9 @@ const CONTEXT_COLORS: Record<string, string> = {
   'Otro': 'bg-gray-100 text-gray-600',
 }
 
-function ConversionCard({ r, tab, onEdit, onDelete, canEdit, canDelete }: any) {
+function ConversionCard({ r, tab, onEdit, onDelete, onView, canEdit, canDelete }: any) {
   return (
-    <div className={`bg-white rounded-2xl border ${tab.border} shadow-sm hover:shadow-md transition-all overflow-hidden group`}>
+    <div onClick={onView} className={`bg-white rounded-2xl border ${tab.border} shadow-sm hover:shadow-md transition-all overflow-hidden group cursor-pointer`}>
       <div className={`${tab.bg} px-4 pt-4 pb-3 flex items-start justify-between`}>
         <div>
           <p className="font-semibold text-gray-900">{r.personName}</p>
@@ -252,9 +260,9 @@ function ConversionCard({ r, tab, onEdit, onDelete, canEdit, canDelete }: any) {
   )
 }
 
-function BoardMinutesCard({ r, tab, onEdit, onDelete, canEdit, canDelete }: any) {
+function BoardMinutesCard({ r, tab, onEdit, onDelete, onView, canEdit, canDelete }: any) {
   return (
-    <div className={`bg-white rounded-2xl border ${tab.border} shadow-sm hover:shadow-md transition-all overflow-hidden group`}>
+    <div onClick={onView} className={`bg-white rounded-2xl border ${tab.border} shadow-sm hover:shadow-md transition-all overflow-hidden group cursor-pointer`}>
       <div className={`${tab.bg} px-4 pt-4 pb-3 flex items-start justify-between`}>
         <div>
           <div className="flex items-center gap-2">
@@ -278,9 +286,9 @@ function BoardMinutesCard({ r, tab, onEdit, onDelete, canEdit, canDelete }: any)
   )
 }
 
-function PreacherCard({ r, tab, onEdit, onDelete, canEdit, canDelete }: any) {
+function PreacherCard({ r, tab, onEdit, onDelete, onView, canEdit, canDelete }: any) {
   return (
-    <div className={`bg-white rounded-2xl border ${tab.border} shadow-sm hover:shadow-md transition-all overflow-hidden group`}>
+    <div onClick={onView} className={`bg-white rounded-2xl border ${tab.border} shadow-sm hover:shadow-md transition-all overflow-hidden group cursor-pointer`}>
       <div className={`${tab.bg} px-4 pt-4 pb-3 flex items-start justify-between`}>
         <div className="flex items-center gap-3">
           <div className={`w-12 h-12 rounded-xl ${tab.accent} flex items-center justify-center`}>
@@ -340,7 +348,7 @@ const TABLE_COLS: Record<TabKey, { key: string; label: string }[]> = {
   ],
 }
 
-function TableView({ tab, records, canEdit, canDelete, onEdit, onDelete }: any) {
+function TableView({ tab, records, canEdit, canDelete, onEdit, onDelete, onView }: any) {
   const cols = TABLE_COLS[tab.key as TabKey]
   const fmtCell = (col: string, v: any) => {
     if (!v && v !== 0) return '—'
@@ -356,29 +364,36 @@ function TableView({ tab, records, canEdit, canDelete, onEdit, onDelete }: any) 
             {cols.map((c: any) => (
               <th key={c.key} className={`text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide ${tab.color}`}>{c.label}</th>
             ))}
-            {(canEdit || canDelete) && (
-              <th className={`px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide ${tab.color}`}>Acciones</th>
-            )}
+            <th className={`px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide ${tab.color}`}>Acciones</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
           {records.map((record: any) => (
-            <tr key={record._id} className="hover:bg-gray-50 transition-colors">
+            <tr
+              key={record._id}
+              onClick={() => onView(record)}
+              className="hover:bg-gray-50 transition-colors cursor-pointer"
+            >
               {cols.map((c: any) => (
                 <td key={c.key} className="px-4 py-3 text-gray-700">{fmtCell(c.key, record[c.key])}</td>
               ))}
-              {(canEdit || canDelete) && (
-                <td className="px-4 py-3 text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    {canEdit && (
-                      <button onClick={() => onEdit(record)} className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"><Pencil className="h-4 w-4" /></button>
-                    )}
-                    {canDelete && (
-                      <button onClick={() => onDelete(record._id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
-                    )}
-                  </div>
-                </td>
-              )}
+              <td className="px-4 py-3 text-right">
+                <div className="flex items-center justify-end gap-1">
+                  <button
+                    onClick={e => { e.stopPropagation(); onView(record) }}
+                    className={`p-1.5 text-gray-400 hover:${tab.color.replace('text-', 'text-')} hover:bg-gray-100 rounded-lg transition-colors`}
+                    title="Ver detalle"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+                  {canEdit && (
+                    <button onClick={e => { e.stopPropagation(); onEdit(record) }} className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Editar"><Pencil className="h-4 w-4" /></button>
+                  )}
+                  {canDelete && (
+                    <button onClick={e => { e.stopPropagation(); onDelete(record._id) }} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar"><Trash2 className="h-4 w-4" /></button>
+                  )}
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -409,6 +424,87 @@ function Pagination({ page, total, count, perPage, onChange }: { page: number; t
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
+    </div>
+  )
+}
+
+// ── Modal de detalle ─────────────────────────────────────────────────────────
+function DetailModal({ record, tab, onClose, onEdit, canEdit }: { record: any; tab: typeof TABS[number]; onClose: () => void; onEdit: () => void; canEdit: boolean }) {
+  const Icon = tab.icon
+  const fields = FIELD_DEFS[tab.key as TabKey]
+
+  const displayValue = (f: typeof fields[number]) => {
+    const v = record[f.key]
+    if (!v && v !== 0) return null
+    if (f.type === 'date') return fmtDate(v)
+    return String(v)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 12 }}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
+      >
+        {/* Header */}
+        <div className={`${tab.bg} px-6 py-4 border-b ${tab.border} flex items-center justify-between`}>
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl ${tab.accent} flex items-center justify-center`}>
+              <Icon className={`h-5 w-5 ${tab.color}`} />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{tab.label}</p>
+              <h2 className="text-base font-semibold text-gray-900">Detalle del registro</h2>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-black/5 rounded-xl transition-colors">
+            <X className="h-5 w-5 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Cuerpo */}
+        <div className="overflow-y-auto p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {fields.map(f => {
+              const val = displayValue(f)
+              if (!val) return null
+              return (
+                <div key={f.key} className={`${f.textarea ? 'sm:col-span-2' : ''}`}>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{f.label}</p>
+                  <p className={`text-sm text-gray-800 font-medium ${f.textarea ? 'whitespace-pre-wrap' : ''}`}>{val}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+          >
+            Cerrar
+          </button>
+          {canEdit && (
+            <button
+              onClick={onEdit}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-xl transition-colors shadow-sm
+                ${tab.color === 'text-pink-600' ? 'bg-pink-500 hover:bg-pink-600' :
+                  tab.color === 'text-rose-600' ? 'bg-rose-500 hover:bg-rose-600' :
+                  tab.color === 'text-blue-600' ? 'bg-blue-500 hover:bg-blue-600' :
+                  tab.color === 'text-amber-600' ? 'bg-amber-500 hover:bg-amber-600' :
+                  tab.color === 'text-indigo-600' ? 'bg-indigo-500 hover:bg-indigo-600' :
+                  'bg-emerald-500 hover:bg-emerald-600'}`}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Editar
+            </button>
+          )}
+        </div>
+      </motion.div>
     </div>
   )
 }
@@ -560,6 +656,7 @@ export default function SecretaryPage() {
   const [stats, setStats]             = useState<Record<string, number>>({})
   const [showModal, setShowModal]     = useState(false)
   const [editRecord, setEditRecord]   = useState<any | null>(null)
+  const [viewRecord, setViewRecord]   = useState<any | null>(null)
 
   const PER_PAGE = viewMode === 'cards' ? 12 : 15
 
@@ -744,6 +841,7 @@ export default function SecretaryPage() {
               canDelete={canDelete}
               onEdit={(r: any) => { setEditRecord(r); setShowModal(true) }}
               onDelete={handleDelete}
+              onView={(r: any) => setViewRecord(r)}
             />
             {totalPages > 1 && (
               <Pagination page={page} total={totalPages} count={records.length} perPage={PER_PAGE} onChange={setPage} />
@@ -768,6 +866,7 @@ export default function SecretaryPage() {
                       tab={tab}
                       canEdit={canEdit}
                       canDelete={canDelete}
+                      onView={() => setViewRecord(record)}
                       onEdit={() => { setEditRecord(record); setShowModal(true) }}
                       onDelete={() => handleDelete(record._id)}
                     />
@@ -784,7 +883,20 @@ export default function SecretaryPage() {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal detalle */}
+      <AnimatePresence>
+        {viewRecord && (
+          <DetailModal
+            record={viewRecord}
+            tab={tab}
+            onClose={() => setViewRecord(null)}
+            canEdit={canEdit}
+            onEdit={() => { setEditRecord(viewRecord); setViewRecord(null); setShowModal(true) }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Modal formulario */}
       <AnimatePresence>
         {showModal && (
           <RecordModal
