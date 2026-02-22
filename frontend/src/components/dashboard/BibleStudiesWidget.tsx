@@ -142,12 +142,12 @@ export default function BibleStudiesWidget() {
             className="flex flex-col"
           >
             {/* Card Image / Placeholder */}
-            <div className="relative h-36 overflow-hidden rounded-none">
+            <div className="relative w-full aspect-video overflow-hidden">
               {study.thumbnailUrl ? (
                 <img
                   src={study.thumbnailUrl}
                   alt={study.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-center"
                 />
               ) : (
                 <div className={`w-full h-full flex flex-col items-center justify-center p-4 ${
