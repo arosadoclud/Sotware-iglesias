@@ -377,6 +377,7 @@ export const bibleStudiesApi = {
     limit?: number
     sort?: string
     search?: string
+    church?: string
   }) => api.get('/bible-studies', { params }),
   get: (id: string) => api.get(`/bible-studies/${id}`),
   create: (data: {
@@ -395,7 +396,7 @@ export const bibleStudiesApi = {
   update: (id: string, data: any) => api.put(`/bible-studies/${id}`, data),
   delete: (id: string) => api.delete(`/bible-studies/${id}`),
   trackDownload: (id: string) => api.post(`/bible-studies/${id}/download`),
-  getSeries: () => api.get('/bible-studies/meta/series'),
+  getSeries: (params?: { church?: string }) => api.get('/bible-studies/meta/series', { params }),
   uploadPdf: (file: File) => {
     const formData = new FormData()
     formData.append('pdf', file)

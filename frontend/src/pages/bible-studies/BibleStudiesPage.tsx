@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { bibleStudiesApi } from '../../lib/api';
 import { toast } from 'sonner';
 import { Download, Calendar, BookOpen, FileText, Search, Filter, X } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
 
 interface BibleStudy {
   _id: string;
@@ -20,6 +21,7 @@ interface BibleStudy {
 }
 
 export default function BibleStudiesPage() {
+  const { user } = useAuthStore();
   const [studies, setStudies] = useState<BibleStudy[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -45,6 +47,7 @@ export default function BibleStudiesPage() {
       if (selectedMonth) params.month = selectedMonth;
       if (selectedSeries) params.series = selectedSeries;
       if (search) params.search = search;
+      if (user?.churchId) params.church = user.churchId;
 
       const res = await bibleStudiesApi.getAll(params);
       setStudies(res.data.data || []);
@@ -58,7 +61,9 @@ export default function BibleStudiesPage() {
 
   const loadSeries = async () => {
     try {
-      const res = await bibleStudiesApi.getSeries();
+      const params: any = {};
+      if (user?.churchId) params.church = user.churchId;
+      const res = await bibleStudiesApi.getSeries(params);
       setSeries(res.data.data || []);
     } catch (error) {
       console.error('Error loading series:', error);

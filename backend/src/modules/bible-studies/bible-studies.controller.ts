@@ -1,4 +1,4 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { BibleStudy } from '../../models/BibleStudy.model';
 import { AuthRequest } from '../../middleware/auth.middleware';
 import { NotFoundError, ValidationError } from '../../utils/errors';
@@ -8,7 +8,7 @@ import { NotFoundError, ValidationError } from '../../utils/errors';
  * @route   GET /api/v1/bible-studies
  * @access  Public
  */
-export const getBibleStudies = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const getBibleStudies = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { 
       year, 
@@ -17,10 +17,11 @@ export const getBibleStudies = async (req: AuthRequest, res: Response, next: Nex
       isActive = 'true', 
       limit = '50', 
       sort = '-studyDate',
-      search 
+      search,
+      church
     } = req.query;
     
-    const churchId = req.churchId;
+    const churchId = (req as any).churchId || church;
 
     if (!churchId) {
       throw new ValidationError('ChurchId requerido');
@@ -84,7 +85,7 @@ export const getBibleStudies = async (req: AuthRequest, res: Response, next: Nex
  * @route   GET /api/v1/bible-studies/:id
  * @access  Public
  */
-export const getBibleStudy = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const getBibleStudy = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const study = await BibleStudy.findById(req.params.id)
       .populate('createdBy', 'name email')
@@ -198,7 +199,7 @@ export const deleteBibleStudy = async (req: AuthRequest, res: Response, next: Ne
  * @route   POST /api/v1/bible-studies/:id/download
  * @access  Public
  */
-export const trackDownload = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const trackDownload = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const study = await BibleStudy.findByIdAndUpdate(
       req.params.id,
@@ -224,9 +225,10 @@ export const trackDownload = async (req: AuthRequest, res: Response, next: NextF
  * @route   GET /api/v1/bible-studies/meta/series
  * @access  Public
  */
-export const getSeries = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const getSeries = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const churchId = req.churchId;
+    const { church } = req.query;
+    const churchId = (req as any).churchId || church;
 
     if (!churchId) {
       throw new ValidationError('ChurchId requerido');

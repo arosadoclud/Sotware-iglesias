@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { bibleStudiesApi } from '../../lib/api';
 import { toast } from 'sonner';
+import { useAuthStore } from '../../store/authStore';
 import { 
   Plus, Edit2, Trash2, Upload, X, Save, Calendar,
   BookOpen, FileText, Loader2, Download
@@ -50,6 +51,7 @@ const INITIAL_FORM: FormData = {
 };
 
 export default function BibleStudiesAdminPage() {
+  const { user } = useAuthStore();
   const [studies, setStudies] = useState<BibleStudy[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -65,7 +67,9 @@ export default function BibleStudiesAdminPage() {
   const loadStudies = async () => {
     try {
       setLoading(true);
-      const res = await bibleStudiesApi.getAll({ isActive: 'all', sort: '-studyDate' });
+      const params: any = { isActive: 'all', sort: '-studyDate' };
+      if (user?.churchId) params.church = user.churchId;
+      const res = await bibleStudiesApi.getAll(params);
       setStudies(res.data.data || []);
     } catch (error) {
       console.error('Error loading studies:', error);

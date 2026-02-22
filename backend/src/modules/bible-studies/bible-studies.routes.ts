@@ -15,9 +15,9 @@ import { rbac } from '../../middleware/rbac.middleware';
 
 const router = Router();
 
-// Rutas públicas (requieren churchId en header pero no autenticación)
-router.get('/', tenantGuard, getBibleStudies);
-router.get('/meta/series', tenantGuard, getSeries);
+// Rutas públicas (sin autenticación requerida)
+router.get('/', getBibleStudies);
+router.get('/meta/series', getSeries);
 router.get('/:id', getBibleStudy);
 router.post('/:id/download', trackDownload);
 
