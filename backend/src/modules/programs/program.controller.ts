@@ -197,7 +197,7 @@ export const getProgram = async (req: AuthRequest, res: Response, next: NextFunc
 
 export const generateProgram = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { activityTypeId, programDate, notes, defaultTime, ampm } = req.body;
+    const { activityTypeId, programDate, notes, defaultTime, ampm, restrictedPersonsForMessage } = req.body;
     if (!activityTypeId || !programDate) throw new BadRequestError('activityTypeId y programDate son requeridos');
 
     // Extraer solo YYYY-MM-DD y crear Date al mediodía LOCAL para evitar desfase UTC
@@ -220,6 +220,7 @@ export const generateProgram = async (req: AuthRequest, res: Response, next: Nex
       activityTypeId,
       targetDate: dateObj,
       generatedBy: { id: req.userId!, name: req.user?.fullName || 'Sistema' },
+      ...(restrictedPersonsForMessage && { restrictedPersonsForMessage }),
     });
 
     // Agregar versículo bíblico aleatorio

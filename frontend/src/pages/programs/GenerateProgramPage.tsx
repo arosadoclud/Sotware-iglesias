@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { activitiesApi, programsApi } from '../../lib/api'
+import { activitiesApi, programsApi, personsApi } from '../../lib/api'
 import { downloadBlob } from '../../lib/downloadHelper'
 import { safeDateParse } from '../../lib/utils'
 import { toast } from 'sonner'
@@ -293,17 +293,40 @@ const GenerateProgramPage = () => {
     dates: string[]
     generatedCount?: number
   } | null>(null)
+  
+  // Estados para restricción de personas en Mensaje (Culto Evangelístico)
+  const [allPersons, setAllPersons] = useState<any[]>([])
+  const [selectedMessagePersons, setSelectedMessagePersons] = useState<string[]>([])
+  const [showMessagePersonSelector, setShowMessagePersonSelector] = useState(false)
 
   useEffect(() => {
-    activitiesApi.getAll()
-      .then(r => {
-        setActivities(r.data.data)
-        if (r.data.data.length > 0) setSelectedActivity(r.data.data[0]._id)
+    Promise.all([
+      activitiesApi.getAll(),
+      personsApi.getAll()
+    ])
+      .then(([activitiesRes, personsRes]) => {
+        setActivities(activitiesRes.data.data)
+        setAllPersons(personsRes.data.data || [])
+        if (activitiesRes.data.data.length > 0) setSelectedActivity(activitiesRes.data.data[0]._id)
       })
       .finally(() => setLoading(false))
   }, [])
 
   const selectedAct = activities.find(a => a._id === selectedActivity)
+  
+  // Detectar si es Culto Evangelístico del Domingo
+  const isSundayEvangelistic = selectedAct && (
+    selectedAct.name?.toLowerCase().includes('evangelistico') ||
+    selectedAct.name?.toLowerCase().includes('evangelístico')
+  ) && (
+    selectedAct.daysOfWeek?.includes(0) || selectedAct.dayOfWeek === 0
+  )
+
+  // Limpiar selección de personas cuando cambia la actividad
+  useEffect(() => {
+    setSelectedMessagePersons([])
+    setShowMessagePersonSelector(false)
+  }, [selectedActivity])
 
   // Compute matching dates for batch mode preview (multi-day support)
   const batchDates = (() => {
@@ -338,6 +361,14 @@ const GenerateProgramPage = () => {
 
   const handleGenerate = async () => {
     if (!selectedActivity) return toast.error('Selecciona una actividad')
+    
+    // Verificar si necesita configuración especial para Mensaje en Culto Evangelístico
+    if (isSundayEvangelistic && selectedMessagePersons.length === 0 && !showMessagePersonSelector) {
+      setShowMessagePersonSelector(true)
+      toast.info('Por favor selecciona las personas disponibles para el Mensaje del Culto Evangelístico')
+      return
+    }
+    
     setGenerating(true)
     setResult(null)
     setDuplicateAlert(null)
@@ -347,7 +378,11 @@ const GenerateProgramPage = () => {
           setGenerating(false)
           return toast.error('Selecciona una fecha')
         }
-        const res = await programsApi.generate({ activityTypeId: selectedActivity, programDate: singleDate })
+        const payload: any = { activityTypeId: selectedActivity, programDate: singleDate }
+        if (isSundayEvangelistic && selectedMessagePersons.length > 0) {
+          payload.restrictedPersonsForMessage = selectedMessagePersons
+        }
+        const res = await programsApi.generate(payload)
         setResult({ type: 'single', program: res.data.data, meta: res.data.meta })
         toast.success('✅ Programa generado exitosamente')
         setTimeout(() => navigate(`/programs/${res.data.data._id}/flyer`), 600)
@@ -715,6 +750,76 @@ const GenerateProgramPage = () => {
                   </CardContent>
                 </Card>
               </motion.div>
+
+              {/* Message Person Selector - shown for Culto Evangelístico */}
+              {isSundayEvangelistic && (
+                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}>
+                  <Card className="border-indigo-200 bg-indigo-50/50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-indigo-800">
+                        <Users className="w-5 h-5 text-indigo-600" />
+                        Personas Elegibles para el Mensaje
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <p className="text-sm text-indigo-700">
+                          Selecciona las personas que el algoritmo tomará en cuenta para el rol de Mensaje en este Culto Evangelístico.
+                        </p>
+                        <div className="space-y-2 max-h-80 overflow-y-auto">
+                          <div className="flex items-center gap-2 mb-3">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedMessagePersons(allPersons.filter(p => p.isActive).map(p => p._id))}
+                              className="text-xs px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                            >
+                              Seleccionar todos
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedMessagePersons([])}
+                              className="text-xs px-3 py-1 bg-neutral-400 text-white rounded-md hover:bg-neutral-500"
+                            >
+                              Limpiar selección
+                            </button>
+                            <span className="text-xs text-indigo-700 font-medium ml-auto">
+                              {selectedMessagePersons.length} seleccionadas
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {allPersons.filter(p => p.isActive).map(person => (
+                              <label
+                                key={person._id}
+                                className={`flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                                  selectedMessagePersons.includes(person._id)
+                                    ? 'border-indigo-500 bg-indigo-100'
+                                    : 'border-neutral-200 hover:border-neutral-300 bg-white'
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedMessagePersons.includes(person._id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedMessagePersons([...selectedMessagePersons, person._id])
+                                    } else {
+                                      setSelectedMessagePersons(selectedMessagePersons.filter(id => id !== person._id))
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                />
+                                <span className="text-sm font-medium text-neutral-900">
+                                  {person.firstName} {person.lastName}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
 
               {/* Cleaning Groups Configuration - shown for cleaning activities in both single and batch modes */}
               {selectedAct?.generationType === 'cleaning_groups' && (

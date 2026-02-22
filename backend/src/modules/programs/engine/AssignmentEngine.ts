@@ -47,6 +47,7 @@ export interface GenerationParams {
   generatedBy: { id: string; name: string };
   notes?: string;
   excludePersonIds?: Set<string>; // Para evitar repetir personas entre programas del lote
+  restrictedPersonsForMessage?: string[]; // IDs de personas elegibles para el rol "Mensaje" en Culto Evangelístico
 }
 
 export interface GenerationResult {
@@ -172,6 +173,18 @@ export class AssignmentEngine {
           !assignedIds.has(p._id.toString()) &&
           p.isAvailableOn(targetDate)
       );
+      
+      // Restricción especial para el rol "Mensaje" en Culto Evangelístico
+      if (
+        params.restrictedPersonsForMessage && 
+        params.restrictedPersonsForMessage.length > 0 &&
+        roleConfig.role.name.toLowerCase().includes('mensaje')
+      ) {
+        const restrictedSet = new Set(params.restrictedPersonsForMessage);
+        const previousLength = eligible.length;
+        eligible = eligible.filter(p => restrictedSet.has(p._id.toString()));
+        console.log(`   🔒 Restricción de "Mensaje": ${previousLength} → ${eligible.length} (solo personas seleccionadas)`);
+      }
       
       console.log(`   ✅ Elegibles (disponibles y no asignados): ${eligible.length}`);
       if (eligible.length !== candidates.length) {
