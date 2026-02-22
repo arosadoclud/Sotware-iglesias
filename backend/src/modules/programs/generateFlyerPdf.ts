@@ -9,7 +9,8 @@ export async function generateFlyerPdf(data: any): Promise<Buffer> {
   Handlebars.registerHelper('churchNameUpper', () => (data.churchName || '').toUpperCase());
   // verse y verseText se pasan directamente en data
   // 1. Leer la plantilla HTML
-  const templatePath = path.join(__dirname, '../../templates/flyer-program.html');
+  // Compiled: dist/modules/programs/ → need 3 levels up to reach backend/templates/
+  const templatePath = path.join(__dirname, '../../../templates/flyer-program.html');
   const htmlRaw = fs.readFileSync(templatePath, 'utf8');
 
   // 2. Compilar con Handlebars
