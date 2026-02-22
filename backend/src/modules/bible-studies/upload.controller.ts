@@ -76,6 +76,8 @@ export const uploadPdf = async (req: AuthRequest, res: Response, next: NextFunct
         {
           folder: 'bible-studies',
           resource_type: 'raw',
+          type: 'upload',
+          access_mode: 'public',
           format: 'pdf',
           public_id: `study-${Date.now()}`,
         },
