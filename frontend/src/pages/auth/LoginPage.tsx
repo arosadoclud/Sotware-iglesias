@@ -52,6 +52,7 @@ const LoginPage = () => {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -76,12 +77,16 @@ const LoginPage = () => {
       toast.success('¡Bienvenido!')
       navigate('/')
     } catch (error: any) {
-      // Verificar si el email no está verificado
-      if (error.response?.data?.emailNotVerified) {
+      const data = error.response?.data
+      if (data?.emailNotVerified) {
         setEmailNotVerified(true)
-        setUnverifiedEmail(error.response.data.email)
+        setUnverifiedEmail(data.email)
+      } else if (data?.field === 'email') {
+        setError('email', { message: data.message || 'Este correo no está registrado' })
+      } else if (data?.field === 'password') {
+        setError('password', { message: data.message || 'Contraseña incorrecta' })
       } else {
-        const msg = error.response?.data?.message || 'Correo o contraseña incorrectos'
+        const msg = data?.message || 'Correo o contraseña incorrectos'
         setLoginError(msg)
       }
     } finally {

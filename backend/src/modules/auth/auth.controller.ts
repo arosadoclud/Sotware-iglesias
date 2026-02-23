@@ -385,7 +385,7 @@ export const login = async (req: Request, res: Response) => {
         severity: AuditSeverity.WARNING,
       });
 
-      return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
+      return res.status(401).json({ success: false, message: 'Este correo no está registrado', field: 'email' });
     }
 
     // Verificar si la cuenta del usuario está bloqueada por intentos fallidos
@@ -446,9 +446,10 @@ export const login = async (req: Request, res: Response) => {
 
       return res.status(401).json({ 
         success: false, 
+        field: 'password',
         message: attemptsRemaining > 0 
-          ? `Credenciales inválidas. ${attemptsRemaining} intento(s) restante(s).`
-          : 'Credenciales inválidas',
+          ? `Contraseña incorrecta. ${attemptsRemaining} intento(s) restante(s).`
+          : 'Contraseña incorrecta',
       });
     }
 
