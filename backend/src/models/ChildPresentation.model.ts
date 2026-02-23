@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IChildPresentation extends Document {
   churchId: mongoose.Types.ObjectId;
   childName: string;
+  sexo?: 'Niño' | 'Niña';
   birthDate: Date;
   fatherName?: string;
   motherName?: string;
@@ -19,6 +20,7 @@ const ChildPresentationSchema = new Schema<IChildPresentation>(
   {
     churchId:         { type: Schema.Types.ObjectId, ref: 'Church', required: true, index: true },
     childName:        { type: String, required: true, trim: true },
+    sexo:             { type: String, enum: ['Niño', 'Niña'] },
     birthDate:        { type: Date, required: true },
     fatherName:       { type: String, trim: true },
     motherName:       { type: String, trim: true },

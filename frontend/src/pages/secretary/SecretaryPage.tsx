@@ -39,6 +39,7 @@ const TABS: Tab[] = [
 const FIELD_DEFS: Record<TabKey, { key: string; label: string; type?: string; required?: boolean; textarea?: boolean; options?: string[] }[]> = {
   'child-presentations': [
     { key: 'childName',         label: 'Nombre del niño/a',   required: true  },
+    { key: 'sexo',              label: 'Sexo',                required: true,  options: ['Niño', 'Niña'] },
     { key: 'birthDate',         label: 'Fecha de nacimiento', required: true,  type: 'date' },
     { key: 'presentationDate',  label: 'Fecha de presentación', required: true, type: 'date' },
     { key: 'fatherName',        label: 'Nombre del padre'     },
@@ -143,21 +144,34 @@ function ActionMenu({ onEdit, onDelete, canEdit, canDelete, color }: any) {
   )
 }
 
+// ── Colores dinámicos por género ──────────────────────────────────────────
+const GENDER_THEME = {
+  'Niña': { bg: 'bg-pink-50',  border: 'border-pink-200',  accent: 'bg-pink-100',  color: 'text-pink-600',  badge: 'bg-pink-100 text-pink-600'  },
+  'Niño': { bg: 'bg-blue-50',  border: 'border-blue-200',  accent: 'bg-blue-100',  color: 'text-blue-600',  badge: 'bg-blue-100 text-blue-600'  },
+  '_':    { bg: 'bg-green-50', border: 'border-green-200', accent: 'bg-green-100', color: 'text-green-600', badge: 'bg-green-100 text-green-600' },
+}
+
 // ── Tarjetas especializadas ────────────────────────────────────────────────
 function ChildCard({ r, tab, onEdit, onDelete, onView, canEdit, canDelete }: any) {
+  const theme = GENDER_THEME[r.sexo as keyof typeof GENDER_THEME] ?? GENDER_THEME['_']
   return (
-    <div onClick={onView} className={`bg-white rounded-2xl border ${tab.border} shadow-sm hover:shadow-md transition-all overflow-hidden group cursor-pointer`}>
-      <div className={`${tab.bg} px-4 pt-4 pb-3 flex items-start justify-between`}>
+    <div onClick={onView} className={`bg-white rounded-2xl border ${theme.border} shadow-sm hover:shadow-md transition-all overflow-hidden group cursor-pointer`}>
+      <div className={`${theme.bg} px-4 pt-4 pb-3 flex items-start justify-between`}>
         <div className="flex items-center gap-3">
-          <div className={`w-11 h-11 rounded-xl ${tab.accent} flex items-center justify-center`}>
-            <span className={`text-sm font-bold ${tab.color}`}>{initials(r.childName)}</span>
+          <div className={`w-11 h-11 rounded-xl ${theme.accent} flex items-center justify-center`}>
+            <span className={`text-sm font-bold ${theme.color}`}>{initials(r.childName)}</span>
           </div>
           <div>
             <p className="font-semibold text-gray-900 leading-tight">{r.childName}</p>
-            {r.birthDate && <p className="text-xs text-gray-500 mt-0.5">Nac. {fmtDate(r.birthDate)}</p>}
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              {r.sexo && (
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${theme.badge}`}>{r.sexo}</span>
+              )}
+              {r.birthDate && <p className="text-xs text-gray-500">Nac. {fmtDate(r.birthDate)}</p>}
+            </div>
           </div>
         </div>
-        <ActionMenu onEdit={onEdit} onDelete={onDelete} canEdit={canEdit} canDelete={canDelete} color={tab.color} />
+        <ActionMenu onEdit={onEdit} onDelete={onDelete} canEdit={canEdit} canDelete={canDelete} color={theme.color} />
       </div>
       <div className="px-4 py-3 space-y-2">
         <InfoRow icon={Calendar} label="Presentación" value={fmtDate(r.presentationDate)} />
