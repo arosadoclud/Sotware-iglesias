@@ -218,15 +218,20 @@ const UsersManagementPage = () => {
     
     setSaving(true)
     try {
+      // Si se cambió el rol (via Elevar Permisos Rápido), guardarlo primero
+      if (formData.role !== selectedUser.role) {
+        await adminApi.updateUser(selectedUser._id, { role: formData.role })
+      }
+      // Guardar permisos custom (o limpiarlos si ya no son custom)
       await adminApi.updateUserPermissions(selectedUser._id, {
         permissions: formData.permissions,
         useCustomPermissions: formData.useCustomPermissions,
       })
-      toast.success('Permisos actualizados')
+      toast.success('Usuario actualizado correctamente')
       setShowPermissionsModal(false)
       loadUsers()
     } catch (e: any) {
-      toast.error(e.response?.data?.message || 'Error al actualizar permisos')
+      toast.error(e.response?.data?.message || 'Error al actualizar')
     }
     setSaving(false)
   }
@@ -339,12 +344,13 @@ const UsersManagementPage = () => {
 
   const openPermissionsModal = (user: User) => {
     setSelectedUser(user)
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
+      role: user.role,   // ← inicializar rol actual
       // Si ya tiene control total activado, cargar la lista efectiva completa
       permissions: user.useCustomPermissions ? (user.effectivePermissions || user.permissions || []) : [],
       useCustomPermissions: user.useCustomPermissions,
-    })
+    }))
     setShowPermissionsModal(true)
   }
 
@@ -396,13 +402,14 @@ const UsersManagementPage = () => {
     
     const targetRolePerms = permissionsData.defaultRolePermissions[targetRole] || []
     
-    // Aplicar exactamente los permisos del nivel seleccionado (control total)
+    // Aplicar los permisos del nivel seleccionado Y cambiar el rol base
     setFormData(prev => ({
       ...prev,
+      role: targetRole,
       permissions: [...targetRolePerms],
-      useCustomPermissions: true,
+      useCustomPermissions: false,   // rol limpio: sin custom, el rol habla por sí mismo
     }))
-    toast.success(`Permisos del nivel ${roleNames[targetRole]} aplicados (${targetRolePerms.length} permisos)`)
+    toast.success(`Rol cambiado a ${roleNames[targetRole]} (${targetRolePerms.length} permisos)`)
   }
 
   /**
@@ -414,7 +421,7 @@ const UsersManagementPage = () => {
     // En custom mode, los permisos seleccionados son exactamente los efectivos
     const currentPerms = formData.useCustomPermissions && formData.permissions.length > 0
       ? [...formData.permissions].sort()
-      : (permissionsData.defaultRolePermissions[selectedUser.role] || []).slice().sort()
+      : (permissionsData.defaultRolePermissions[formData.role || selectedUser.role] || []).slice().sort()
     
     // Compara con cada rol (de mayor a menor jerarquía)
     const rolesOrder = ['SUPER_ADMIN', 'PASTOR', 'ADMIN', 'MINISTRY_LEADER', 'EDITOR', 'VIEWER']
@@ -836,11 +843,14 @@ const UsersManagementPage = () => {
             <div className="flex items-center gap-3 p-3 bg-neutral-50 border rounded-lg">
               <div className="flex-1">
                 <span className="text-sm font-medium text-neutral-700">Rol base: </span>
-                <Badge className={`${roleColors[selectedUser?.role || 'VIEWER']} border ml-1`}>
-                  {roleNames[selectedUser?.role || 'VIEWER']}
+                <Badge className={`${roleColors[formData.role || selectedUser?.role || 'VIEWER']} border ml-1`}>
+                  {roleNames[formData.role || selectedUser?.role || 'VIEWER']}
                 </Badge>
+                {formData.role !== selectedUser?.role && (
+                  <span className="text-xs text-amber-600 ml-2 font-medium">⚠️ Cambiado (aún no guardado)</span>
+                )}
                 <span className="text-xs text-neutral-500 ml-2">
-                  ({permissionsData?.defaultRolePermissions[selectedUser?.role || 'VIEWER']?.length || 0} permisos incluidos automáticamente)
+                  ({permissionsData?.defaultRolePermissions[formData.role || selectedUser?.role || 'VIEWER']?.length || 0} permisos incluidos automáticamente)
                 </span>
               </div>
             </div>
