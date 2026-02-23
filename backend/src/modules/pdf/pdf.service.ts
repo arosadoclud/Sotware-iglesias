@@ -294,6 +294,8 @@ export class PdfService {
     });
 
     const page = await browser.newPage();
+    // Renderizar al doble de resolución para mayor nitidez
+    await page.setViewport({ width: 1632, height: 2112, deviceScaleFactor: 2 });
     await page.setContent(html, { waitUntil: "networkidle0" });
 
     // Esperar a que las fuentes de Google se carguen
@@ -304,6 +306,7 @@ export class PdfService {
       format: "Letter",
       printBackground: true,
       margin: { top: "0", right: "0", bottom: "0", left: "0" },
+      pageRanges: "1",   // forzar sólo la primera página
     });
 
     await browser.close();
