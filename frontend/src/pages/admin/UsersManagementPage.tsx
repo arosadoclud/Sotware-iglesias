@@ -758,9 +758,23 @@ const UsersManagementPage = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-neutral-500 mt-1">
-                  Al cambiar el rol, los permisos extra personalizados se mantienen.
-                </p>
+                {/* Aviso cuando el rol cambia y el usuario tiene permisos custom */}
+                {formData.role !== selectedUser?.role && selectedUser?.useCustomPermissions && (
+                  <div className="mt-2 flex items-start gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 p-2 rounded">
+                    <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                    <span>Al guardar, los permisos personalizados (+{selectedUser.permissions?.length} extra) se eliminarán y el usuario recibirá los permisos estándar del rol <strong>{roleNames[formData.role]}</strong>.</span>
+                  </div>
+                )}
+                {formData.role !== selectedUser?.role && !selectedUser?.useCustomPermissions && (
+                  <p className="text-xs text-neutral-500 mt-1">
+                    Al guardar, se aplicarán los permisos estándar del rol <strong>{roleNames[formData.role]}</strong>.
+                  </p>
+                )}
+                {formData.role === selectedUser?.role && (
+                  <p className="text-xs text-neutral-500 mt-1">
+                    El rol no ha cambiado.
+                  </p>
+                )}
               </div>
             )}
 

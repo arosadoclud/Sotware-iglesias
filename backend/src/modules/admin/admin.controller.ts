@@ -215,17 +215,22 @@ export const updateUser = async (req: AuthRequest, res: Response, next: NextFunc
     // Actualizar campos
     if (fullName) user.fullName = fullName;
     
-    // Si cambia el rol (SUPER_ADMIN, ADMIN o superusuarios pueden cambiar roles)
-    if (role && (req.userRole === UserRole.SUPER_ADMIN || req.userRole === UserRole.ADMIN || req.isSuperUser)) {
+    // Si cambia el rol (SUPER_ADMIN, PASTOR, ADMIN o superusuarios pueden cambiar roles)
+    if (role && (
+      req.userRole === UserRole.SUPER_ADMIN ||
+      req.userRole === UserRole.PASTOR ||
+      req.userRole === UserRole.ADMIN ||
+      req.isSuperUser
+    )) {
       // No permitir asignar SUPER_ADMIN a menos que seas SUPER_ADMIN
       if (role === UserRole.SUPER_ADMIN && req.userRole !== UserRole.SUPER_ADMIN) {
         throw new ForbiddenError('Solo un Super Admin puede asignar el rol Super Admin');
       }
       user.role = role;
-      // Al cambiar el rol, limpiar permisos extras SOLO si no estaba en modo Custom
-      if (!user.useCustomPermissions) {
-        user.permissions = [];
-      }
+      // Al cambiar el rol siempre se resetean los permisos custom para que el
+      // nuevo rol tenga efecto real (no solo cosmético).
+      user.permissions = [];
+      user.useCustomPermissions = false;
     }
     
     if (isActive !== undefined) user.isActive = isActive;
