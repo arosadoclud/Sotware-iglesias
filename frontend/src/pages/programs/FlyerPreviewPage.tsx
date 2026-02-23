@@ -79,6 +79,7 @@ function buildUpdatePayload(form: FlyerForm, assignments: Assignment[]) {
       name: form.churchName,
       subTitle: form.churchSub,
       location: form.location,
+      logoUrl: form.logoUrl,  // ← incluir logo para que aparezca en el PDF
     },
   }
 }
@@ -932,12 +933,16 @@ const FlyerPreviewPage = () => {
   // Usar logo real de la iglesia si existe
   const logoSrc = useMemo(
     () => {
-      // Si hay logoUrl en el form, úsalo (puede venir como "/uploads/file.png" o solo "file.png")
       if (form.logoUrl) {
+        // Si ya es una URL absoluta (Cloudinary, http, https), úsala directamente
+        if (form.logoUrl.startsWith('http://') || form.logoUrl.startsWith('https://')) {
+          return form.logoUrl
+        }
+        // Ruta relativa: construir desde el backend
         const logoPath = form.logoUrl.startsWith('/') ? form.logoUrl : `/uploads/${form.logoUrl}`
         return `${BACKEND_URL}${logoPath}`
       }
-      // Si existe logo.png en uploads, úsalo desde el backend
+      // Fallback: imagen de logo genérico del backend
       return `${BACKEND_URL}/uploads/logo.png`
     },
     [form.logoUrl]

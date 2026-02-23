@@ -141,11 +141,12 @@ export class PdfService {
       
       if (rawLogo) {
         if (rawLogo.startsWith("http://") || rawLogo.startsWith("https://")) {
+          // URL absoluta (Cloudinary u otro CDN): usarla directamente
           logoUrl = rawLogo;
         } else if (rawLogo.startsWith("data:")) {
           logoUrl = rawLogo;
         } else {
-          // Manejar rutas relativas como /uploads/logo.png
+          // Ruta relativa como /uploads/logo.png: buscar en disco
           const logoFilename = rawLogo.startsWith("/uploads/") 
             ? rawLogo.replace("/uploads/", "") 
             : path.basename(rawLogo);
@@ -156,7 +157,6 @@ export class PdfService {
             for (const name of searchNames) {
               const candidate = path.join(dir, name);
               if (fs.existsSync(candidate)) {
-                // Leer archivo y convertir a base64 data URI
                 const fileBuffer = fs.readFileSync(candidate);
                 const ext = path.extname(name).toLowerCase().replace(".", "");
                 const mime = ext === "png" ? "image/png"
@@ -168,6 +168,14 @@ export class PdfService {
                 break;
               }
             }
+          }
+
+          // Fallback: si no se encontró en disco, intentar via HTTP desde el propio servidor
+          if (!logoUrl) {
+            const backendUrl = process.env.BACKEND_URL || process.env.RENDER_EXTERNAL_URL
+              || `http://localhost:${process.env.PORT || 4000}`;
+            const httpLogoUrl = `${backendUrl}${rawLogo.startsWith('/') ? rawLogo : '/' + rawLogo}`;
+            logoUrl = httpLogoUrl; // Puppeteer lo cargará desde la red
           }
         }
       }

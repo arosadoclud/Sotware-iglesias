@@ -113,9 +113,11 @@ function formatTimeDisplay(prog: ProgramData): string {
 const FlyerMiniPreview = ({ prog, churchInfo }: { prog: ProgramData; churchInfo?: any }) => {
   const churchName = prog.church?.name || prog.churchName || churchInfo?.name || 'Iglesia'
   const logoUrl = prog.logoUrl || prog.church?.logoUrl || churchInfo?.logoUrl || ''
-  // logoUrl puede venir como "/uploads/file.png" o solo "file.png"
+  // Si es URL absoluta (Cloudinary), úsala directamente; si es ruta relativa, construir desde path
   const logoSrc = logoUrl
-    ? (logoUrl.startsWith('/') ? logoUrl : `/uploads/${logoUrl}`)
+    ? (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')
+        ? logoUrl
+        : (logoUrl.startsWith('/') ? logoUrl : `/uploads/${logoUrl}`))
     : '/uploads/logo.png'
 
   return (
