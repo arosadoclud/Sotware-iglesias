@@ -20,6 +20,6 @@ const upload = multer({
   },
 });
 
-router.post('/', authenticate, tenantGuard, rbac('churches', 'update'), upload.single('logo'), uploadLogo);
+router.post('/logo', authenticate, tenantGuard, rbac('churches', 'update'), upload.single('logo'), uploadLogo);
 
 export default router;
