@@ -181,7 +181,8 @@ export const getMembersForAttendance = async (req: AuthRequest, res: Response, n
         personId: p._id,
         personName: p.fullName,
         ministry: p.ministry,
-        present: existing ? existing.present : false,
+        // null = aún no marcado (nuevo registro); true/false = ya marcado en historial existente
+        present: existing ? existing.present : null,
         notes: existing?.notes || '',
       };
     });

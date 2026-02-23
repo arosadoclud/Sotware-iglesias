@@ -82,7 +82,7 @@ interface Attendee {
   personId?: string
   personName: string
   ministry?: string
-  present: boolean
+  present: boolean | null  // null = sin marcar; true = presente; false = ausente
   notes?: string
 }
 
@@ -198,17 +198,20 @@ const AttendancePage = () => {
     if (view === 'stats') loadStats()
   }, [view, loadStats])
 
-  // ── Toggle asistencia de una persona ──────────────────────────────────────
+  // ── Toggle asistencia de una persona (ciclo: null → true → false → null) ─
   const toggleAttendee = (personName: string) => {
     setAttendees(prev =>
-      prev.map(a => a.personName === personName ? { ...a, present: !a.present } : a)
+      prev.map(a => {
+        if (a.personName !== personName) return a
+        const next = a.present === null ? true : a.present === true ? false : null
+        return { ...a, present: next }
+      })
     )
   }
 
-  // ── Marcar todos presente / ausente ───────────────────────────────────────
-  const markAll = (present: boolean) => {
-    const filtered = filtered_attendees
-    const names = new Set(filtered.map(a => a.personName))
+  // ── Marcar todos presentes / limpiar marcas ───────────────────────────────
+  const markAll = (present: boolean | null) => {
+    const names = new Set(filtered_attendees.map(a => a.personName))
     setAttendees(prev => prev.map(a => names.has(a.personName) ? { ...a, present } : a))
   }
 
@@ -216,14 +219,16 @@ const AttendancePage = () => {
   const handleSave = async () => {
     setSaving(true)
     try {
+      // Solo enviar miembros explícitamente marcados (excluir los null = sin marcar)
+      const markedAttendees = attendees.filter(a => a.present !== null)
       if (existingId) {
-        await attendanceApi.update(existingId, { attendees, guestCount, notes })
+        await attendanceApi.update(existingId, { attendees: markedAttendees, guestCount, notes })
         toast.success('Asistencia actualizada correctamente')
       } else {
         const res = await attendanceApi.create({
           serviceType: activeService,
           date: selectedDate,
-          attendees,
+          attendees: markedAttendees,
           guestCount,
           notes,
         })
@@ -249,7 +254,7 @@ const AttendancePage = () => {
       if (view === 'history') loadHistory()
       if (deletingId === existingId) {
         setExistingId(null)
-        setAttendees(prev => prev.map(a => ({ ...a, present: false })))
+        setAttendees(prev => prev.map(a => ({ ...a, present: null })))
         setGuestCount(0)
         setNotes('')
       }
@@ -271,9 +276,9 @@ const AttendancePage = () => {
     (a.ministry || '').toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const presentCount  = attendees.filter(a => a.present).length
-  const absentCount   = attendees.filter(a => !a.present).length
-  const totalCount    = attendees.length
+  const presentCount   = attendees.filter(a => a.present === true).length
+  const absentCount    = attendees.filter(a => a.present === false).length
+  const totalCount     = attendees.length
   const attendance_pct = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -495,8 +500,8 @@ const AttendancePage = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-7 text-xs text-red-600 border-red-200"
-                        onClick={() => markAll(false)}
+                        className="h-7 text-xs text-neutral-500 border-neutral-200"
+                        onClick={() => markAll(null)}
                       >
                         <UserX className="w-3 h-3 mr-1" /> Limpiar
                       </Button>
@@ -539,22 +544,26 @@ const AttendancePage = () => {
                           animate={{ opacity: 1 }}
                           transition={{ delay: idx * 0.02 }}
                           className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${
-                            attendee.present
+                            attendee.present === true
                               ? 'bg-green-50/60 hover:bg-green-50'
+                              : attendee.present === false
+                              ? 'bg-red-50/50 hover:bg-red-50'
                               : 'hover:bg-neutral-50'
                           }`}
                           onClick={() => (canCreate || canEdit) && toggleAttendee(attendee.personName)}
                         >
                           <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 transition-colors ${
-                            attendee.present
+                            attendee.present === true
                               ? 'bg-green-500 text-white'
+                              : attendee.present === false
+                              ? 'bg-red-400 text-white'
                               : 'bg-neutral-200 text-neutral-500'
                           }`}>
                             {attendee.personName.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className={`text-sm font-medium truncate ${
-                              attendee.present ? 'text-green-800' : 'text-neutral-700'
+                              attendee.present === true ? 'text-green-800' : attendee.present === false ? 'text-red-700' : 'text-neutral-700'
                             }`}>
                               {attendee.personName}
                             </p>
@@ -563,13 +572,17 @@ const AttendancePage = () => {
                             )}
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
-                            {attendee.present ? (
+                            {attendee.present === true ? (
                               <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
                                 <CheckCircle2 className="w-4 h-4" /> Presente
                               </span>
-                            ) : (
-                              <span className="flex items-center gap-1 text-xs text-neutral-400">
+                            ) : attendee.present === false ? (
+                              <span className="flex items-center gap-1 text-xs text-red-500 font-medium">
                                 <XCircle className="w-4 h-4" /> Ausente
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1 text-xs text-neutral-300">
+                                <XCircle className="w-4 h-4" /> Sin marcar
                               </span>
                             )}
                           </div>
