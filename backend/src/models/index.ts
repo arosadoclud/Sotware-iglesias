@@ -24,3 +24,6 @@ export { default as Event, IEvent } from './Event.model';
 
 // Seguridad y Auditoría
 export { default as Ministry, IMinistry } from './Ministry.model';
+
+// Módulo de Asistencias
+export { default as Attendance, IAttendance, ServiceType, SERVICE_LABELS } from './Attendance.model';

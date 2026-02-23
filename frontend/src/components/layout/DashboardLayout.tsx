@@ -24,6 +24,7 @@ import {
   BookOpen,
   Megaphone,
   ClipboardList,
+  ClipboardCheck,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { toast } from 'react-hot-toast'
@@ -223,9 +224,10 @@ const DashboardLayoutImproved = () => {
       icon: Users,
       show: !isViewer,
       items: [
-        { name: 'Personas',       href: '/persons',     icon: Users,    show: hasPermission(P.PERSONS_VIEW),     className: 'sidebar-personas' },
-        { name: 'Actividades',    href: '/activities',  icon: Calendar, show: hasPermission(P.ACTIVITIES_VIEW), className: 'sidebar-activities' },
-        { name: 'Nuevos Miembros',href: '/new-members', icon: UserPlus, show: hasPermission(P.PERSONS_VIEW),     className: 'sidebar-new-members' },
+        { name: 'Personas',       href: '/persons',     icon: Users,          show: hasPermission(P.PERSONS_VIEW),       className: 'sidebar-personas' },
+        { name: 'Actividades',    href: '/activities',  icon: Calendar,       show: hasPermission(P.ACTIVITIES_VIEW),    className: 'sidebar-activities' },
+        { name: 'Nuevos Miembros',href: '/new-members', icon: UserPlus,       show: hasPermission(P.PERSONS_VIEW),       className: 'sidebar-new-members' },
+        { name: 'Asistencias',    href: '/asistencias', icon: ClipboardCheck, show: hasPermission(P.ATTENDANCE_VIEW),    className: 'sidebar-attendance' },
       ],
     },
     {

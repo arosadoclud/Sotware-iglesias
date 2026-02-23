@@ -92,7 +92,11 @@ export enum Permission {
   PASTORAL_CREATE = 'pastoral:create',
   PASTORAL_EDIT   = 'pastoral:edit',
   PASTORAL_DELETE = 'pastoral:delete',
-}
+  // ── ASISTENCIAS ──────────────────────────────────────────────
+  ATTENDANCE_VIEW   = 'attendance:view',
+  ATTENDANCE_CREATE = 'attendance:create',
+  ATTENDANCE_EDIT   = 'attendance:edit',
+  ATTENDANCE_DELETE = 'attendance:delete',}
 
 // Permisos por defecto según el rol
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
@@ -161,6 +165,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.SECRETARY_CREATE,
     Permission.SECRETARY_EDIT,
     Permission.SECRETARY_DELETE,
+    // Asistencias
+    Permission.ATTENDANCE_VIEW,
+    Permission.ATTENDANCE_CREATE,
+    Permission.ATTENDANCE_EDIT,
+    Permission.ATTENDANCE_DELETE,
   ],
   
   MINISTRY_LEADER: [
@@ -205,6 +214,10 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.SECRETARY_VIEW,
     Permission.SECRETARY_CREATE,
     Permission.SECRETARY_EDIT,
+    // Asistencias
+    Permission.ATTENDANCE_VIEW,
+    Permission.ATTENDANCE_CREATE,
+    Permission.ATTENDANCE_EDIT,
   ],
   
   EDITOR: [
@@ -239,6 +252,10 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.SECRETARY_VIEW,
     Permission.SECRETARY_CREATE,
     Permission.SECRETARY_EDIT,
+    // Asistencias
+    Permission.ATTENDANCE_VIEW,
+    Permission.ATTENDANCE_CREATE,
+    Permission.ATTENDANCE_EDIT,
   ],
   
   VIEWER: [
@@ -250,6 +267,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, Permission[]> = {
     // Estudios Bíblicos (solo ver y descargar)
     Permission.BIBLE_STUDIES_VIEW,
     Permission.BIBLE_STUDIES_DOWNLOAD,
+    // Asistencias (solo ver)
+    Permission.ATTENDANCE_VIEW,
   ],
 };
 
@@ -345,6 +364,12 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, { label: string; descri
   [Permission.PASTORAL_CREATE]: { label: 'Crear registros pastorales', description: 'Crear nuevos registros pastorales', category: 'Pastoral' },
   [Permission.PASTORAL_EDIT]:   { label: 'Editar registros pastorales', description: 'Modificar registros pastorales', category: 'Pastoral' },
   [Permission.PASTORAL_DELETE]: { label: 'Eliminar registros pastorales', description: 'Eliminar registros pastorales', category: 'Pastoral' },
+
+  // Asistencias
+  [Permission.ATTENDANCE_VIEW]:   { label: 'Ver asistencias', description: 'Ver registros de asistencia a cultos', category: 'Asistencias' },
+  [Permission.ATTENDANCE_CREATE]: { label: 'Registrar asistencia', description: 'Tomar asistencia en los cultos', category: 'Asistencias' },
+  [Permission.ATTENDANCE_EDIT]:   { label: 'Editar asistencia', description: 'Modificar registros de asistencia', category: 'Asistencias' },
+  [Permission.ATTENDANCE_DELETE]: { label: 'Eliminar asistencia', description: 'Eliminar registros de asistencia', category: 'Asistencias' },
 };
 
 // Agrupar permisos por categoría para la UI
@@ -364,6 +389,7 @@ export const PERMISSION_CATEGORIES = [
   'Estudios Bíblicos',
   'Secretaría',
   'Pastoral',
+  'Asistencias',
 ];
 
 // Helper para verificar si un usuario tiene un permiso

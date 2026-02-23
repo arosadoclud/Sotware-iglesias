@@ -27,7 +27,8 @@ export type Resource =
   | 'billing'
   | 'bible_studies'
   | 'secretary'
-  | 'pastoral';
+  | 'pastoral'
+  | 'attendance';
 
 // Acciones posibles sobre cada recurso
 export type Action = 'read' | 'create' | 'update' | 'delete';
@@ -57,6 +58,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     billing:    ['read', 'create', 'update', 'delete'],
     secretary:  ['read', 'create', 'update', 'delete'],
     pastoral:   ['read', 'create', 'update', 'delete'],
+    attendance: ['read', 'create', 'update', 'delete'],
   },
 
   [UserRole.PASTOR]: {
@@ -71,6 +73,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     billing:    ['read'],
     secretary:  ['read', 'create', 'update', 'delete'],
     pastoral:   ['read', 'create', 'update', 'delete'],
+    attendance: ['read', 'create', 'update', 'delete'],
   },
 
   [UserRole.ADMIN]: {
@@ -85,6 +88,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     billing:    ['read'],
     secretary:  ['read', 'create', 'update', 'delete'],
     pastoral:   [],
+    attendance: ['read', 'create', 'update', 'delete'],
   },
 
   [UserRole.MINISTRY_LEADER]: {
@@ -99,6 +103,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     billing:    [],
     secretary:  ['read', 'create', 'update'],    // Secretaría sin eliminar
     pastoral:   [],                              // Sin acceso a pastoral por defecto
+    attendance: ['read', 'create', 'update'],
   },
 
   [UserRole.EDITOR]: {
@@ -113,6 +118,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     finances:   ['read'],                        // Solo ver finanzas
     billing:    [],
     pastoral:   [],                              // Sin acceso a pastoral por defecto
+    attendance: ['read', 'create', 'update'],
   },
 
   // ⚠️ VIEWER: Solo lectura — NO puede crear, editar ni eliminar NADA
@@ -128,6 +134,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     billing:    [],
     secretary:  [],                              // Sin acceso a secretaría
     pastoral:   [],                              // Sin acceso a pastoral
+    attendance: ['read'],                        // Solo ver asistencias
   },
 };
 
