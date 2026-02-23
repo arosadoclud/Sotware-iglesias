@@ -336,7 +336,8 @@ const UsersManagementPage = () => {
     setSelectedUser(user)
     setFormData({
       ...formData,
-      permissions: user.permissions || [],
+      // Si ya tiene control total activado, cargar la lista efectiva completa
+      permissions: user.useCustomPermissions ? (user.effectivePermissions || user.permissions || []) : [],
       useCustomPermissions: user.useCustomPermissions,
     })
     setShowPermissionsModal(true)
@@ -386,25 +387,17 @@ const UsersManagementPage = () => {
    * Los permisos personalizados son los que están POR ENCIMA del rol base
    */
   const assignRolePermissions = (targetRole: string) => {
-    if (!permissionsData || !selectedUser) return
+    if (!permissionsData) return
     
     const targetRolePerms = permissionsData.defaultRolePermissions[targetRole] || []
-    const baseRolePerms = permissionsData.defaultRolePermissions[selectedUser.role] || []
     
-    // Solo añadir los permisos que NO tiene ya el rol base (permisos extra)
-    const extraPerms = targetRolePerms.filter(p => !baseRolePerms.includes(p))
-    
-    if (extraPerms.length === 0) {
-      toast.info(`El rol ${roleNames[targetRole]} no añade permisos extra sobre ${roleNames[selectedUser.role]}`)
-      return
-    }
-    
+    // Aplicar exactamente los permisos del nivel seleccionado (control total)
     setFormData(prev => ({
       ...prev,
-      permissions: extraPerms,
+      permissions: [...targetRolePerms],
       useCustomPermissions: true,
     }))
-    toast.success(`${extraPerms.length} permisos extra de ${roleNames[targetRole]} añadidos`)
+    toast.success(`Permisos del nivel ${roleNames[targetRole]} aplicados (${targetRolePerms.length} permisos)`)
   }
 
   /**
@@ -413,20 +406,19 @@ const UsersManagementPage = () => {
   const detectRole = (): string | null => {
     if (!permissionsData || !selectedUser) return null
     
-    // Calcular permisos efectivos: rol base + extras seleccionados  
-    const basePerms = permissionsData.defaultRolePermissions[selectedUser.role] || []
-    const effectivePerms = formData.useCustomPermissions && formData.permissions.length > 0
-      ? Array.from(new Set([...basePerms, ...formData.permissions])).sort()
-      : basePerms.sort()
+    // En custom mode, los permisos seleccionados son exactamente los efectivos
+    const currentPerms = formData.useCustomPermissions && formData.permissions.length > 0
+      ? [...formData.permissions].sort()
+      : (permissionsData.defaultRolePermissions[selectedUser.role] || []).slice().sort()
     
     // Compara con cada rol (de mayor a menor jerarquía)
     const rolesOrder = ['SUPER_ADMIN', 'PASTOR', 'ADMIN', 'MINISTRY_LEADER', 'EDITOR', 'VIEWER']
     
     for (const role of rolesOrder) {
-      const rolePermissions = (permissionsData.defaultRolePermissions[role] || []).sort()
+      const rolePermissions = (permissionsData.defaultRolePermissions[role] || []).slice().sort()
       if (
-        effectivePerms.length === rolePermissions.length &&
-        effectivePerms.every((p, i) => p === rolePermissions[i])
+        currentPerms.length === rolePermissions.length &&
+        currentPerms.every((p, i) => p === rolePermissions[i])
       ) {
         return role
       }
@@ -816,8 +808,7 @@ const UsersManagementPage = () => {
               Permisos de {selectedUser?.fullName}
             </DialogTitle>
             <DialogDescription>
-              Los permisos del <strong>rol base</strong> siempre están incluidos.
-              Aquí puedes añadir permisos <strong>extra</strong> por encima del rol.
+              Controla exactamente qué módulos puede ver y usar este usuario. Al activar el control total, los permisos del <strong>rol base</strong> se precargan y puedes quitar los que no necesite.
             </DialogDescription>
           </DialogHeader>
           
@@ -840,14 +831,24 @@ const UsersManagementPage = () => {
               <Checkbox
                 id="useCustom"
                 checked={formData.useCustomPermissions}
-                onCheckedChange={(checked: boolean | 'indeterminate') => setFormData({ ...formData, useCustomPermissions: !!checked })}
+                onCheckedChange={(checked: boolean | 'indeterminate') => {
+                  const enable = !!checked
+                  if (enable) {
+                    // Pre-poblar con permisos del rol base para que el superusuario
+                    // solo quite los que no necesita
+                    const basePerms = permissionsData?.defaultRolePermissions[selectedUser?.role || 'VIEWER'] || []
+                    setFormData(prev => ({ ...prev, useCustomPermissions: true, permissions: [...basePerms] }))
+                  } else {
+                    setFormData(prev => ({ ...prev, useCustomPermissions: false, permissions: [] }))
+                  }
+                }}
               />
               <div>
                 <label htmlFor="useCustom" className="text-sm font-semibold cursor-pointer text-blue-800">
-                  Añadir permisos extra personalizados
+                  Control total de permisos
                 </label>
                 <p className="text-xs text-blue-600">
-                  Los extras se combinan con los del rol base (no los reemplazan)
+                  Define exactamente qué puede ver y hacer este usuario. Puedes quitar permisos del rol base.
                 </p>
               </div>
             </div>
@@ -876,7 +877,7 @@ const UsersManagementPage = () => {
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-purple-600 mt-1.5">
-                      Añade solo los permisos extra del nivel seleccionado
+                      Aplica exactamente los permisos del nivel seleccionado
                     </p>
                   </div>
 
@@ -892,76 +893,80 @@ const UsersManagementPage = () => {
                         </Badge>
                       ) : (
                         <span className="text-sm text-green-700 font-medium">
-                          {selectedUser?.role && roleNames[selectedUser.role]} + extras
+                          Personalizado
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-green-600 mt-1.5">
-                      Nivel resultante con rol base + permisos extra
+                      Nivel equivalente a los permisos seleccionados
                     </p>
                   </div>
                 </div>
 
-                {/* Limpiar extras */}
+                {/* Contador + Restaurar rol base */}
                 <div className="flex items-center justify-between p-3 bg-neutral-50 border rounded-lg">
                   <span className="text-sm text-neutral-600">
-                    <strong>{formData.permissions.length}</strong> permisos extra seleccionados
+                    <strong>{formData.permissions.length}</strong> / {permissionsData.permissions.length} permisos seleccionados
                   </span>
-                  {formData.permissions.length > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, permissions: [] }))
-                        toast.info('Permisos extra removidos')
-                      }}
-                    >
-                      Limpiar extras
-                    </Button>
-                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                    onClick={() => {
+                      const basePerms = permissionsData.defaultRolePermissions[selectedUser?.role || 'VIEWER'] || []
+                      setFormData(prev => ({ ...prev, permissions: [...basePerms] }))
+                      toast.info('Permisos restaurados al rol base')
+                    }}
+                  >
+                    Restaurar rol base
+                  </Button>
                 </div>
                 
                 {/* Permisos por categoría */}
                 {permissionsData.categories.map(category => {
                   const baseRolePerms = permissionsData.defaultRolePermissions[selectedUser?.role || 'VIEWER'] || []
                   const categoryPerms = permissionsData.grouped[category] || []
-                  const extraPermsInCategory = categoryPerms.filter(p => !baseRolePerms.includes(p.value))
-                  if (extraPermsInCategory.length === 0) return null // ocultar categorías sin extras posibles
+                  if (categoryPerms.length === 0) return null
+
+                  const selectedInCategory = categoryPerms.filter(p => formData.permissions.includes(p.value))
 
                   return (
                     <div key={category} className="border rounded-lg overflow-hidden">
                       <div className="px-3 py-2 bg-neutral-50 border-b flex items-center justify-between">
                         <h4 className="font-semibold text-sm text-neutral-700">{category}</h4>
-                        <span className="text-xs text-neutral-400">{extraPermsInCategory.length} extra disponibles</span>
+                        <span className="text-xs text-neutral-400">{selectedInCategory.length}/{categoryPerms.length} seleccionados</span>
                       </div>
                       <div className="p-3 grid grid-cols-2 gap-2">
                         {categoryPerms.map(perm => {
-                          const isBasePermission = baseRolePerms.includes(perm.value)
-                          const isExtraSelected = formData.permissions.includes(perm.value)
+                          const isFromBaseRole = baseRolePerms.includes(perm.value)
+                          const isSelected = formData.permissions.includes(perm.value)
+                          const isRemoved = isFromBaseRole && !isSelected
                           return (
                             <label 
                               key={perm.value}
                               className={`flex items-start gap-2 text-sm p-2 rounded cursor-pointer transition-colors
-                                ${isBasePermission 
-                                  ? 'bg-neutral-50 opacity-60 cursor-not-allowed' 
-                                  : isExtraSelected 
-                                    ? 'bg-blue-50 hover:bg-blue-100' 
+                                ${isRemoved
+                                  ? 'bg-red-50 hover:bg-red-100 border border-red-100'
+                                  : isSelected
+                                    ? isFromBaseRole
+                                      ? 'bg-neutral-50 hover:bg-neutral-100'
+                                      : 'bg-blue-50 hover:bg-blue-100'
                                     : 'hover:bg-neutral-50'
                                 }`}
                             >
                               <Checkbox
-                                checked={isBasePermission || isExtraSelected}
-                                disabled={isBasePermission}
-                                onCheckedChange={() => !isBasePermission && togglePermission(perm.value)}
-                                className={isBasePermission ? 'opacity-50' : ''}
+                                checked={isSelected}
+                                onCheckedChange={() => togglePermission(perm.value)}
                               />
                               <div>
                                 <span className="font-medium">{perm.label}</span>
-                                {isBasePermission && (
+                                {isFromBaseRole && isSelected && (
                                   <span className="text-xs text-neutral-400 ml-1">(del rol)</span>
                                 )}
-                                {isExtraSelected && !isBasePermission && (
+                                {isRemoved && (
+                                  <span className="text-xs text-red-500 ml-1 font-semibold">⊘ quitado</span>
+                                )}
+                                {!isFromBaseRole && isSelected && (
                                   <span className="text-xs text-blue-600 ml-1">(extra)</span>
                                 )}
                                 <p className="text-xs text-neutral-500">{perm.description}</p>
@@ -978,10 +983,10 @@ const UsersManagementPage = () => {
             
             {!formData.useCustomPermissions && (
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-                <p className="font-semibold mb-1">Solo permisos del rol base</p>
-                <p>El usuario tendrá los <strong>{permissionsData?.defaultRolePermissions[selectedUser?.role || 'VIEWER']?.length || 0} permisos</strong> por defecto del rol <strong>{roleNames[selectedUser?.role || 'VIEWER']}</strong>.</p>
+                <p className="font-semibold mb-1">Permisos del rol base</p>
+                <p>El usuario tendrá los <strong>{permissionsData?.defaultRolePermissions[selectedUser?.role || 'VIEWER']?.length || 0} permisos</strong> del rol <strong>{roleNames[selectedUser?.role || 'VIEWER']}</strong>.</p>
                 <p className="mt-1 text-blue-600">
-                  Activa "Añadir permisos extra" si necesita acceso a módulos adicionales sin cambiar su rol.
+                  Activa "Control total" para personalizar exactamente qué puede ver y hacer este usuario (incluso quitar secciones del rol base).
                 </p>
               </div>
             )}

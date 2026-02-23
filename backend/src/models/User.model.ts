@@ -196,21 +196,19 @@ UserSchema.methods.getPublicProfile = function () {
 };
 
 // Método para obtener los permisos efectivos del usuario
-// Lógica empresarial aditiva: rol base + permisos personalizados extras
+// Cuando useCustomPermissions=true, 'permissions' es la lista COMPLETA (reemplazo total).
+// Esto permite al superusuario quitar permisos que normalmente incluye el rol base.
 UserSchema.methods.getEffectivePermissions = function (): string[] {
   // Si es super usuario, tiene todos los permisos
   if (this.isSuperUser) {
     return Object.values(Permission);
   }
-  // Obtener permisos base del rol
-  const rolePermissions: string[] = DEFAULT_ROLE_PERMISSIONS[this.role] || [];
-  // Si tiene permisos personalizados, unirlos con los del rol (aditivos)
+  // Si tiene control total de permisos activado, usar la lista almacenada directamente
   if (this.useCustomPermissions && this.permissions && this.permissions.length > 0) {
-    // Unión de permisos del rol + extras personalizados (sin duplicados)
-    const combined = new Set([...rolePermissions, ...this.permissions]);
-    return Array.from(combined);
+    return [...this.permissions];
   }
   // Si no, retornar solo los permisos por defecto del rol
+  const rolePermissions: string[] = DEFAULT_ROLE_PERMISSIONS[this.role] || [];
   return rolePermissions;
 };
 
