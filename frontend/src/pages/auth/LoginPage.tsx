@@ -47,6 +47,7 @@ const LoginPage = () => {
   const [emailNotVerified, setEmailNotVerified] = useState(false)
   const [unverifiedEmail, setUnverifiedEmail] = useState('')
   const [resendingVerification, setResendingVerification] = useState(false)
+  const [loginError, setLoginError] = useState('')
 
   const {
     register,
@@ -67,6 +68,7 @@ const LoginPage = () => {
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true)
+    setLoginError('')
     try {
       const response = await api.post('/auth/login', data)
       const { user, accessToken } = response.data.data
@@ -78,10 +80,9 @@ const LoginPage = () => {
       if (error.response?.data?.emailNotVerified) {
         setEmailNotVerified(true)
         setUnverifiedEmail(error.response.data.email)
-        toast.error('Por favor verifica tu email antes de iniciar sesión')
       } else {
-        const msg = error.response?.data?.message || 'Credenciales incorrectas'
-        toast.error(msg)
+        const msg = error.response?.data?.message || 'Correo o contraseña incorrectos'
+        setLoginError(msg)
       }
     } finally {
       setIsLoading(false)
@@ -950,7 +951,7 @@ const LoginPage = () => {
                           id="email"
                           type="email"
                           autoComplete="email"
-                          {...register('email')}
+                          {...register('email', { onChange: () => setLoginError('') })}
                           className={`field-input${errors.email ? ' error' : ''}`}
                           placeholder="nombre@ejemplo.com"
                         />
@@ -980,7 +981,7 @@ const LoginPage = () => {
                           id="password"
                           type={showPassword ? 'text' : 'password'}
                           autoComplete="current-password"
-                          {...register('password')}
+                          {...register('password', { onChange: () => setLoginError('') })}
                           className={`field-input has-icon${errors.password ? ' error' : ''}`}
                           placeholder="••••••••"
                         />
@@ -1007,6 +1008,32 @@ const LoginPage = () => {
                         )}
                       </AnimatePresence>
                     </div>
+
+                    {/* Server-side login error */}
+                    <AnimatePresence>
+                      {loginError && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: '10px',
+                            padding: '12px 14px',
+                            background: 'rgba(220,50,50,0.12)',
+                            border: '1px solid rgba(220,80,80,0.35)',
+                            borderRadius: '6px',
+                            marginBottom: '2px',
+                          }}
+                        >
+                          <AlertCircle size={16} style={{ color: '#f87171', flexShrink: 0, marginTop: '1px' }} />
+                          <span style={{ color: '#fca5a5', fontSize: '13px', fontFamily: 'Playfair Display, serif', fontStyle: 'italic', lineHeight: 1.4 }}>
+                            {loginError}
+                          </span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {/* Submit */}
                     <motion.button
