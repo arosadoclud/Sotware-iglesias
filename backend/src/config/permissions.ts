@@ -86,6 +86,12 @@ export enum Permission {
   SECRETARY_CREATE = 'secretary:create',
   SECRETARY_EDIT   = 'secretary:edit',
   SECRETARY_DELETE = 'secretary:delete',
+
+  // ── PASTORAL ────────────────────────────────────────────────────────────────
+  PASTORAL_VIEW   = 'pastoral:view',
+  PASTORAL_CREATE = 'pastoral:create',
+  PASTORAL_EDIT   = 'pastoral:edit',
+  PASTORAL_DELETE = 'pastoral:delete',
 }
 
 // Permisos por defecto según el rol
@@ -333,6 +339,12 @@ export const PERMISSION_DESCRIPTIONS: Record<Permission, { label: string; descri
   [Permission.SECRETARY_CREATE]: { label: 'Crear registros', description: 'Crear nuevos registros de secretaría', category: 'Secretaría' },
   [Permission.SECRETARY_EDIT]:   { label: 'Editar registros', description: 'Modificar registros de secretaría', category: 'Secretaría' },
   [Permission.SECRETARY_DELETE]: { label: 'Eliminar registros', description: 'Eliminar registros de secretaría', category: 'Secretaría' },
+
+  // Pastoral
+  [Permission.PASTORAL_VIEW]:   { label: 'Ver pastoral', description: 'Ver sección de pastoral', category: 'Pastoral' },
+  [Permission.PASTORAL_CREATE]: { label: 'Crear registros pastorales', description: 'Crear nuevos registros pastorales', category: 'Pastoral' },
+  [Permission.PASTORAL_EDIT]:   { label: 'Editar registros pastorales', description: 'Modificar registros pastorales', category: 'Pastoral' },
+  [Permission.PASTORAL_DELETE]: { label: 'Eliminar registros pastorales', description: 'Eliminar registros pastorales', category: 'Pastoral' },
 };
 
 // Agrupar permisos por categoría para la UI
@@ -351,6 +363,7 @@ export const PERMISSION_CATEGORIES = [
   'Finanzas',
   'Estudios Bíblicos',
   'Secretaría',
+  'Pastoral',
 ];
 
 // Helper para verificar si un usuario tiene un permiso

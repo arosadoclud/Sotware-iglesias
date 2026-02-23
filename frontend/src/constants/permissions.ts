@@ -87,6 +87,12 @@ export const P = {
   SECRETARY_CREATE: 'secretary:create',
   SECRETARY_EDIT:   'secretary:edit',
   SECRETARY_DELETE: 'secretary:delete',
+
+  // Pastoral
+  PASTORAL_VIEW:   'pastoral:view',
+  PASTORAL_CREATE: 'pastoral:create',
+  PASTORAL_EDIT:   'pastoral:edit',
+  PASTORAL_DELETE: 'pastoral:delete',
 } as const
 
 export type PermissionKey = (typeof P)[keyof typeof P]

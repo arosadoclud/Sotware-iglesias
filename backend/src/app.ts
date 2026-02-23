@@ -127,6 +127,7 @@ import newMemberRoutes from './modules/new-members/newMember.routes'; // Nuevos 
 import eventRoutes    from './modules/events/events.routes';   // Eventos e imágenes
 import bibleStudiesRoutes from './modules/bible-studies/bible-studies.routes'; // Estudios Bíblicos
 import secretaryRoutes from './modules/secretary/secretary.routes'; // Secretaría
+import pastoralRoutes  from './modules/pastoral/pastoral.routes';   // Pastoral
 
 app.use(`${API}/health`,    healthRoutes);  // Health check
 app.use(`${API}/auth`,      authRoutes);
@@ -146,6 +147,7 @@ app.use(`${API}/events`,    eventRoutes);    // Eventos e imágenes
 app.use(`${API}/bible`,     bibleRoutes);    // Bible API proxy
 app.use(`${API}/bible-studies`, bibleStudiesRoutes); // Estudios Bíblicos
 app.use(`${API}/secretary`,    secretaryRoutes);    // Secretaría
+app.use(`${API}/pastoral`,     pastoralRoutes);     // Pastoral
 
 app.get('/api', (_req: Request, res: Response) => {
   res.json({

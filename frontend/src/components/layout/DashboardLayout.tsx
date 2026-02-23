@@ -262,9 +262,18 @@ const DashboardLayoutImproved = () => {
       key: 'secretaria',
       label: 'Secretaría',
       icon: ClipboardList,
-      show: !isViewer && (hasPermission(P.SECRETARY_VIEW) || isAdmin()),
+      show: hasPermission(P.SECRETARY_VIEW),
       items: [
-        { name: 'Secretaría', href: '/secretaria', icon: ClipboardList, show: hasPermission(P.SECRETARY_VIEW) || isAdmin(), className: 'sidebar-secretary' },
+        { name: 'Secretaría', href: '/secretaria', icon: ClipboardList, show: hasPermission(P.SECRETARY_VIEW), className: 'sidebar-secretary' },
+      ],
+    },
+    {
+      key: 'pastoral',
+      label: 'Pastoral',
+      icon: Church,
+      show: hasPermission(P.PASTORAL_VIEW),
+      items: [
+        { name: 'Pastoral', href: '/pastoral', icon: Church, show: hasPermission(P.PASTORAL_VIEW), className: 'sidebar-pastoral' },
       ],
     },
     {

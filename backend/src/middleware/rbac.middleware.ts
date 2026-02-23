@@ -26,7 +26,8 @@ export type Resource =
   | 'finances'
   | 'billing'
   | 'bible_studies'
-  | 'secretary';
+  | 'secretary'
+  | 'pastoral';
 
 // Acciones posibles sobre cada recurso
 export type Action = 'read' | 'create' | 'update' | 'delete';
@@ -55,6 +56,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     finances:   ['read', 'create', 'update', 'delete'],
     billing:    ['read', 'create', 'update', 'delete'],
     secretary:  ['read', 'create', 'update', 'delete'],
+    pastoral:   ['read', 'create', 'update', 'delete'],
   },
 
   [UserRole.PASTOR]: {
@@ -68,6 +70,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     finances:   ['read', 'create', 'update', 'delete'],
     billing:    ['read'],
     secretary:  ['read', 'create', 'update', 'delete'],
+    pastoral:   ['read', 'create', 'update', 'delete'],
   },
 
   [UserRole.ADMIN]: {
@@ -81,6 +84,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     finances:   ['read', 'create', 'update'],    // No puede eliminar finanzas
     billing:    ['read'],
     secretary:  ['read', 'create', 'update', 'delete'],
+    pastoral:   [],
   },
 
   [UserRole.MINISTRY_LEADER]: {
@@ -94,6 +98,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     finances:   ['read'],                        // Solo ver finanzas
     billing:    [],
     secretary:  ['read', 'create', 'update'],    // Secretaría sin eliminar
+    pastoral:   [],                              // Sin acceso a pastoral por defecto
   },
 
   [UserRole.EDITOR]: {
@@ -107,6 +112,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     churches:   ['read'],
     finances:   ['read'],                        // Solo ver finanzas
     billing:    [],
+    pastoral:   [],                              // Sin acceso a pastoral por defecto
   },
 
   // ⚠️ VIEWER: Solo lectura — NO puede crear, editar ni eliminar NADA
@@ -121,6 +127,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     finances:   [],                              // Sin acceso a finanzas
     billing:    [],
     secretary:  [],                              // Sin acceso a secretaría
+    pastoral:   [],                              // Sin acceso a pastoral
   },
 };
 
