@@ -759,15 +759,35 @@ export default function SecretaryPage() {
             <button
               key={t.key}
               onClick={() => { setActiveTab(t.key); setPage(1) }}
-              className={`flex flex-col items-center gap-1 p-3 rounded-2xl border transition-all text-center
+              className={`relative flex flex-col items-center gap-2 py-4 px-2 rounded-2xl border transition-all text-center overflow-hidden
                 ${isActive
-                  ? `${t.bg} ${t.border} shadow-sm scale-105`
-                  : 'bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm'
+                  ? `${t.bg} ${t.border} shadow-md ring-2 ${t.border.replace('border-', 'ring-')}`
+                  : 'bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm hover:bg-gray-50/60'
                 }`}
             >
-              <TIcon className={`h-5 w-5 ${isActive ? t.color : 'text-gray-400'}`} />
-              <span className={`text-lg font-bold leading-none ${isActive ? t.color : 'text-gray-700'}`}>{count}</span>
-              <span className={`text-[10px] font-medium leading-tight ${isActive ? t.color : 'text-gray-400'}`}>{t.label}</span>
+              {/* Círculo decorativo de fondo */}
+              <div className={`absolute -top-3 -right-3 w-14 h-14 rounded-full opacity-20 ${isActive ? t.accent : 'bg-gray-100'}`} />
+
+              {/* Icono con fondo */}
+              <div className={`relative z-10 w-10 h-10 rounded-xl flex items-center justify-center transition-all
+                ${isActive ? t.accent : 'bg-gray-100'}`}>
+                <TIcon className={`h-5 w-5 transition-colors ${isActive ? t.color : 'text-gray-400'}`} />
+              </div>
+
+              {/* Contador */}
+              <span className={`relative z-10 text-2xl font-extrabold leading-none tracking-tight ${isActive ? t.color : 'text-gray-700'}`}>
+                {count}
+              </span>
+
+              {/* Label */}
+              <span className={`relative z-10 text-[10px] font-semibold uppercase tracking-wider leading-tight ${isActive ? t.color : 'text-gray-400'}`}>
+                {t.label}
+              </span>
+
+              {/* Barra inferior activa */}
+              {isActive && (
+                <div className={`absolute bottom-0 left-0 right-0 h-0.5 ${t.accent.replace('bg-', 'bg-').replace('-100', '-400')}`} />
+              )}
             </button>
           )
         })}
