@@ -448,6 +448,19 @@ function DetailModal({ record, tab, onClose, onEdit, canEdit }: { record: any; t
   const Icon = tab.icon
   const fields = FIELD_DEFS[tab.key as TabKey]
 
+  // Tema dinámico por género para niños
+  const detailTheme = tab.key === 'child-presentations'
+    ? (GENDER_THEME[record.sexo as keyof typeof GENDER_THEME] ?? GENDER_THEME['_'])
+    : { bg: tab.bg, border: tab.border, accent: tab.accent, color: tab.color }
+
+  const btnClass = detailTheme.color === 'text-pink-600' ? 'bg-pink-500 hover:bg-pink-600'
+    : detailTheme.color === 'text-blue-600' ? 'bg-blue-500 hover:bg-blue-600'
+    : detailTheme.color === 'text-green-600' ? 'bg-green-500 hover:bg-green-600'
+    : detailTheme.color === 'text-rose-600' ? 'bg-rose-500 hover:bg-rose-600'
+    : detailTheme.color === 'text-amber-600' ? 'bg-amber-500 hover:bg-amber-600'
+    : detailTheme.color === 'text-emerald-600' ? 'bg-emerald-500 hover:bg-emerald-600'
+    : 'bg-indigo-500 hover:bg-indigo-600'
+
   const displayValue = (f: typeof fields[number]) => {
     const v = record[f.key]
     if (!v && v !== 0) return null
@@ -464,10 +477,10 @@ function DetailModal({ record, tab, onClose, onEdit, canEdit }: { record: any; t
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
       >
         {/* Header */}
-        <div className={`${tab.bg} px-6 py-4 border-b ${tab.border} flex items-center justify-between`}>
+        <div className={`${detailTheme.bg} px-6 py-4 border-b ${detailTheme.border} flex items-center justify-between`}>
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl ${tab.accent} flex items-center justify-center`}>
-              <Icon className={`h-5 w-5 ${tab.color}`} />
+            <div className={`w-10 h-10 rounded-xl ${detailTheme.accent} flex items-center justify-center`}>
+              <Icon className={`h-5 w-5 ${detailTheme.color}`} />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{tab.label}</p>
@@ -506,13 +519,7 @@ function DetailModal({ record, tab, onClose, onEdit, canEdit }: { record: any; t
           {canEdit && (
             <button
               onClick={onEdit}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-xl transition-colors shadow-sm
-                ${tab.color === 'text-pink-600' ? 'bg-pink-500 hover:bg-pink-600' :
-                  tab.color === 'text-rose-600' ? 'bg-rose-500 hover:bg-rose-600' :
-                  tab.color === 'text-blue-600' ? 'bg-blue-500 hover:bg-blue-600' :
-                  tab.color === 'text-amber-600' ? 'bg-amber-500 hover:bg-amber-600' :
-                  tab.color === 'text-indigo-600' ? 'bg-indigo-500 hover:bg-indigo-600' :
-                  'bg-emerald-500 hover:bg-emerald-600'}`}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-xl transition-colors shadow-sm ${btnClass}`}
             >
               <Pencil className="h-3.5 w-3.5" />
               Editar
@@ -543,6 +550,16 @@ function RecordModal({ tab, initial, onClose, onSaved }: RecordModalProps) {
   )
   const [saving, setSaving] = useState(false)
 
+  // Tema dinámico: para niños cambia según sexo seleccionado
+  const GENERIC = { bg: 'bg-indigo-50', border: 'border-indigo-200', accent: 'bg-indigo-100', color: 'text-indigo-600', btn: 'bg-indigo-600 hover:bg-indigo-700' }
+  const activeTheme = tab.key === 'child-presentations'
+    ? form.sexo === 'Niña'
+      ? { bg: 'bg-pink-50', border: 'border-pink-200', accent: 'bg-pink-100', color: 'text-pink-600', btn: 'bg-pink-500 hover:bg-pink-600' }
+      : form.sexo === 'Niño'
+        ? { bg: 'bg-blue-50', border: 'border-blue-200', accent: 'bg-blue-100', color: 'text-blue-600', btn: 'bg-blue-500 hover:bg-blue-600' }
+        : GENERIC
+    : GENERIC
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
@@ -570,11 +587,11 @@ function RecordModal({ tab, initial, onClose, onSaved }: RecordModalProps) {
         exit={{ opacity: 0, scale: 0.95, y: 12 }}
         className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
       >
-        {/* Header coloreado */}
-        <div className={`${tab.bg} px-6 py-4 border-b ${tab.border} flex items-center justify-between`}>
+        {/* Header con color dinámico */}
+        <div className={`${activeTheme.bg} px-6 py-4 border-b ${activeTheme.border} flex items-center justify-between transition-colors duration-300`}>
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl ${tab.accent} flex items-center justify-center`}>
-              <Icon className={`h-5 w-5 ${tab.color}`} />
+            <div className={`w-9 h-9 rounded-xl ${activeTheme.accent} flex items-center justify-center transition-colors duration-300`}>
+              <Icon className={`h-5 w-5 ${activeTheme.color} transition-colors duration-300`} />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{tab.label}</p>
@@ -638,13 +655,7 @@ function RecordModal({ tab, initial, onClose, onSaved }: RecordModalProps) {
             type="submit"
             form="record-form"
             disabled={saving}
-            className={`px-5 py-2 text-sm font-medium text-white rounded-xl transition-colors disabled:opacity-50 shadow-sm
-              ${tab.color === 'text-pink-600' ? 'bg-pink-500 hover:bg-pink-600' :
-                tab.color === 'text-rose-600' ? 'bg-rose-500 hover:bg-rose-600' :
-                tab.color === 'text-blue-600' ? 'bg-blue-500 hover:bg-blue-600' :
-                tab.color === 'text-amber-600' ? 'bg-amber-500 hover:bg-amber-600' :
-                tab.color === 'text-indigo-600' ? 'bg-indigo-500 hover:bg-indigo-600' :
-                'bg-emerald-500 hover:bg-emerald-600'}`}
+            className={`px-5 py-2 text-sm font-medium text-white rounded-xl transition-colors disabled:opacity-50 shadow-sm ${activeTheme.btn}`}
           >
             {saving ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear registro'}
           </button>
