@@ -741,13 +741,7 @@ export default function SecretaryPage() {
         {canCreate && (
           <button
             onClick={() => { setEditRecord(null); setShowModal(true) }}
-            className={`flex items-center gap-2 px-4 py-2.5 text-white text-sm font-medium rounded-xl shadow-sm transition-colors
-              ${tab.color === 'text-pink-600' ? 'bg-pink-500 hover:bg-pink-600' :
-                tab.color === 'text-rose-600' ? 'bg-rose-500 hover:bg-rose-600' :
-                tab.color === 'text-blue-600' ? 'bg-blue-500 hover:bg-blue-600' :
-                tab.color === 'text-amber-600' ? 'bg-amber-500 hover:bg-amber-600' :
-                tab.color === 'text-indigo-600' ? 'bg-indigo-500 hover:bg-indigo-600' :
-                'bg-emerald-500 hover:bg-emerald-600'}`}
+            className="flex items-center gap-2 px-4 py-2.5 text-white text-sm font-medium rounded-xl shadow-sm transition-colors bg-indigo-600 hover:bg-indigo-700"
           >
             <Plus className="h-4 w-4" />
             {tab.newLabel}
