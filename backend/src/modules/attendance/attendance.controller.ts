@@ -148,7 +148,16 @@ export const getMembersForAttendance = async (req: AuthRequest, res: Response, n
     const { serviceType, date } = req.query;
 
     // Obtener todos los miembros activos de la iglesia
-    const persons = await Person.find({ churchId, status: 'ACTIVO' })
+    // Se acepta 'ACTIVO', 'activo', 'ACTIVE', 'active' (o sin filtro de estado para máxima compatibilidad)
+    const persons = await Person.find({
+      churchId,
+      $or: [
+        { status: { $regex: /^activo$/i } },
+        { status: { $regex: /^active$/i } },
+        { status: { $exists: false } },
+        { status: '' },
+      ],
+    })
       .select('fullName ministry status')
       .sort({ fullName: 1 })
       .lean();
