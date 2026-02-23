@@ -77,28 +77,34 @@
 
   .header-inner {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
+    gap: 0.6rem;
     position: relative;
     z-index: 1;
+    text-align: center;
   }
 
   .header-text {
-    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
   }
 
   .flyer-church-name {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.85rem;
+    font-size: 1.75rem;
     font-weight: 700;
     color: white;
-    line-height: 1.15;
+    line-height: 1.2;
     letter-spacing: 0.02em;
     text-align: center;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
   }
 
   .flyer-church-sub {
@@ -118,29 +124,29 @@
 
   .logo-wrap {
     flex-shrink: 0;
-    width: 80px;
-    height: 80px;
+    width: 68px;
+    height: 68px;
   }
 
   .logo-wrap img {
-    width: 80px;
-    height: 80px;
-    border-radius: 12px;
+    width: 68px;
+    height: 68px;
+    border-radius: 10px;
     object-fit: contain;
     border: 2px solid rgba(200,168,75,0.4);
     background: rgba(255,255,255,0.1);
   }
 
   .logo-placeholder {
-    width: 80px;
-    height: 80px;
+    width: 68px;
+    height: 68px;
     background: rgba(255,255,255,0.1);
     border: 2px solid rgba(200,168,75,0.5);
-    border-radius: 12px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
+    font-size: 1.8rem;
     color: rgba(255,255,255,0.6);
   }
 
@@ -356,6 +362,13 @@
     <div class="flyer-header-circle2"></div>
 
     <div class="header-inner">
+      <div class="logo-wrap">
+        {{#if logoUrl}}
+        <img src="{{logoUrl}}" alt="Logo">
+        {{else}}
+        <div class="logo-placeholder">&#10013;</div>
+        {{/if}}
+      </div>
       <div class="header-text">
         <div class="flyer-church-name">{{churchName}}</div>
         {{#if subtitle}}
@@ -363,13 +376,6 @@
         {{/if}}
         {{#if location}}
         <div class="flyer-church-loc">{{location}}</div>
-        {{/if}}
-      </div>
-      <div class="logo-wrap">
-        {{#if logoUrl}}
-        <img src="{{logoUrl}}" alt="Logo">
-        {{else}}
-        <div class="logo-placeholder">&#10013;</div>
         {{/if}}
       </div>
     </div>
