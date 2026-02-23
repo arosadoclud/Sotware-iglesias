@@ -211,6 +211,11 @@ const UsersManagementPage = () => {
   const handleUpdatePermissions = async () => {
     if (!selectedUser) return
     
+    // Advertir si se va a dejar sin ningún permiso
+    if (formData.useCustomPermissions && formData.permissions.length === 0) {
+      if (!window.confirm(`¿Estás seguro? ${selectedUser.fullName} quedará sin acceso a ningún módulo aunque mantenga el rol ${roleNames[selectedUser.role]}.`)) return
+    }
+    
     setSaving(true)
     try {
       await adminApi.updateUserPermissions(selectedUser._id, {
@@ -903,23 +908,42 @@ const UsersManagementPage = () => {
                   </div>
                 </div>
 
-                {/* Contador + Restaurar rol base */}
-                <div className="flex items-center justify-between p-3 bg-neutral-50 border rounded-lg">
+                {/* Contador + acciones rápidas */}
+                <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-neutral-50 border rounded-lg">
                   <span className="text-sm text-neutral-600">
-                    <strong>{formData.permissions.length}</strong> / {permissionsData.permissions.length} permisos seleccionados
+                    <strong className={formData.permissions.length === 0 ? 'text-red-600' : ''}>
+                      {formData.permissions.length}
+                    </strong>
+                    {' '}/ {permissionsData.permissions.length} permisos seleccionados
+                    {formData.permissions.length === 0 && (
+                      <span className="ml-2 text-red-600 font-semibold text-xs">⚠ Sin acceso a ningún módulo</span>
+                    )}
                   </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-amber-600 border-amber-200 hover:bg-amber-50"
-                    onClick={() => {
-                      const basePerms = permissionsData.defaultRolePermissions[selectedUser?.role || 'VIEWER'] || []
-                      setFormData(prev => ({ ...prev, permissions: [...basePerms] }))
-                      toast.info('Permisos restaurados al rol base')
-                    }}
-                  >
-                    Restaurar rol base
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                      onClick={() => {
+                        const basePerms = permissionsData.defaultRolePermissions[selectedUser?.role || 'VIEWER'] || []
+                        setFormData(prev => ({ ...prev, permissions: [...basePerms] }))
+                        toast.info('Permisos restaurados al rol base')
+                      }}
+                    >
+                      Restaurar rol base
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 border-red-200 hover:bg-red-50"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, permissions: [] }))
+                        toast.warning('Todos los permisos quitados')
+                      }}
+                    >
+                      Quitar todos
+                    </Button>
+                  </div>
                 </div>
                 
                 {/* Permisos por categoría */}

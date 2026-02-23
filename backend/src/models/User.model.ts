@@ -197,17 +197,18 @@ UserSchema.methods.getPublicProfile = function () {
 
 // Método para obtener los permisos efectivos del usuario
 // Cuando useCustomPermissions=true, 'permissions' es la lista COMPLETA (reemplazo total).
-// Esto permite al superusuario quitar permisos que normalmente incluye el rol base.
+// El superusuario puede incluso dejar el array vacío para bloquear todo acceso.
 UserSchema.methods.getEffectivePermissions = function (): string[] {
   // Si es super usuario, tiene todos los permisos
   if (this.isSuperUser) {
     return Object.values(Permission);
   }
-  // Si tiene control total de permisos activado, usar la lista almacenada directamente
-  if (this.useCustomPermissions && this.permissions && this.permissions.length > 0) {
-    return [...this.permissions];
+  // Si tiene control total activado, usar exactamente la lista almacenada
+  // (puede ser vacía si el superusuario quitó todos los permisos)
+  if (this.useCustomPermissions) {
+    return this.permissions ? [...this.permissions] : [];
   }
-  // Si no, retornar solo los permisos por defecto del rol
+  // Si no, retornar los permisos por defecto del rol
   const rolePermissions: string[] = DEFAULT_ROLE_PERMISSIONS[this.role] || [];
   return rolePermissions;
 };
