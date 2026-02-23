@@ -452,19 +452,3 @@ export const attendanceApi = {
   getMembers: (params?: { serviceType?: string; date?: string }) =>
     api.get('/attendance/members', { params }),
 }
-
-// ── Asistencias ───────────────────────────────────────────────────────────────
-export const attendanceApi = {
-  getAll: (params?: { serviceType?: string; from?: string; to?: string; page?: number; limit?: number }) =>
-    api.get('/attendance', { params }),
-  getOne: (id: string) => api.get(`/attendance/${id}`),
-  create: (data: { serviceType: string; date: string; attendees: any[]; guestCount?: number; notes?: string }) =>
-    api.post('/attendance', data),
-  update: (id: string, data: { attendees: any[]; guestCount?: number; notes?: string }) =>
-    api.put(`/attendance/${id}`, data),
-  delete: (id: string) => api.delete(`/attendance/${id}`),
-  getStats: (params?: { from?: string; to?: string }) =>
-    api.get('/attendance/stats', { params }),
-  getMembers: (params?: { serviceType?: string; date?: string }) =>
-    api.get('/attendance/members', { params }),
-}
