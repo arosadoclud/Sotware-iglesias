@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../../middleware/auth.middleware';
-import { Person } from '../../models/Person.model';
+import Person from '../../models/Person.model';
 
 /**
  * Calcula cuántos días faltan para el próximo cumpleaños de una fecha.
