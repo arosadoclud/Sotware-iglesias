@@ -146,7 +146,7 @@ function ActionMenu({ onEdit, onDelete, canEdit, canDelete, color }: any) {
 
 // ── Colores dinámicos por género ──────────────────────────────────────────
 const GENDER_THEME = {
-  'Niña': { bg: 'bg-slate-50', border: 'border-slate-200', accent: 'bg-slate-100', color: 'text-slate-600', badge: 'bg-slate-100 text-slate-600' },
+  'Niña': { bg: 'bg-pink-50',  border: 'border-pink-200',  accent: 'bg-pink-100',  color: 'text-pink-600',  badge: 'bg-pink-100 text-pink-600'  },
   'Niño': { bg: 'bg-blue-50',  border: 'border-blue-200',  accent: 'bg-blue-100',  color: 'text-blue-600',  badge: 'bg-blue-100 text-blue-600'  },
   '_':    { bg: 'bg-green-50', border: 'border-green-200', accent: 'bg-green-100', color: 'text-green-600', badge: 'bg-green-100 text-green-600' },
 }
@@ -453,7 +453,7 @@ function DetailModal({ record, tab, onClose, onEdit, canEdit }: { record: any; t
     ? (GENDER_THEME[record.sexo as keyof typeof GENDER_THEME] ?? GENDER_THEME['_'])
     : { bg: tab.bg, border: tab.border, accent: tab.accent, color: tab.color }
 
-  const btnClass = detailTheme.color === 'text-slate-600' ? 'bg-slate-500 hover:bg-slate-600'
+  const btnClass = detailTheme.color === 'text-pink-600' ? 'bg-pink-500 hover:bg-pink-600'
     : detailTheme.color === 'text-blue-600' ? 'bg-blue-500 hover:bg-blue-600'
     : detailTheme.color === 'text-green-600' ? 'bg-green-500 hover:bg-green-600'
     : detailTheme.color === 'text-rose-600' ? 'bg-rose-500 hover:bg-rose-600'
