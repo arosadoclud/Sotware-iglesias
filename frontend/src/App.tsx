@@ -35,6 +35,7 @@ import BibleStudiesAdminPage from './pages/bible-studies/BibleStudiesAdminPage'
 import SecretaryPage from './pages/secretary/SecretaryPage'
 import PastoralPage from './pages/pastoral/PastoralPage'
 import AttendancePage from './pages/attendance/AttendancePage'
+import BirthdaysPage from './pages/birthdays/BirthdaysPage'
 import UsersManagementPage from './pages/admin/UsersManagementPage'
 import AuditLogsPage from './pages/admin/AuditLogsPage'
 
@@ -166,6 +167,11 @@ const AnimatedRoutes = () => {
               <PermissionRoute permissions={P.ATTENDANCE_VIEW}>
                 <PageTransition><AttendancePage /></PageTransition>
               </PermissionRoute>
+            </ViewerGuard>
+          } />
+          <Route path="/cumpleanos" element={
+            <ViewerGuard>
+              <PageTransition><BirthdaysPage /></PageTransition>
             </ViewerGuard>
           } />
           <Route path="/new-members" element={

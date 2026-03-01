@@ -25,6 +25,7 @@ import {
   Megaphone,
   ClipboardList,
   ClipboardCheck,
+  Cake,
 } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { toast } from 'react-hot-toast'
@@ -276,6 +277,15 @@ const DashboardLayoutImproved = () => {
       show: hasPermission(P.PASTORAL_VIEW),
       items: [
         { name: 'Pastoral', href: '/pastoral', icon: Church, show: hasPermission(P.PASTORAL_VIEW), className: 'sidebar-pastoral' },
+      ],
+    },
+    {
+      key: 'cumpleanos',
+      label: 'Cumpleaños',
+      icon: Cake,
+      show: isAdmin(),
+      items: [
+        { name: 'Cumpleaños', href: '/cumpleanos', icon: Cake, show: isAdmin(), className: 'sidebar-cumpleanos' },
       ],
     },
     {

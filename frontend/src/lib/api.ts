@@ -77,6 +77,13 @@ export const personsApi = {
   delete: (id: string) => api.delete(`/persons/${id}`),
 }
 
+// ── BIRTHDAYS ─────────────────────────────────────────────────────────────────
+export const birthdaysApi = {
+  getAll: () => api.get('/birthdays'),
+  update: (personId: string, birthDate: string | null) =>
+    api.patch(`/birthdays/${personId}`, { birthDate }),
+}
+
 // ── MINISTRIES ────────────────────────────────────────────────────────────────
 export const ministriesApi = {
   getAll: () => api.get('/persons/ministries'),

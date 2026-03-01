@@ -99,6 +99,10 @@ export const P = {
   ATTENDANCE_CREATE: 'attendance:create',
   ATTENDANCE_EDIT:   'attendance:edit',
   ATTENDANCE_DELETE: 'attendance:delete',
+
+  // Cumpleaños
+  BIRTHDAYS_VIEW:   'birthdays:view',
+  BIRTHDAYS_EDIT:   'birthdays:edit',
 } as const
 
 export type PermissionKey = (typeof P)[keyof typeof P]

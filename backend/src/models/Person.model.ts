@@ -33,6 +33,7 @@ export interface IPerson extends Document {
   roles: IPersonRole[];
   unavailability: IUnavailability[];
   notes?: string;
+  birthDate?: Date;
   createdAt: Date;
   updatedAt: Date;
   
@@ -151,6 +152,10 @@ const PersonSchema = new Schema<IPerson>(
       type: String,
       trim: true,
       maxlength: [1000, 'Las notas no pueden exceder 1000 caracteres'],
+    },
+    birthDate: {
+      type: Date,
+      required: false,
     },
   },
   {

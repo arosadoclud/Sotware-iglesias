@@ -129,6 +129,7 @@ import bibleStudiesRoutes from './modules/bible-studies/bible-studies.routes'; /
 import secretaryRoutes from './modules/secretary/secretary.routes'; // Secretaría
 import pastoralRoutes  from './modules/pastoral/pastoral.routes';   // Pastoral
 import attendanceRoutes from './modules/attendance/attendance.routes'; // Asistencias
+import birthdayRoutes  from './modules/birthdays/birthday.routes';    // Cumpleaños
 
 app.use(`${API}/health`,    healthRoutes);  // Health check
 app.use(`${API}/auth`,      authRoutes);
@@ -150,6 +151,7 @@ app.use(`${API}/bible-studies`, bibleStudiesRoutes); // Estudios Bíblicos
 app.use(`${API}/secretary`,    secretaryRoutes);    // Secretaría
 app.use(`${API}/pastoral`,     pastoralRoutes);     // Pastoral
 app.use(`${API}/attendance`,   attendanceRoutes);   // Asistencias
+app.use(`${API}/birthdays`,    birthdayRoutes);     // Cumpleaños
 
 app.get('/api', (_req: Request, res: Response) => {
   res.json({

@@ -28,7 +28,8 @@ export type Resource =
   | 'bible_studies'
   | 'secretary'
   | 'pastoral'
-  | 'attendance';
+  | 'attendance'
+  | 'birthdays';
 
 // Acciones posibles sobre cada recurso
 export type Action = 'read' | 'create' | 'update' | 'delete';
@@ -59,6 +60,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     secretary:  ['read', 'create', 'update', 'delete'],
     pastoral:   ['read', 'create', 'update', 'delete'],
     attendance: ['read', 'create', 'update', 'delete'],
+    birthdays:  ['read', 'create', 'update', 'delete'],
   },
 
   [UserRole.PASTOR]: {
@@ -74,6 +76,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     secretary:  ['read', 'create', 'update', 'delete'],
     pastoral:   ['read', 'create', 'update', 'delete'],
     attendance: ['read', 'create', 'update', 'delete'],
+    birthdays:  ['read', 'create', 'update', 'delete'],
   },
 
   [UserRole.ADMIN]: {
@@ -89,6 +92,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     secretary:  ['read', 'create', 'update', 'delete'],
     pastoral:   [],
     attendance: ['read', 'create', 'update', 'delete'],
+    birthdays:  ['read', 'create', 'update'],
   },
 
   [UserRole.MINISTRY_LEADER]: {
@@ -104,6 +108,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     secretary:  ['read', 'create', 'update'],    // Secretaría sin eliminar
     pastoral:   [],                              // Sin acceso a pastoral por defecto
     attendance: ['read', 'create', 'update'],
+    birthdays:  [],                              // Sin acceso a cumpleaños
   },
 
   [UserRole.EDITOR]: {
@@ -119,6 +124,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     billing:    [],
     pastoral:   [],                              // Sin acceso a pastoral por defecto
     attendance: ['read', 'create', 'update'],
+    birthdays:  [],                              // Sin acceso a cumpleaños
   },
 
   // ⚠️ VIEWER: Solo lectura — NO puede crear, editar ni eliminar NADA
@@ -135,6 +141,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     secretary:  [],                              // Sin acceso a secretaría
     pastoral:   [],                              // Sin acceso a pastoral
     attendance: ['read'],                        // Solo ver asistencias
+    birthdays:  [],                              // Sin acceso a cumpleaños
   },
 };
 
