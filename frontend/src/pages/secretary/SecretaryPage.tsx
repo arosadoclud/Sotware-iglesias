@@ -554,7 +554,7 @@ function RecordModal({ tab, initial, onClose, onSaved }: RecordModalProps) {
   const GENERIC = { bg: 'bg-indigo-50', border: 'border-indigo-200', accent: 'bg-indigo-100', color: 'text-indigo-600', btn: 'bg-indigo-600 hover:bg-indigo-700' }
   const activeTheme = tab.key === 'child-presentations'
     ? form.sexo === 'Niña'
-      ? { bg: 'bg-slate-50', border: 'border-slate-200', accent: 'bg-slate-100', color: 'text-slate-600', btn: 'bg-slate-500 hover:bg-slate-600' }
+      ? { bg: 'bg-pink-50', border: 'border-pink-200', accent: 'bg-pink-100', color: 'text-pink-600', btn: 'bg-pink-500 hover:bg-pink-600' }
       : form.sexo === 'Niño'
         ? { bg: 'bg-blue-50', border: 'border-blue-200', accent: 'bg-blue-100', color: 'text-blue-600', btn: 'bg-blue-500 hover:bg-blue-600' }
         : GENERIC
