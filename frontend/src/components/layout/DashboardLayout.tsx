@@ -283,9 +283,9 @@ const DashboardLayoutImproved = () => {
       key: 'cumpleanos',
       label: 'Cumpleaños',
       icon: Cake,
-      show: isAdmin(),
+      show: isAdmin() || hasPermission(P.SECRETARY_VIEW),
       items: [
-        { name: 'Cumpleaños', href: '/cumpleanos', icon: Cake, show: isAdmin(), className: 'sidebar-cumpleanos' },
+        { name: 'Cumpleaños', href: '/cumpleanos', icon: Cake, show: isAdmin() || hasPermission(P.SECRETARY_VIEW), className: 'sidebar-cumpleanos' },
       ],
     },
     {

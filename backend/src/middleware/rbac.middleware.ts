@@ -108,7 +108,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     secretary:  ['read', 'create', 'update'],    // Secretaría sin eliminar
     pastoral:   [],                              // Sin acceso a pastoral por defecto
     attendance: ['read', 'create', 'update'],
-    birthdays:  [],                              // Sin acceso a cumpleaños
+    birthdays:  ['read', 'create', 'update'],    // Secretaría puede ver y editar cumpleaños
   },
 
   [UserRole.EDITOR]: {
