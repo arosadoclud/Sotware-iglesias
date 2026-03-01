@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthRequest } from '../../middleware/auth.middleware';
-import Person from '../../models/Person.model';
+import Person, { DEFAULT_PERSON_STATUS } from '../../models/Person.model';
 
 /**
  * Calcula cuántos días faltan para el próximo cumpleaños de una fecha.
@@ -84,6 +84,95 @@ export const updateBirthday = async (req: AuthRequest, res: Response) => {
 
     const daysUntil = person.birthDate ? daysUntilBirthday(person.birthDate) : null;
     res.json({ success: true, data: { ...person.toObject(), daysUntil } });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
+ * POST /birthdays
+ * Crea una nueva persona administrada desde la sección de cumpleaños.
+ */
+export const createBirthday = async (req: AuthRequest, res: Response) => {
+  try {
+    const churchId = req.churchId;
+    const { fullName, phone, ministry, birthDate } = req.body;
+
+    if (!fullName?.trim()) {
+      return res.status(400).json({ success: false, message: 'El nombre es requerido' });
+    }
+
+    const person = new Person({
+      churchId,
+      fullName: fullName.trim(),
+      phone: phone?.trim() || undefined,
+      ministry: ministry?.trim() || undefined,
+      birthDate: birthDate ? new Date(birthDate) : undefined,
+      status: DEFAULT_PERSON_STATUS,
+    });
+
+    await person.save();
+
+    const daysUntil = person.birthDate ? daysUntilBirthday(person.birthDate) : null;
+    res.status(201).json({ success: true, data: { ...person.toObject(), daysUntil } });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
+ * PUT /birthdays/:personId
+ * Actualiza todos los campos de una persona (nombre, teléfono, ministerio, cumpleaños).
+ */
+export const updateBirthdayFull = async (req: AuthRequest, res: Response) => {
+  try {
+    const churchId = req.churchId;
+    const { personId } = req.params;
+    const { fullName, phone, ministry, birthDate } = req.body;
+
+    const person = await Person.findOne({ _id: personId, churchId });
+    if (!person) {
+      return res.status(404).json({ success: false, message: 'Persona no encontrada' });
+    }
+
+    if (fullName?.trim()) person.fullName = fullName.trim();
+    person.phone = phone?.trim() || undefined;
+    person.ministry = ministry?.trim() || undefined;
+
+    if (birthDate === null || birthDate === '') {
+      person.birthDate = undefined;
+    } else if (birthDate) {
+      const parsed = new Date(birthDate);
+      if (isNaN(parsed.getTime())) {
+        return res.status(400).json({ success: false, message: 'Fecha inválida' });
+      }
+      person.birthDate = parsed;
+    }
+
+    await person.save();
+
+    const daysUntil = person.birthDate ? daysUntilBirthday(person.birthDate) : null;
+    res.json({ success: true, data: { ...person.toObject(), daysUntil } });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
+ * DELETE /birthdays/:personId
+ * Elimina una persona.
+ */
+export const deleteBirthdayPerson = async (req: AuthRequest, res: Response) => {
+  try {
+    const churchId = req.churchId;
+    const { personId } = req.params;
+
+    const person = await Person.findOneAndDelete({ _id: personId, churchId });
+    if (!person) {
+      return res.status(404).json({ success: false, message: 'Persona no encontrada' });
+    }
+
+    res.json({ success: true, message: 'Persona eliminada correctamente' });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message });
   }

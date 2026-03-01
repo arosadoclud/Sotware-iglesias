@@ -80,8 +80,14 @@ export const personsApi = {
 // ── BIRTHDAYS ─────────────────────────────────────────────────────────────────
 export const birthdaysApi = {
   getAll: () => api.get('/birthdays'),
+  create: (data: { fullName: string; phone?: string; ministry?: string; birthDate?: string | null }) =>
+    api.post('/birthdays', data),
   update: (personId: string, birthDate: string | null) =>
     api.patch(`/birthdays/${personId}`, { birthDate }),
+  updateFull: (personId: string, data: { fullName: string; phone?: string; ministry?: string; birthDate?: string | null }) =>
+    api.put(`/birthdays/${personId}`, data),
+  remove: (personId: string) =>
+    api.delete(`/birthdays/${personId}`),
 }
 
 // ── MINISTRIES ────────────────────────────────────────────────────────────────

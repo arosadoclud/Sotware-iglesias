@@ -92,7 +92,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     secretary:  ['read', 'create', 'update', 'delete'],
     pastoral:   [],
     attendance: ['read', 'create', 'update', 'delete'],
-    birthdays:  ['read', 'create', 'update'],
+    birthdays:  ['read', 'create', 'update', 'delete'],
   },
 
   [UserRole.MINISTRY_LEADER]: {
@@ -108,7 +108,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Resource, Action[]>>> = {
     secretary:  ['read', 'create', 'update'],    // Secretaría sin eliminar
     pastoral:   [],                              // Sin acceso a pastoral por defecto
     attendance: ['read', 'create', 'update'],
-    birthdays:  ['read', 'create', 'update'],    // Secretaría puede ver y editar cumpleaños
+    birthdays:  ['read', 'create', 'update', 'delete'],    // Secretaría puede ver y editar cumpleaños
   },
 
   [UserRole.EDITOR]: {
