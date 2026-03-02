@@ -1328,9 +1328,9 @@ export const verifyEmail = async (req: Request, res: Response) => {
  */
 export const updateCallMeBot = async (req: AuthRequest, res: Response) => {
   try {
-    const { callMeBotPhone, callMeBotApiKey, notifyBirthdays } = req.body;
+    const { callMeBotPhone, callMeBotApiKey, notifyBirthdays, additionalRecipients } = req.body;
 
-    const user = await User.findById(req.userId).select('+callMeBotApiKey');
+    const user = await User.findById(req.userId).select('+callMeBotApiKey +additionalRecipients');
     if (!user) {
       return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
     }
@@ -1338,6 +1338,16 @@ export const updateCallMeBot = async (req: AuthRequest, res: Response) => {
     if (callMeBotPhone  !== undefined) user.callMeBotPhone  = callMeBotPhone?.trim()  || undefined;
     if (callMeBotApiKey !== undefined) user.callMeBotApiKey = callMeBotApiKey?.trim() || undefined;
     if (notifyBirthdays !== undefined) user.notifyBirthdays = Boolean(notifyBirthdays);
+    if (Array.isArray(additionalRecipients)) {
+      // Filtrar entradas válidas (debe tener phone y apiKey al menos)
+      user.additionalRecipients = additionalRecipients
+        .filter((r: any) => r.phone?.trim() && r.apiKey?.trim())
+        .map((r: any) => ({
+          name:   (r.name  || '').trim(),
+          phone:  r.phone.trim(),
+          apiKey: r.apiKey.trim(),
+        }));
+    }
 
     await user.save();
 
@@ -1345,9 +1355,10 @@ export const updateCallMeBot = async (req: AuthRequest, res: Response) => {
       success: true,
       message: 'Configuración de WhatsApp guardada',
       data: {
-        callMeBotPhone:  user.callMeBotPhone,
-        notifyBirthdays: user.notifyBirthdays,
-        configured: !!(user.callMeBotPhone && user.callMeBotApiKey),
+        callMeBotPhone:       user.callMeBotPhone,
+        notifyBirthdays:      user.notifyBirthdays,
+        configured:           !!(user.callMeBotPhone && user.callMeBotApiKey),
+        additionalRecipients: (user.additionalRecipients || []).map(r => ({ name: r.name, phone: r.phone })),
       },
     });
   } catch (err: any) {
@@ -1361,16 +1372,18 @@ export const updateCallMeBot = async (req: AuthRequest, res: Response) => {
  */
 export const getCallMeBotConfig = async (req: AuthRequest, res: Response) => {
   try {
-    const user = await User.findById(req.userId).select('+callMeBotApiKey');
+    const user = await User.findById(req.userId).select('+callMeBotApiKey +additionalRecipients');
     if (!user) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
 
     res.json({
       success: true,
       data: {
-        callMeBotPhone:  user.callMeBotPhone  || '',
-        notifyBirthdays: user.notifyBirthdays !== false,
-        configured: !!(user.callMeBotPhone && user.callMeBotApiKey),
-        hasApiKey: !!user.callMeBotApiKey,
+        callMeBotPhone:       user.callMeBotPhone  || '',
+        notifyBirthdays:      user.notifyBirthdays !== false,
+        configured:           !!(user.callMeBotPhone && user.callMeBotApiKey),
+        hasApiKey:            !!user.callMeBotApiKey,
+        // Retorna nombre y teléfono de adicionales pero NO las apiKeys
+        additionalRecipients: (user.additionalRecipients || []).map(r => ({ name: r.name, phone: r.phone })),
       },
     });
   } catch (err: any) {

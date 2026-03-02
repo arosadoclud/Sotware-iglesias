@@ -63,7 +63,7 @@ export async function runBirthdayNotifications(): Promise<void> {
       notifyBirthdays: true,
       callMeBotPhone: { $exists: true, $ne: '' },
       callMeBotApiKey: { $exists: true, $ne: '' },
-    }).select('+callMeBotApiKey');
+    }).select('+callMeBotApiKey +additionalRecipients');
 
     if (notifiableUsers.length === 0) {
       logger.info('[BirthdayNotify] No hay usuarios configurados para notificaciones.');
@@ -113,10 +113,22 @@ export async function runBirthdayNotifications(): Promise<void> {
         try {
           await sendCallMeBot(user.callMeBotPhone!, user.callMeBotApiKey!, message);
           logger.info(`[BirthdayNotify] ✅ WhatsApp enviado a ${user.fullName} (${user.callMeBotPhone})`);
-          // Pequeña pausa entre envíos para respetar los límites de CallMeBot
           await new Promise((r) => setTimeout(r, 1500));
         } catch (err: any) {
           logger.error(`[BirthdayNotify] ❌ Error enviando a ${user.fullName}: ${err.message}`);
+        }
+
+        // Enviar a destinatarios adicionales configurados por este usuario
+        const extras = user.additionalRecipients || [];
+        for (const extra of extras) {
+          if (!extra.phone || !extra.apiKey) continue;
+          try {
+            await sendCallMeBot(extra.phone, extra.apiKey, message);
+            logger.info(`[BirthdayNotify] ✅ WhatsApp enviado a adicional ${extra.name || extra.phone}`);
+            await new Promise((r) => setTimeout(r, 1500));
+          } catch (err: any) {
+            logger.error(`[BirthdayNotify] ❌ Error enviando a adicional ${extra.name || extra.phone}: ${err.message}`);
+          }
         }
       }
     }

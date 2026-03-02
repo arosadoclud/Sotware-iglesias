@@ -419,6 +419,7 @@ const SettingsPage = () => {
   const [callMeBotForm, setCallMeBotForm] = useState({ phone: '', apiKey: '', notify: true })
   const [callMeBotConfigured, setCallMeBotConfigured] = useState(false)
   const [savingCallMeBot, setSavingCallMeBot] = useState(false)
+  const [additionalRecipients, setAdditionalRecipients] = useState<{ name: string; phone: string; apiKey: string }[]>([])
 
   // Track changes
   const hasChanges = JSON.stringify(church) !== JSON.stringify(originalChurch)
@@ -451,6 +452,9 @@ const SettingsPage = () => {
         const d = cmRes.data.data
         setCallMeBotForm(f => ({ ...f, phone: d.callMeBotPhone || '', notify: d.notifyBirthdays !== false }))
         setCallMeBotConfigured(d.configured)
+        if (Array.isArray(d.additionalRecipients)) {
+          setAdditionalRecipients(d.additionalRecipients.map((r: any) => ({ name: r.name || '', phone: r.phone || '', apiKey: '' })))
+        }
       }
     } catch {
       toast.error('Error al cargar configuración')
@@ -588,12 +592,21 @@ const SettingsPage = () => {
       toast.error('Ingresa el teléfono y la API Key de CallMeBot')
       return
     }
+    // Validar que cada destinatario adicional tenga teléfono y API Key
+    const invalidExtra = additionalRecipients.find(r => (r.phone.trim() && !r.apiKey.trim()) || (!r.phone.trim() && r.apiKey.trim()))
+    if (invalidExtra) {
+      toast.error('Cada destinatario adicional debe tener teléfono Y API Key')
+      return
+    }
     setSavingCallMeBot(true)
     try {
       await authApi.updateCallMeBot({
         callMeBotPhone: callMeBotForm.phone.trim(),
         callMeBotApiKey: callMeBotForm.apiKey.trim(),
         notifyBirthdays: callMeBotForm.notify,
+        additionalRecipients: additionalRecipients
+          .filter(r => r.phone.trim() && r.apiKey.trim())
+          .map(r => ({ name: r.name.trim(), phone: r.phone.trim(), apiKey: r.apiKey.trim() })),
       })
       setCallMeBotConfigured(true)
       toast.success('Configuración de WhatsApp guardada')
@@ -602,6 +615,11 @@ const SettingsPage = () => {
     }
     setSavingCallMeBot(false)
   }
+
+  const addRecipientRow = () => setAdditionalRecipients(prev => [...prev, { name: '', phone: '', apiKey: '' }])
+  const removeRecipientRow = (idx: number) => setAdditionalRecipients(prev => prev.filter((_, i) => i !== idx))
+  const updateRecipientRow = (idx: number, field: 'name' | 'phone' | 'apiKey', value: string) =>
+    setAdditionalRecipients(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r))
 
   const changePassword = async () => {
     if (!passwordForm.currentPassword) {
@@ -1278,6 +1296,60 @@ const SettingsPage = () => {
                     <label htmlFor="notifyBirthdays" className="text-sm text-neutral-700">
                       Recibir alerta diaria de cumpleaños (08:00 AM)
                     </label>
+                  </div>
+
+                  {/* Destinatarios adicionales */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-neutral-700">Otros admins que también recibirán la alerta</p>
+                      <button
+                        type="button"
+                        onClick={addRecipientRow}
+                        className="text-xs text-green-700 border border-green-300 bg-green-50 hover:bg-green-100 rounded-lg px-3 py-1 transition-colors"
+                      >
+                        + Añadir destinatario
+                      </button>
+                    </div>
+
+                    {additionalRecipients.length === 0 && (
+                      <p className="text-xs text-neutral-400 italic">Sin destinatarios adicionales</p>
+                    )}
+
+                    {additionalRecipients.map((r, idx) => (
+                      <div key={idx} className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
+                        <input
+                          type="text"
+                          value={r.name}
+                          onChange={e => updateRecipientRow(idx, 'name', e.target.value)}
+                          placeholder="Nombre (opcional)"
+                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                        />
+                        <input
+                          type="tel"
+                          value={r.phone}
+                          onChange={e => updateRecipientRow(idx, 'phone', e.target.value)}
+                          placeholder="Teléfono (con código país)"
+                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                        />
+                        <div className="flex gap-2">
+                          <input
+                            type="password"
+                            value={r.apiKey}
+                            onChange={e => updateRecipientRow(idx, 'apiKey', e.target.value)}
+                            placeholder="API Key de CallMeBot"
+                            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeRecipientRow(idx)}
+                            className="text-red-500 hover:text-red-700 px-2 text-sm font-bold"
+                            title="Eliminar"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
                   <div className="flex justify-end">

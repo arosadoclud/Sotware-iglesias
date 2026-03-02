@@ -38,6 +38,11 @@ export interface IUser extends Document {
   callMeBotPhone?: string;           // Número de teléfono para notificaciones WhatsApp
   callMeBotApiKey?: string;          // API key de CallMeBot
   notifyBirthdays?: boolean;         // Si quiere recibir alertas de cumpleaños
+  additionalRecipients?: Array<{    // Otros admins que también recibirán la notificación
+    name: string;
+    phone: string;
+    apiKey: string;
+  }>;
   createdAt: Date;
   updatedAt: Date;
   
@@ -143,6 +148,15 @@ const UserSchema = new Schema<IUser>(
     callMeBotPhone:  { type: String, trim: true },
     callMeBotApiKey: { type: String, trim: true, select: false },
     notifyBirthdays: { type: Boolean, default: true },
+    additionalRecipients: {
+      type: [{
+        name:   { type: String, trim: true, default: '' },
+        phone:  { type: String, trim: true, default: '' },
+        apiKey: { type: String, trim: true, select: false },
+      }],
+      default: [],
+      select: false,
+    },
   },
   {
     timestamps: true,
