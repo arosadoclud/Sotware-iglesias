@@ -418,8 +418,9 @@ const SettingsPage = () => {
   // CallMeBot state
   const [callMeBotForm, setCallMeBotForm] = useState({ phone: '', apiKey: '', notify: true })
   const [callMeBotConfigured, setCallMeBotConfigured] = useState(false)
+  const [callMeBotHasApiKey, setCallMeBotHasApiKey] = useState(false)
   const [savingCallMeBot, setSavingCallMeBot] = useState(false)
-  const [additionalRecipients, setAdditionalRecipients] = useState<{ name: string; phone: string; apiKey: string }[]>([])
+  const [additionalRecipients, setAdditionalRecipients] = useState<{ name: string; phone: string; apiKey: string; saved: boolean }[]>([])
 
   // Track changes
   const hasChanges = JSON.stringify(church) !== JSON.stringify(originalChurch)
@@ -452,8 +453,9 @@ const SettingsPage = () => {
         const d = cmRes.data.data
         setCallMeBotForm(f => ({ ...f, phone: d.callMeBotPhone || '', notify: d.notifyBirthdays !== false }))
         setCallMeBotConfigured(d.configured)
+        setCallMeBotHasApiKey(d.hasApiKey || false)
         if (Array.isArray(d.additionalRecipients)) {
-          setAdditionalRecipients(d.additionalRecipients.map((r: any) => ({ name: r.name || '', phone: r.phone || '', apiKey: '' })))
+          setAdditionalRecipients(d.additionalRecipients.map((r: any) => ({ name: r.name || '', phone: r.phone || '', apiKey: '', saved: true })))
         }
       }
     } catch {
@@ -588,14 +590,21 @@ const SettingsPage = () => {
   }
 
   const saveCallMeBot = async () => {
-    if (!callMeBotForm.phone.trim() || !callMeBotForm.apiKey.trim()) {
-      toast.error('Ingresa el teléfono y la API Key de CallMeBot')
+    // Si ya tiene apiKey guardada, no es obligatorio re-ingresarla
+    const apiKeyRequired = !callMeBotHasApiKey
+    if (!callMeBotForm.phone.trim() || (apiKeyRequired && !callMeBotForm.apiKey.trim())) {
+      toast.error(apiKeyRequired ? 'Ingresa el teléfono y la API Key de CallMeBot' : 'Ingresa tu número de teléfono')
       return
     }
-    // Validar que cada destinatario adicional tenga teléfono y API Key
-    const invalidExtra = additionalRecipients.find(r => (r.phone.trim() && !r.apiKey.trim()) || (!r.phone.trim() && r.apiKey.trim()))
+    // Validar que cada destinatario adicional tenga teléfono y, si es nuevo, también API Key
+    const invalidExtra = additionalRecipients.find(r => {
+      const hasPhone = !!r.phone.trim()
+      const hasApiKey = !!r.apiKey.trim()
+      // Nuevo (no guardado): necesita ambos. Guardado: puede omitir apiKey
+      return hasPhone && !hasApiKey && !r.saved
+    })
     if (invalidExtra) {
-      toast.error('Cada destinatario adicional debe tener teléfono Y API Key')
+      toast.error('Los nuevos destinatarios deben tener teléfono Y API Key')
       return
     }
     setSavingCallMeBot(true)
@@ -616,10 +625,10 @@ const SettingsPage = () => {
     setSavingCallMeBot(false)
   }
 
-  const addRecipientRow = () => setAdditionalRecipients(prev => [...prev, { name: '', phone: '', apiKey: '' }])
+  const addRecipientRow = () => setAdditionalRecipients(prev => [...prev, { name: '', phone: '', apiKey: '', saved: false }])
   const removeRecipientRow = (idx: number) => setAdditionalRecipients(prev => prev.filter((_, i) => i !== idx))
   const updateRecipientRow = (idx: number, field: 'name' | 'phone' | 'apiKey', value: string) =>
-    setAdditionalRecipients(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r))
+    setAdditionalRecipients(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value, saved: field === 'apiKey' && value ? false : r.saved } : r))
 
   const changePassword = async () => {
     if (!passwordForm.currentPassword) {
@@ -1279,9 +1288,12 @@ const SettingsPage = () => {
                         type="password"
                         value={callMeBotForm.apiKey}
                         onChange={e => setCallMeBotForm(f => ({ ...f, apiKey: e.target.value }))}
-                        placeholder="La clave que te envió CallMeBot"
+                        placeholder={callMeBotHasApiKey ? '••••••••  (dejar vacío para mantener)' : 'La clave que te envió CallMeBot'}
                         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                       />
+                      {callMeBotHasApiKey && !callMeBotForm.apiKey && (
+                        <p className="text-xs text-green-600">✅ Clave guardada — déjalo vacío si no quieres cambiarla</p>
+                      )}
                     </div>
                   </div>
 
@@ -1336,7 +1348,7 @@ const SettingsPage = () => {
                             type="password"
                             value={r.apiKey}
                             onChange={e => updateRecipientRow(idx, 'apiKey', e.target.value)}
-                            placeholder="API Key de CallMeBot"
+                            placeholder={r.saved && !r.apiKey ? '••••••••  (clave guardada)' : 'API Key de CallMeBot'}
                             className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                           />
                           <button

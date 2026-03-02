@@ -1336,17 +1336,28 @@ export const updateCallMeBot = async (req: AuthRequest, res: Response) => {
     }
 
     if (callMeBotPhone  !== undefined) user.callMeBotPhone  = callMeBotPhone?.trim()  || undefined;
-    if (callMeBotApiKey !== undefined) user.callMeBotApiKey = callMeBotApiKey?.trim() || undefined;
+    // Solo actualizar apiKey si se envía un valor no vacío (evita borrar clave existente)
+    if (callMeBotApiKey !== undefined && callMeBotApiKey?.trim()) {
+      user.callMeBotApiKey = callMeBotApiKey.trim();
+    }
     if (notifyBirthdays !== undefined) user.notifyBirthdays = Boolean(notifyBirthdays);
     if (Array.isArray(additionalRecipients)) {
-      // Filtrar entradas válidas (debe tener phone y apiKey al menos)
+      const existing = user.additionalRecipients || [];
       user.additionalRecipients = additionalRecipients
-        .filter((r: any) => r.phone?.trim() && r.apiKey?.trim())
-        .map((r: any) => ({
-          name:   (r.name  || '').trim(),
-          phone:  r.phone.trim(),
-          apiKey: r.apiKey.trim(),
-        }));
+        .filter((r: any) => r.phone?.trim())
+        .map((r: any) => {
+          const newApiKey = r.apiKey?.trim();
+          // Si no se envía apiKey nueva, conservar la que ya estaba guardada para ese teléfono
+          const existingKey = existing.find(e => e.phone === r.phone?.trim())?.apiKey || '';
+          const finalApiKey = newApiKey || existingKey;
+          if (!finalApiKey) return null; // descartar si no hay clave en ningún lado
+          return {
+            name:   (r.name || '').trim(),
+            phone:  r.phone.trim(),
+            apiKey: finalApiKey,
+          };
+        })
+        .filter(Boolean) as any;
     }
 
     await user.save();
