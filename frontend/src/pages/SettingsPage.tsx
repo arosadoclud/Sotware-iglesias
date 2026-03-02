@@ -583,6 +583,26 @@ const SettingsPage = () => {
     setSavingProfile(false)
   }
 
+  const saveCallMeBot = async () => {
+    if (!callMeBotForm.phone.trim() || !callMeBotForm.apiKey.trim()) {
+      toast.error('Ingresa el teléfono y la API Key de CallMeBot')
+      return
+    }
+    setSavingCallMeBot(true)
+    try {
+      await authApi.updateCallMeBot({
+        callMeBotPhone: callMeBotForm.phone.trim(),
+        callMeBotApiKey: callMeBotForm.apiKey.trim(),
+        notifyBirthdays: callMeBotForm.notify,
+      })
+      setCallMeBotConfigured(true)
+      toast.success('Configuración de WhatsApp guardada')
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || 'Error al guardar configuración')
+    }
+    setSavingCallMeBot(false)
+  }
+
   const changePassword = async () => {
     if (!passwordForm.currentPassword) {
       toast.error('Ingresa tu contraseña actual')
