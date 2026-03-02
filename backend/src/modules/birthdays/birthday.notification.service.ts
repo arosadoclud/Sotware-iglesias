@@ -37,26 +37,58 @@ function sendCallMeBot(phone: string, apiKey: string, text: string): Promise<voi
 }
 
 /**
- * Verifica si hoy es el cumpleaños de una fecha dada.
+ * Verifica si una fecha coincide con hoy (mismo día y mes).
  */
-function isBirthdayToday(birthDate: Date): boolean {
-  const today = new Date();
+function matchesDate(birthDate: Date, target: Date): boolean {
   return (
-    birthDate.getMonth() === today.getMonth() &&
-    birthDate.getDate() === today.getDate()
+    birthDate.getMonth() === target.getMonth() &&
+    birthDate.getDate()  === target.getDate()
   );
 }
 
 /**
+ * Envía los mensajes de una lista de personas a todos los receptores de una iglesia.
+ */
+async function notifyChurchUsers(
+  usersInChurch: any[],
+  message: string,
+  label: string
+): Promise<void> {
+  for (const user of usersInChurch) {
+    try {
+      await sendCallMeBot(user.callMeBotPhone!, user.callMeBotApiKey!, message);
+      logger.info(`[BirthdayNotify] ✅ ${label} → ${user.fullName} (${user.callMeBotPhone})`);
+      await new Promise((r) => setTimeout(r, 1500));
+    } catch (err: any) {
+      logger.error(`[BirthdayNotify] ❌ Error ${label} → ${user.fullName}: ${err.message}`);
+    }
+
+    // Destinatarios adicionales
+    for (const extra of (user.additionalRecipients || [])) {
+      if (!extra.phone || !extra.apiKey) continue;
+      try {
+        await sendCallMeBot(extra.phone, extra.apiKey, message);
+        logger.info(`[BirthdayNotify] ✅ ${label} → adicional ${extra.name || extra.phone}`);
+        await new Promise((r) => setTimeout(r, 1500));
+      } catch (err: any) {
+        logger.error(`[BirthdayNotify] ❌ Error ${label} → adicional ${extra.name || extra.phone}: ${err.message}`);
+      }
+    }
+  }
+}
+
+/**
  * Ejecuta la verificación de cumpleaños y envía notificaciones.
- * Se puede invocar manualmente (para probar) o desde el cron.
+ * Alerta el mismo día del cumpleaños Y un día antes como recordatorio anticipado.
  */
 export async function runBirthdayNotifications(): Promise<void> {
   try {
     logger.info('[BirthdayNotify] Iniciando verificación de cumpleaños...');
 
-    // 1. Obtener todos los usuarios con notificaciones activas y clave CallMeBot
-    //    Usamos .select('+callMeBotApiKey') para incluir el campo oculto (select: false)
+    const today    = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
     const notifiableUsers = await User.find({
       role: { $in: BIRTHDAY_ROLES },
       isActive: true,
@@ -70,8 +102,6 @@ export async function runBirthdayNotifications(): Promise<void> {
       return;
     }
 
-    // 2. Para cada iglesia representada entre los usuarios notificables,
-    //    obtener los cumpleaños de hoy
     const churchIds = [...new Set(notifiableUsers.map((u) => u.churchId.toString()))];
 
     for (const churchId of churchIds) {
@@ -79,57 +109,47 @@ export async function runBirthdayNotifications(): Promise<void> {
         (u) => u.churchId.toString() === churchId
       );
 
-      // Buscar personas de esta iglesia con fecha de cumpleaños
       const persons = await Person.find({
         churchId,
         birthDate: { $exists: true, $ne: null },
-      }).select('fullName birthDate ministry').lean();
+      }).select('fullName birthDate').lean();
 
-      // Filtrar los que cumplen hoy
+      // ── Cumpleaños HOY ────────────────────────────────────────────────────
       const todayBirthdays = persons.filter(
-        (p) => p.birthDate && isBirthdayToday(new Date(p.birthDate))
+        (p) => p.birthDate && matchesDate(new Date(p.birthDate), today)
       );
 
-      if (todayBirthdays.length === 0) {
-        logger.info(`[BirthdayNotify] Iglesia ${churchId}: sin cumpleaños hoy.`);
-        continue;
+      if (todayBirthdays.length > 0) {
+        const names   = todayBirthdays.map((p) => p.fullName).join(', ');
+        const dateStr = today.toLocaleDateString('es', { day: 'numeric', month: 'long' });
+        const message =
+          `🎂 *¡Hoy es su cumpleaños!*\n` +
+          `*${names}* ${todayBirthdays.length === 1 ? 'cumple' : 'cumplen'} años hoy ${dateStr}.\n` +
+          `¡No olvides felicitarle${todayBirthdays.length === 1 ? '' : 's'}! 🎉`;
+
+        logger.info(`[BirthdayNotify] Iglesia ${churchId}: ${todayBirthdays.length} cumpleaños HOY.`);
+        await notifyChurchUsers(usersInChurch, message, 'HOY');
       }
 
-      // Construir mensaje
-      const names = todayBirthdays.map((p) => p.fullName).join(', ');
-      const plural = todayBirthdays.length === 1 ? 'cumpleaños' : 'cumpleaños';
-      const message =
-        `🎂 *Recordatorio de cumpleaños*\n` +
-        `Hoy ${new Date().toLocaleDateString('es', { day: 'numeric', month: 'long' })} ` +
-        `${plural === 'cumpleaños' ? 'cumple años' : 'cumplen años'}: *${names}*.\n` +
-        `¡No olvides felicitarles! 🎉`;
-
-      logger.info(
-        `[BirthdayNotify] Iglesia ${churchId}: ${todayBirthdays.length} cumpleaños hoy. Notificando a ${usersInChurch.length} usuarios.`
+      // ── Cumpleaños MAÑANA (recordatorio anticipado) ───────────────────────
+      const tomorrowBirthdays = persons.filter(
+        (p) => p.birthDate && matchesDate(new Date(p.birthDate), tomorrow)
       );
 
-      // Enviar a cada usuario de esa iglesia
-      for (const user of usersInChurch) {
-        try {
-          await sendCallMeBot(user.callMeBotPhone!, user.callMeBotApiKey!, message);
-          logger.info(`[BirthdayNotify] ✅ WhatsApp enviado a ${user.fullName} (${user.callMeBotPhone})`);
-          await new Promise((r) => setTimeout(r, 1500));
-        } catch (err: any) {
-          logger.error(`[BirthdayNotify] ❌ Error enviando a ${user.fullName}: ${err.message}`);
-        }
+      if (tomorrowBirthdays.length > 0) {
+        const names      = tomorrowBirthdays.map((p) => p.fullName).join(', ');
+        const dateStr    = tomorrow.toLocaleDateString('es', { day: 'numeric', month: 'long' });
+        const message =
+          `📅 *Recordatorio anticipado de cumpleaños*\n` +
+          `Mañana ${dateStr}, *${names}* ${tomorrowBirthdays.length === 1 ? 'cumple' : 'cumplen'} años.\n` +
+          `¡Prepara tu felicitación! 🎁`;
 
-        // Enviar a destinatarios adicionales configurados por este usuario
-        const extras = user.additionalRecipients || [];
-        for (const extra of extras) {
-          if (!extra.phone || !extra.apiKey) continue;
-          try {
-            await sendCallMeBot(extra.phone, extra.apiKey, message);
-            logger.info(`[BirthdayNotify] ✅ WhatsApp enviado a adicional ${extra.name || extra.phone}`);
-            await new Promise((r) => setTimeout(r, 1500));
-          } catch (err: any) {
-            logger.error(`[BirthdayNotify] ❌ Error enviando a adicional ${extra.name || extra.phone}: ${err.message}`);
-          }
-        }
+        logger.info(`[BirthdayNotify] Iglesia ${churchId}: ${tomorrowBirthdays.length} cumpleaños MAÑANA.`);
+        await notifyChurchUsers(usersInChurch, message, 'MAÑANA');
+      }
+
+      if (todayBirthdays.length === 0 && tomorrowBirthdays.length === 0) {
+        logger.info(`[BirthdayNotify] Iglesia ${churchId}: sin cumpleaños hoy ni mañana.`);
       }
     }
 
