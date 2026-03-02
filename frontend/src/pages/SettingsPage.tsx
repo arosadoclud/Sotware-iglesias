@@ -415,6 +415,11 @@ const SettingsPage = () => {
   const [savingProfile, setSavingProfile] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
 
+  // CallMeBot state
+  const [callMeBotForm, setCallMeBotForm] = useState({ phone: '', apiKey: '', notify: true })
+  const [callMeBotConfigured, setCallMeBotConfigured] = useState(false)
+  const [savingCallMeBot, setSavingCallMeBot] = useState(false)
+
   // Track changes
   const hasChanges = JSON.stringify(church) !== JSON.stringify(originalChurch)
 
@@ -436,10 +441,17 @@ const SettingsPage = () => {
   const load = async () => {
     setLoading(true)
     try {
-      const [cRes, rRes] = await Promise.all([churchesApi.getMine(), rolesApi.getAll()])
+      const [cRes, rRes, cmRes] = await Promise.all([
+        churchesApi.getMine(), rolesApi.getAll(), authApi.getCallMeBotConfig().catch(() => null)
+      ])
       setChurch(cRes.data.data)
       setOriginalChurch(cRes.data.data)
       setRoles(rRes.data.data)
+      if (cmRes?.data?.data) {
+        const d = cmRes.data.data
+        setCallMeBotForm(f => ({ ...f, phone: d.callMeBotPhone || '', notify: d.notifyBirthdays !== false }))
+        setCallMeBotConfigured(d.configured)
+      }
     } catch {
       toast.error('Error al cargar configuración')
     }
@@ -1180,6 +1192,82 @@ const SettingsPage = () => {
                         <Key className="w-4 h-4" />
                       )}
                       Cambiar Contraseña
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* CallMeBot WhatsApp Notifications */}
+              <Card className="border-0 shadow-lg shadow-neutral-200/50 overflow-hidden">
+                <div className="h-2 bg-gradient-to-r from-green-500 to-emerald-500" />
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Phone className="w-5 h-5 text-green-600" />
+                    Notificaciones WhatsApp
+                    {callMeBotConfigured && (
+                      <span className="ml-2 text-xs font-normal bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✅ Activo</span>
+                    )}
+                  </CardTitle>
+                  <CardDescription>
+                    Recibe un WhatsApp automático cada mañana cuando algún miembro cumpla años ese día.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  {/* Instrucciones CallMeBot */}
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2 text-sm">
+                    <p className="font-semibold text-green-800">Cómo activarlo (gratis, 1 vez):</p>
+                    <ol className="list-decimal list-inside text-green-700 space-y-1">
+                      <li>Guarda este número en tus contactos: <strong>+34 644 38 77 85</strong></li>
+                      <li>Envíale este mensaje por WhatsApp: <code className="bg-green-100 px-1 rounded">I allow callmebot to send me messages</code></li>
+                      <li>Recibirás tu <strong>API Key</strong> automáticamente por WhatsApp</li>
+                      <li>Ingresa tu teléfono y esa clave aquí abajo</li>
+                    </ol>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-neutral-700">Tu número (con código de país)</Label>
+                      <input
+                        type="tel"
+                        value={callMeBotForm.phone}
+                        onChange={e => setCallMeBotForm(f => ({ ...f, phone: e.target.value }))}
+                        placeholder="Ej: 50688887777"
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-neutral-700">API Key de CallMeBot</Label>
+                      <input
+                        type="password"
+                        value={callMeBotForm.apiKey}
+                        onChange={e => setCallMeBotForm(f => ({ ...f, apiKey: e.target.value }))}
+                        placeholder="La clave que te envió CallMeBot"
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="notifyBirthdays"
+                      checked={callMeBotForm.notify}
+                      onChange={e => setCallMeBotForm(f => ({ ...f, notify: e.target.checked }))}
+                      className="w-4 h-4 accent-green-600"
+                    />
+                    <label htmlFor="notifyBirthdays" className="text-sm text-neutral-700">
+                      Recibir alerta diaria de cumpleaños (08:00 AM)
+                    </label>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={saveCallMeBot}
+                      disabled={savingCallMeBot}
+                      className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      {savingCallMeBot ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      Guardar Configuración
                     </Button>
                   </div>
                 </CardContent>

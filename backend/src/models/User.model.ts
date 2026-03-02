@@ -35,6 +35,9 @@ export interface IUser extends Document {
   lastLogin?: Date;
   refreshToken?: string;
   createdBy?: mongoose.Types.ObjectId; // Usuario que lo creó
+  callMeBotPhone?: string;           // Número de teléfono para notificaciones WhatsApp
+  callMeBotApiKey?: string;          // API key de CallMeBot
+  notifyBirthdays?: boolean;         // Si quiere recibir alertas de cumpleaños
   createdAt: Date;
   updatedAt: Date;
   
@@ -137,6 +140,9 @@ const UserSchema = new Schema<IUser>(
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
+    callMeBotPhone:  { type: String, trim: true },
+    callMeBotApiKey: { type: String, trim: true, select: false },
+    notifyBirthdays: { type: Boolean, default: true },
   },
   {
     timestamps: true,
@@ -191,6 +197,8 @@ UserSchema.methods.getPublicProfile = function () {
     lastLogin: this.lastLogin,
     permissions: this.getEffectivePermissions(),
     useCustomPermissions: this.useCustomPermissions,
+    callMeBotPhone: this.callMeBotPhone,
+    notifyBirthdays: this.notifyBirthdays,
     createdAt: this.createdAt,
   };
 };

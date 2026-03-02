@@ -130,6 +130,7 @@ import secretaryRoutes from './modules/secretary/secretary.routes'; // Secretar�
 import pastoralRoutes  from './modules/pastoral/pastoral.routes';   // Pastoral
 import attendanceRoutes from './modules/attendance/attendance.routes'; // Asistencias
 import birthdayRoutes  from './modules/birthdays/birthday.routes';    // Cumpleaños
+import { initBirthdayNotificationCron } from './modules/birthdays/birthday.notification.service';
 
 app.use(`${API}/health`,    healthRoutes);  // Health check
 app.use(`${API}/auth`,      authRoutes);
@@ -182,6 +183,10 @@ export function setupQueues() {
     initQueues(redisUrl);
   }
 }
+
+// ── BIRTHDAY NOTIFICATION CRON ───────────────────────────────────────────────
+// Se inicializa el cron de cumpleaños para enviar alertas automáticas por WhatsApp
+initBirthdayNotificationCron();
 
 // ── ERROR HANDLERS ─────────────────────────────────────────────────────────────
 // Sentry error handler - DEBE ir antes de los handlers personalizados

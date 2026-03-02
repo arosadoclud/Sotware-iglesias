@@ -42,6 +42,9 @@ export const authApi = {
   resetPassword: (token: string, newPassword: string) => api.post(`/auth/reset-password/${token}`, { newPassword }),
   verifyEmail: (token: string) => api.get(`/auth/verify-email/${token}`),
   resendVerification: (email: string) => api.post('/auth/resend-verification', { email }),
+  getCallMeBotConfig: () => api.get('/auth/callmebot'),
+  updateCallMeBot: (data: { callMeBotPhone?: string; callMeBotApiKey?: string; notifyBirthdays?: boolean }) =>
+    api.put('/auth/callmebot', data),
 }
 
 // ── CHURCHES ──────────────────────────────────────────────────────────────────

@@ -1322,6 +1322,62 @@ export const verifyEmail = async (req: Request, res: Response) => {
 /**
  * Reenviar email de verificación
  */
+/**
+ * PUT /auth/callmebot
+ * Guardar o actualizar la configuración de CallMeBot del usuario.
+ */
+export const updateCallMeBot = async (req: AuthRequest, res: Response) => {
+  try {
+    const { callMeBotPhone, callMeBotApiKey, notifyBirthdays } = req.body;
+
+    const user = await User.findById(req.userId).select('+callMeBotApiKey');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+
+    if (callMeBotPhone  !== undefined) user.callMeBotPhone  = callMeBotPhone?.trim()  || undefined;
+    if (callMeBotApiKey !== undefined) user.callMeBotApiKey = callMeBotApiKey?.trim() || undefined;
+    if (notifyBirthdays !== undefined) user.notifyBirthdays = Boolean(notifyBirthdays);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Configuración de WhatsApp guardada',
+      data: {
+        callMeBotPhone:  user.callMeBotPhone,
+        notifyBirthdays: user.notifyBirthdays,
+        configured: !!(user.callMeBotPhone && user.callMeBotApiKey),
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/**
+ * GET /auth/callmebot
+ * Obtener el estado de configuración CallMeBot del usuario (sin exponer el apiKey).
+ */
+export const getCallMeBotConfig = async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await User.findById(req.userId).select('+callMeBotApiKey');
+    if (!user) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+
+    res.json({
+      success: true,
+      data: {
+        callMeBotPhone:  user.callMeBotPhone  || '',
+        notifyBirthdays: user.notifyBirthdays !== false,
+        configured: !!(user.callMeBotPhone && user.callMeBotApiKey),
+        hasApiKey: !!user.callMeBotApiKey,
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 export const resendVerificationEmail = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
