@@ -43,8 +43,12 @@ export const authApi = {
   verifyEmail: (token: string) => api.get(`/auth/verify-email/${token}`),
   resendVerification: (email: string) => api.post('/auth/resend-verification', { email }),
   getCallMeBotConfig: () => api.get('/auth/callmebot'),
-  updateCallMeBot: (data: { callMeBotPhone?: string; callMeBotApiKey?: string; notifyBirthdays?: boolean }) =>
-    api.put('/auth/callmebot', data),
+  updateCallMeBot: (data: {
+    callMeBotPhone?: string;
+    callMeBotApiKey?: string;
+    notifyBirthdays?: boolean;
+    additionalRecipients?: { name: string; phone: string; apiKey: string }[];
+  }) => api.put('/auth/callmebot', data),
 }
 
 // ── CHURCHES ──────────────────────────────────────────────────────────────────
