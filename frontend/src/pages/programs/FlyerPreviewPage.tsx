@@ -3,6 +3,7 @@ import { useDebounce } from 'use-debounce'
 import { useParams, useNavigate } from 'react-router-dom'
 import { programsApi, personsApi, BACKEND_URL } from '../../lib/api'
 import { sharePdfViaWhatsApp } from '../../lib/shareWhatsApp'
+import { downloadBlob } from '../../lib/downloadHelper'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { jsPDF } from 'jspdf'
@@ -664,16 +665,10 @@ const FlyerPreviewPage = () => {
       // ✅ Usar downloadFlyer en lugar de downloadPdf para manejar correctamente ambos tipos de programas
       const res = await programsApi.downloadFlyer(id as string)
       const blob = new Blob([res.data], { type: 'application/pdf' })
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
       const churchSlug = (form.churchName || 'iglesia').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
       const activitySlug = (form.worshipType || 'culto').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-      link.download = `${churchSlug}-${activitySlug}-${form.dateInput || 'sin-fecha'}.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
+      const filename = `${churchSlug}-${activitySlug}-${form.dateInput || 'sin-fecha'}.pdf`
+      downloadBlob(blob, filename)
       toast.success('PDF descargado', {
         style: { background: '#22C55E', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
         duration: 2500,
@@ -698,16 +693,10 @@ const FlyerPreviewPage = () => {
       // ✅ Usar downloadFlyer en lugar de downloadPdf para manejar correctamente ambos tipos de programas
       const res = await programsApi.downloadFlyer(id as string)
       const blob = new Blob([res.data], { type: 'application/pdf' })
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
       const churchSlug = (form.churchName || 'iglesia').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
       const activitySlug = (form.worshipType || 'culto').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-      link.download = `${churchSlug}-${activitySlug}-${form.dateInput || 'sin-fecha'}.pdf`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
+      const filename = `${churchSlug}-${activitySlug}-${form.dateInput || 'sin-fecha'}.pdf`
+      downloadBlob(blob, filename)
       toast.success('Cambios guardados y PDF descargado', {
         style: { background: '#22C55E', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
         duration: 3500,
@@ -923,7 +912,7 @@ const FlyerPreviewPage = () => {
     const churchSlug = (form.churchName || 'iglesia').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
     const activitySlug = form.worshipType.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
     const fname = `${churchSlug}-${activitySlug}-${form.dateInput || 'sin-fecha'}.pdf`
-    doc.save(fname)
+    downloadBlob(doc.output('blob'), fname)
     toast.success('✅ PDF descargado exitosamente', {
       style: { background: '#22C55E', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
       duration: 2500,
