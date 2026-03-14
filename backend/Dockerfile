@@ -52,6 +52,9 @@ COPY . .
 # Compilar TypeScript
 RUN npm run build
 
+# Copiar templates .hbs que tsc no incluye en dist/
+RUN cp -r src/modules/pdf/templates dist/modules/pdf/templates
+
 # Eliminar devDependencies después del build
 RUN npm prune --production
 
