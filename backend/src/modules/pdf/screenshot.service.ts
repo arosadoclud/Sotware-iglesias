@@ -58,7 +58,6 @@ export class ScreenshotService {
           "--disable-dev-shm-usage",
           "--disable-gpu",
           "--allow-file-access-from-files",
-          "--single-process",
           "--no-zygote",
         ],
       });
@@ -75,12 +74,11 @@ export class ScreenshotService {
       });
       console.log('[Screenshot] 📐 Viewport configurado: 1200x1600px');
 
-      await page.setContent(html, { waitUntil: "networkidle0" });
+      await page.setContent(html, { waitUntil: "domcontentloaded", timeout: 15000 });
       console.log('[Screenshot] 📝 HTML cargado');
 
       // Esperar a que las fuentes de Google se carguen
       await page.evaluateHandle("document.fonts.ready");
-      await new Promise((resolve) => setTimeout(resolve, 1500));
       console.log('[Screenshot] ⏱️ Fuentes cargadas');
 
       // Generar screenshot como PNG

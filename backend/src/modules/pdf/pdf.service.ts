@@ -288,28 +288,30 @@ export class PdfService {
         "--disable-dev-shm-usage",
         "--disable-gpu",
         "--allow-file-access-from-files",
-        "--single-process",
         "--no-zygote",
       ],
     });
 
-    const page = await browser.newPage();
-    // Renderizar al doble de resolución para mayor nitidez
-    await page.setViewport({ width: 1632, height: 2112, deviceScaleFactor: 2 });
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    let pdfBuffer: Uint8Array;
+    try {
+      const page = await browser.newPage();
+      // Renderizar al doble de resolución para mayor nitidez
+      await page.setViewport({ width: 1632, height: 2112, deviceScaleFactor: 2 });
+      // Use domcontentloaded to avoid hanging waiting for Google Fonts network requests
+      await page.setContent(html, { waitUntil: "domcontentloaded", timeout: 15000 });
 
-    // Esperar a que las fuentes de Google se carguen
-    await page.evaluateHandle("document.fonts.ready");
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Wait for fonts to finish loading (resolves with fallback fonts if CDN is unreachable)
+      await page.evaluateHandle("document.fonts.ready");
 
-    const pdfBuffer = await page.pdf({
-      format: "Letter",
-      printBackground: true,
-      margin: { top: "0", right: "0", bottom: "0", left: "0" },
-      pageRanges: "1",   // forzar sólo la primera página
-    });
-
-    await browser.close();
+      pdfBuffer = await page.pdf({
+        format: "Letter",
+        printBackground: true,
+        margin: { top: "0", right: "0", bottom: "0", left: "0" },
+        pageRanges: "1",
+      });
+    } finally {
+      await browser.close();
+    }
 
     const dateStr = format(new Date(program.programDate), "yyyy-MM-dd");
     const churchSlug = church.name

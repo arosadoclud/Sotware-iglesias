@@ -28,15 +28,14 @@ export async function generateFlyerPdf(data: any): Promise<Buffer> {
       '--disable-gpu',
       '--no-first-run',
       '--no-zygote',
-      '--single-process',
     ],
   });
   let pdfBuffer: Buffer;
   try {
     const page = await browser.newPage();
-    // Use 'load' instead of 'networkidle0' to avoid hanging on Google Fonts
-    // timeout of 15s prevents indefinite waits on slow networks
-    await page.setContent(html, { waitUntil: 'load', timeout: 15000 });
+    // Use 'domcontentloaded' to avoid hanging waiting for Google Fonts network requests
+    // timeout of 15s prevents indefinite waits
+    await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 15000 });
     // Wait for fonts to finish loading (resolves immediately if fonts already loaded)
     await page.evaluateHandle('document.fonts.ready');
     // Opcional: ajustar tamaño de página
