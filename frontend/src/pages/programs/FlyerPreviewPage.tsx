@@ -673,11 +673,18 @@ const FlyerPreviewPage = () => {
         style: { background: '#22C55E', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
         duration: 2500,
       })
-    } catch {
-      toast.error('Error al generar el PDF', {
-        style: { background: '#EF4444', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
-        duration: 3500,
-      })
+    } catch (err) {
+      console.error('Error al generar PDF desde backend, usando fallback local:', err)
+      // Fallback: generate PDF client-side with jsPDF when backend fails
+      try {
+        exportPDFLocal()
+      } catch (localErr) {
+        console.error('Error en fallback local PDF:', localErr)
+        toast.error('Error al generar el PDF', {
+          style: { background: '#EF4444', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
+          duration: 3500,
+        })
+      }
     } finally {
       setDownloadingPdf(false)
     }
@@ -701,11 +708,18 @@ const FlyerPreviewPage = () => {
         style: { background: '#22C55E', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
         duration: 3500,
       })
-    } catch {
-      toast.error('Error al guardar o generar el PDF', {
-        style: { background: '#EF4444', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
-        duration: 3500,
-      })
+    } catch (err) {
+      console.error('Error al guardar o generar el PDF desde backend, usando fallback local:', err)
+      // Fallback: generate PDF client-side with jsPDF when backend fails
+      try {
+        exportPDFLocal()
+      } catch (localErr) {
+        console.error('Error en fallback local PDF:', localErr)
+        toast.error('Error al guardar o generar el PDF', {
+          style: { background: '#EF4444', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
+          duration: 3500,
+        })
+      }
     } finally {
       setDownloadingPdf(false)
     }
