@@ -86,9 +86,17 @@ export const downloadProgramFlyerPdf = async (req: AuthRequest, res: Response, n
       const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
       return `${h12}:${m.padStart(2, '0')} ${displayAmpm}`;
     }
+    // Logo: usar el del programa; si es ruta relativa o está vacío, tomar el de la iglesia
+    let resolvedLogoUrl: string = program.logoUrl || '';
+    if (!resolvedLogoUrl || resolvedLogoUrl.startsWith('/')) {
+      const churchDoc = await Church.findById(program.churchId).select('logoUrl').lean();
+      if (churchDoc?.logoUrl && churchDoc.logoUrl.startsWith('http')) {
+        resolvedLogoUrl = churchDoc.logoUrl;
+      }
+    }
     const flyerData = {
       churchName: program.churchName,
-      logoUrl: program.logoUrl,
+      logoUrl: resolvedLogoUrl,
       worshipType: program.activityType.name,
       date: formatDateES(program.programDate),
       time: formatTimeES(hour, ampm),

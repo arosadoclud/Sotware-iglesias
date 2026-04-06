@@ -31,7 +31,7 @@
       font-family: 'DM Sans', sans-serif;
       background: var(--bg);
       color: var(--gray-900);
-      min-height: 100vh;
+      height: auto;
       margin: 0;
       padding: 0;
     }
@@ -42,7 +42,7 @@
       overflow: hidden;
       width: 100%;
       max-width: 540px;
-      margin: 40px auto;
+      margin: 8px auto;
       position: relative;
     }
     .flyer-header {
@@ -70,11 +70,13 @@
     .header-inner {
       display: flex;
       align-items: center;
-      gap: 1.1rem;
       position: relative;
       z-index: 1;
+      min-height: 60px;
     }
     .logo-circle {
+      position: absolute;
+      left: 0;
       width: 60px;
       height: 60px;
       background: rgba(255,255,255,0.1);
@@ -94,7 +96,10 @@
       object-fit: contain;
       border: 2px solid rgba(200,168,75,0.4);
     }
-    .header-text { flex: 1; }
+    .header-text {
+      flex: 1;
+      text-align: center;
+    }
     .flyer-church-name {
       font-family: 'Cormorant Garamond', serif;
       font-size: 1.35rem;
@@ -102,6 +107,7 @@
       color: white;
       line-height: 1.1;
       letter-spacing: 0.02em;
+      text-align: center;
     }
     .flyer-church-sub {
       font-size: 0.75rem;
