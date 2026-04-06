@@ -1099,29 +1099,17 @@ const FlyerPreviewPage = () => {
 
                   <div style={styles.headerInner}>
                     {/* Logo a la IZQUIERDA */}
-                    <div style={{ position: 'relative', flexShrink: 0, width: 60, height: 60 }}>
-                      <img
-                        src={logoSrc}
-                        alt="Logo Iglesia"
-                        style={styles.logoImg}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none'
-                          const fallback = (e.target as HTMLImageElement).nextElementSibling as HTMLElement
-                          if (fallback) fallback.style.display = 'flex'
-                        }}
-                      />
-                      {/* Fallback icon when logo fails to load */}
-                      <div style={{
-                        display: 'none', width: 60, height: 60, background: 'rgba(255,255,255,0.1)',
-                        border: '2px solid rgba(200,168,75,0.5)', borderRadius: 12,
-                        alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem',
-                        backdropFilter: 'blur(4px)', position: 'absolute', top: 0, left: 0,
-                      }}>
-                        ✝
-                      </div>
-                    </div>
-                    {/* Texto a la DERECHA alineado a la izquierda */}
-                    <div style={{ flex: 1 }}>
+                    <img
+                      src={logoSrc}
+                      alt="Logo Iglesia"
+                      style={styles.logoImg}
+                      onError={(e) => {
+                        const img = e.target as HTMLImageElement
+                        img.style.display = 'none'
+                      }}
+                    />
+                    {/* Texto CENTRADO visualmente en el ancho total */}
+                    <div style={{ flex: 1, textAlign: 'center', paddingRight: 64 }}>
                       <div style={styles.flyerChurchName}>{form.churchName || 'Iglesia'}</div>
                       {form.churchSub && <div style={styles.flyerChurchSub}>{form.churchSub}</div>}
                       {form.location && <div style={styles.flyerChurchLoc}>{form.location}</div>}
@@ -2145,15 +2133,15 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'rgba(200,168,75,0.05)', borderRadius: '50%',
   },
   headerInner: {
-    display: 'flex', alignItems: 'center', gap: '1.1rem', position: 'relative', zIndex: 1,
+    display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative', zIndex: 1,
   },
   logoImg: {
-    width: 60, height: 60, borderRadius: 10, objectFit: 'contain',
-    border: '2px solid rgba(200,168,75,0.4)', background: 'rgba(255,255,255,0.1)', flexShrink: 0,
+    width: 64, height: 64, borderRadius: 12, objectFit: 'contain',
+    border: '2px solid rgba(200,168,75,0.5)', background: 'rgba(255,255,255,0.12)', flexShrink: 0,
   },
   flyerChurchName: {
     fontFamily: F.display, fontSize: '1.35rem', fontWeight: 700,
-    color: 'white', lineHeight: 1.1, letterSpacing: '0.02em',
+    color: 'white', lineHeight: 1.15, letterSpacing: '0.02em', textAlign: 'center',
   },
   flyerChurchSub: {
     fontSize: '0.75rem', color: C.goldLight, marginTop: 2, letterSpacing: '0.05em',
