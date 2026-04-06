@@ -1,13 +1,44 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as https from 'https';
+import * as http from 'http';
 import * as Handlebars from 'handlebars';
 import * as puppeteer from 'puppeteer';
+
+/** Descarga una imagen desde una URL y la retorna como data URI base64 */
+async function fetchImageAsBase64(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const client = url.startsWith('https') ? https : http;
+    client.get(url, (res) => {
+      const chunks: Buffer[] = [];
+      res.on('data', (chunk: Buffer) => chunks.push(chunk));
+      res.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        const mimeType = res.headers['content-type'] || 'image/png';
+        resolve(`data:${mimeType};base64,${buffer.toString('base64')}`);
+      });
+      res.on('error', reject);
+    }).on('error', reject);
+  });
+}
 
 export async function generateFlyerPdf(data: any): Promise<Buffer> {
   // Helpers para plantilla
   Handlebars.registerHelper('padId', (id: number) => String(id).padStart(2, '0'));
   Handlebars.registerHelper('churchNameUpper', () => (data.churchName || '').toUpperCase());
   // verse y verseText se pasan directamente en data
+
+  // Convertir logo a base64 para que Puppeteer no necesite red
+  let logoUrl = data.logoUrl || '';
+  if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+    try {
+      logoUrl = await fetchImageAsBase64(logoUrl);
+    } catch {
+      logoUrl = ''; // Si falla, ocultamos el logo (mostrará el ícono ✝)
+    }
+  }
+  const templateData = { ...data, logoUrl };
+
   // 1. Leer la plantilla HTML
   // Compiled: dist/modules/programs/ → need 3 levels up to reach backend/templates/
   const templatePath = path.join(__dirname, '../../../templates/flyer-program.html');
@@ -15,7 +46,7 @@ export async function generateFlyerPdf(data: any): Promise<Buffer> {
 
   // 2. Compilar con Handlebars
   const template = Handlebars.compile(htmlRaw);
-  const html = template(data);
+  const html = template(templateData);
 
   // 3. Lanzar Puppeteer y generar PDF
   const browser = await puppeteer.launch({
