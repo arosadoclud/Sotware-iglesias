@@ -189,6 +189,14 @@ export const getProgram = async (req: AuthRequest, res: Response, next: NextFunc
   try {
     const program = await Program.findOne({ _id: req.params.id, churchId: req.churchId });
     if (!program) throw new NotFoundError('Programa no encontrado');
+    // Si el logoUrl guardado es vacío o ruta relativa, obtener el real de la iglesia
+    let resolvedLogoUrl: string = (program as any).logoUrl || '';
+    if (!resolvedLogoUrl || !resolvedLogoUrl.startsWith('http')) {
+      const churchDoc = await Church.findById(program.churchId).select('logoUrl').lean();
+      if (churchDoc?.logoUrl && churchDoc.logoUrl.startsWith('http')) {
+        resolvedLogoUrl = churchDoc.logoUrl;
+      }
+    }
     const data = {
       ...program.toObject(),
       defaultTime: (program as any).programTime || '',
@@ -196,7 +204,7 @@ export const getProgram = async (req: AuthRequest, res: Response, next: NextFunc
         name: (program as any).churchName || '',
         subTitle: (program as any).churchSub || '',
         location: (program as any).location || '',
-        logoUrl: (program as any).logoUrl || '',
+        logoUrl: resolvedLogoUrl,
       },
     };
     res.json({ success: true, data });
@@ -218,7 +226,7 @@ export const generateProgram = async (req: AuthRequest, res: Response, next: Nex
     const activity = await ActivityType.findOne({ _id: activityTypeId, churchId: req.churchId });
     if (!activity) throw new NotFoundError('Actividad no encontrada');
 
-    const church = await Church.findById(req.churchId).select('settings').lean();
+    const church = await Church.findById(req.churchId).select('settings name logoUrl').lean();
     const rotationWeeks = church?.settings?.rotationWeeks || 4;
 
     // USAR EL ENGINE - no mas logica directamente aqui
@@ -238,10 +246,14 @@ export const generateProgram = async (req: AuthRequest, res: Response, next: Nex
     const time24 = activity.getTimeForDay(dateObj.getDay());
     const activityTime = formatTime24to12(time24);
 
+    // Usar nombre y logo real de la iglesia
+    const churchNameFromDB = church?.name || 'IGLESIA ARCA EVANGELICA DIOS FUERTE';
+    const churchLogoUrl = (church?.logoUrl && church.logoUrl.startsWith('http')) ? church.logoUrl : '';
+
     const program = await Program.create({
       churchId: req.churchId,
-      churchName: 'IGLESIA ARCA EVANGELICA DIOS FUERTE',
-      logoUrl: '/logo-arca.png',
+      churchName: churchNameFromDB,
+      logoUrl: churchLogoUrl,
       activityType: { id: activity._id, name: activity.name },
       programDate: dateObj,
       defaultTime: defaultTime || activityTime.formatted,
