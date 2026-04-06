@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useDebounce } from 'use-debounce'
 import { useParams, useNavigate } from 'react-router-dom'
-import { programsApi, personsApi, BACKEND_URL } from '../../lib/api'
+import { programsApi, personsApi, churchesApi, BACKEND_URL } from '../../lib/api'
 import { sharePdfViaWhatsApp } from '../../lib/shareWhatsApp'
 import { downloadBlob } from '../../lib/downloadHelper'
 import { toast } from 'sonner'
@@ -237,6 +237,17 @@ const FlyerPreviewPage = () => {
           navigate(`/programs/edit-cleaning/${id}`, { replace: true })
           return
         }
+
+        // Resolver logo: si el programa no tiene URL absoluta, obtenerlo de la iglesia
+        let resolvedLogoUrl: string = prog.church?.logoUrl || ''
+        if (!resolvedLogoUrl || !resolvedLogoUrl.startsWith('http')) {
+          try {
+            const churchRes = await churchesApi.getMine()
+            const churchLogo = churchRes.data.data?.logoUrl || ''
+            if (churchLogo.startsWith('http')) resolvedLogoUrl = churchLogo
+          } catch { /* ignorar si falla */ }
+        }
+
         setForm({
           churchName: prog.church?.name || INITIAL_FORM.churchName,
           churchSub: prog.church?.subTitle || '',
@@ -248,7 +259,7 @@ const FlyerPreviewPage = () => {
           timePeriod: extractTimePeriod(prog.defaultTime || ''),
           verse: prog.verse || '',
           verseText: prog.verseText || '',
-          logoUrl: prog.church?.logoUrl || '',
+          logoUrl: resolvedLogoUrl,
         })
 
         let asigs: Assignment[] = (prog.assignments || []).map((a: any, idx: number) => ({
