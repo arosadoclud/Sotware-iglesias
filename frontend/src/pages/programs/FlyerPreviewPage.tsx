@@ -507,28 +507,13 @@ const FlyerPreviewPage = () => {
         return
       }
 
-      try {
-        const res = await personsApi.create({
-          fullName: value,
-          ministry: 'Jóvenes',
-          status: 'ACTIVE',
-        })
-        const newPerson: PersonOption = {
-          id: res.data.data._id || res.data.data.id,
-          fullName: res.data.data.fullName,
-        }
-        setPeoplePool((prev) => [...prev, newPerson])
-        setAssignments((prev) =>
-          prev.map((row, i) =>
-            i === idx ? { ...row, person: newPerson.fullName, personId: newPerson.id } : row
-          )
-        )
-        setSuggestions([])
-        setActiveSuggestionIdx(null)
-        toast.success('Persona creada y asignada')
-      } catch {
-        toast.error('Error al crear persona')
-      }
+      // Persona no encontrada: limpiar el campo y notificar
+      setAssignments((prev) =>
+        prev.map((row, i) => (i === idx ? { ...row, person: '', personId: '' } : row))
+      )
+      setSuggestions([])
+      setActiveSuggestionIdx(null)
+      toast.error(`"${value}" no existe en el directorio. Selecciona una persona de la lista.`)
     },
     [peoplePool]
   )
