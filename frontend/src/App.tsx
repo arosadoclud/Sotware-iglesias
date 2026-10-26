@@ -10,6 +10,8 @@ import PageTransition from './components/ui/PageTransition'
 import { ProtectedModuleRoute } from './components/ui/ProtectedModuleRoute'
 import { PermissionRoute } from './components/ui/PermissionRoute'
 import { P } from './constants/permissions'
+import { useSessionSync } from './hooks/useSessionSync'
+import { canAccessRoute } from './lib/routeAccess'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
 import VerifyEmailPage from './pages/auth/VerifyEmailPage'
@@ -40,24 +42,17 @@ import UsersManagementPage from './pages/admin/UsersManagementPage'
 import AuditLogsPage from './pages/admin/AuditLogsPage'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, hasPermission } = useAuthStore()
+  const location = useLocation()
   if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (!canAccessRoute(location.pathname, hasPermission)) return <Navigate to="/" replace />
   return <>{children}</>
 }
 
-// Rutas permitidas para el rol VIEWER
-const VIEWER_ALLOWED_ROUTES = ['/', '/letters', '/new-members', '/calendar', '/estudios-biblicos']
-
 const ViewerGuard = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuthStore()
+  const { hasPermission } = useAuthStore()
   const location = useLocation()
-  
-  if (user?.role === 'VIEWER') {
-    const isAllowed = VIEWER_ALLOWED_ROUTES.some(route => 
-      route === '/' ? location.pathname === '/' : location.pathname.startsWith(route)
-    )
-    if (!isAllowed) return <Navigate to="/" replace />
-  }
+  if (!canAccessRoute(location.pathname, hasPermission)) return <Navigate to="/" replace />
   
   return <>{children}</>
 }
@@ -222,6 +217,7 @@ const AnimatedRoutes = () => {
 }
 
 function App() {
+  useSessionSync()
   const [showSplash, setShowSplash] = useState(true)
   const [hasSeenSplash, setHasSeenSplash] = useState(false)
 

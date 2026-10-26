@@ -32,7 +32,7 @@ type ForgotForm = z.infer<typeof forgotSchema>
 type LoginForm = z.infer<typeof loginSchema>
 
 // Logo: primero intenta desde el frontend public/, si falla usa el backend
-const LOGO_LOCAL = '/logo.png'
+const LOGO_LOCAL = '/arca-logo.png'
 const LOGO_BACKEND = `${BACKEND_URL}/uploads/logo.png`
 
 const LoginPage = () => {
@@ -422,12 +422,13 @@ const LoginPage = () => {
 
         .logo-ring {
           position: relative;
-          width: 80px;
-          height: 80px;
+          width: 220px;
+          height: auto;
           margin: 0 auto 20px;
         }
 
         .logo-ring::before {
+          display: none;
           content: '';
           position: absolute;
           inset: -5px;
@@ -437,6 +438,7 @@ const LoginPage = () => {
         }
 
         .logo-ring::after {
+          display: none;
           content: '';
           position: absolute;
           inset: -12px;
@@ -451,11 +453,11 @@ const LoginPage = () => {
         }
 
         .logo-img {
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
+          width: 220px;
+          height: auto;
+          border-radius: 14px;
           object-fit: contain;
-          background: rgba(255,255,255,0.06);
+          background: white;
           border: 1px solid rgba(212, 184, 106, 0.3);
           padding: 8px;
           box-shadow: 0 0 20px rgba(201, 168, 76, 0.08);

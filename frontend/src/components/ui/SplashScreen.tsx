@@ -140,7 +140,7 @@ const SplashScreen = ({ onComplete, minimumDisplayTime = 2800 }: SplashScreenPro
               
               {/* Logo circle */}
               <motion.div
-                className="relative w-32 h-32 rounded-full bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-2xl"
+                className="relative w-64 h-40 rounded-2xl bg-white border border-white/20 flex items-center justify-center shadow-2xl"
                 animate={{ 
                   boxShadow: [
                     '0 0 30px rgba(200, 168, 75, 0.2)',
@@ -151,9 +151,9 @@ const SplashScreen = ({ onComplete, minimumDisplayTime = 2800 }: SplashScreenPro
                 transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
               >
                 <motion.img
-                  src="/logo.png"
+                  src="/arca-logo.png"
                   alt="Logo"
-                  className="w-20 h-20 object-contain drop-shadow-lg"
+                  className="w-56 h-32 object-contain"
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                   onError={(e) => {

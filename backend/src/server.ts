@@ -4,6 +4,7 @@ import envConfig from './config/env';
 import logger from './utils/logger';
 import { backupScheduler } from './services/backupScheduler.service';
 import { keepAliveService } from './services/keepAlive.service';
+import { initSessionRealtime } from './services/sessionRealtime.service';
 
 const PORT = envConfig.port;
 
@@ -48,10 +49,13 @@ async function start() {
       logger.info('');
     });
 
+    const realtime = initSessionRealtime(server);
+
     // Graceful shutdown
     const shutdown = (signal: string) => {
       logger.info(`${signal} recibido — cerrando servidor...`);
       keepAliveService.stop();
+      realtime.close();
       server.close(() => {
         logger.info('Servidor HTTP cerrado');
         process.exit(0);

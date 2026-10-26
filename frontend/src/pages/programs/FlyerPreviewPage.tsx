@@ -5,9 +5,11 @@ import { programsApi, personsApi, churchesApi, BACKEND_URL } from '../../lib/api
 import { sharePdfViaWhatsApp } from '../../lib/shareWhatsApp'
 import { downloadBlob } from '../../lib/downloadHelper'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ArrowLeft, Download, Save, Share2 } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import { getVerseText } from '../../lib/bibleApi'
+import { useAuthStore } from '../../store/authStore'
+import { P } from '../../constants/permissions'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -70,6 +72,7 @@ function buildUpdatePayload(form: FlyerForm, assignments: Assignment[]) {
     programTime: fullTime,
     ampm: form.timePeriod,
     verse: form.verse,
+    verseText: form.verseText,
     assignments: assignments.map((a) => ({
       sectionOrder: a.id,
       roleName: a.name,
@@ -180,6 +183,10 @@ const FlyerPreviewPage = () => {
   const navigate = useNavigate()
 
   useGoogleFonts()
+  const { hasPermission } = useAuthStore()
+  const canEdit = hasPermission(P.PROGRAMS_EDIT)
+  const canDownload = hasPermission(P.PROGRAMS_DOWNLOAD_PDF)
+  const canShare = hasPermission(P.WHATSAPP_SEND)
 
   // State
   const [loading, setLoading] = useState(true)
@@ -188,6 +195,7 @@ const FlyerPreviewPage = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [peoplePool, setPeoplePool] = useState<PersonOption[]>([])
   const [saving, setSaving] = useState(false)
+  const [savedSnapshot, setSavedSnapshot] = useState('')
   const [downloadingPdf, setDownloadingPdf] = useState(false)
   const [sharingWhatsApp, setSharingWhatsApp] = useState(false)
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('preview')
@@ -248,7 +256,7 @@ const FlyerPreviewPage = () => {
           } catch { /* ignorar si falla */ }
         }
 
-        setForm({
+        const loadedForm: FlyerForm = {
           churchName: prog.church?.name || INITIAL_FORM.churchName,
           churchSub: prog.church?.subTitle || '',
           location: prog.church?.location || '',
@@ -260,7 +268,8 @@ const FlyerPreviewPage = () => {
           verse: prog.verse || '',
           verseText: prog.verseText || '',
           logoUrl: resolvedLogoUrl,
-        })
+        }
+        setForm(loadedForm)
 
         let asigs: Assignment[] = (prog.assignments || []).map((a: any, idx: number) => ({
           id: a.sectionOrder || a.id || idx + 1,
@@ -275,6 +284,7 @@ const FlyerPreviewPage = () => {
         // Estas asignaciones vienen directamente del backend tal como fueron guardadas
 
         setAssignments(asigs)
+        setSavedSnapshot(JSON.stringify({ form: loadedForm, assignments: asigs }))
         
         const peopleData = (peopleRes.data.data || []).map((p: any) => ({
           id: p._id || p.id,
@@ -609,49 +619,18 @@ const FlyerPreviewPage = () => {
   // ─── Save ────────────────────────────────────────────────────────────────
 
   const handleSave = useCallback(async () => {
-    if (!validateRequired()) return
+    if (saving || downloadingPdf || sharingWhatsApp || !validateRequired()) return false
     setSaving(true)
     try {
-      const res = await programsApi.update(id as string, buildUpdatePayload(form, assignments))
-      // Actualizar el preview con los datos guardados
-      const prog = res.data.data
-      setForm({
-        churchName: prog.churchName || form.churchName,
-        churchSub: prog.churchSub || form.churchSub,
-        location: prog.location || form.location,
-        worshipType: prog.activityType?.name || form.worshipType,
-        worshipTypeId: prog.activityType?.id || form.worshipTypeId,
-        dateInput: prog.programDate ? toLocalDateStr(prog.programDate) : form.dateInput,
-        timeInput: prog.defaultTime ? cleanTimeStr(prog.defaultTime).time : form.timeInput,
-        timePeriod: prog.defaultTime ? extractTimePeriod(prog.defaultTime) : form.timePeriod,
-        verse: prog.verse || form.verse,
-        verseText: prog.verseText || form.verseText,
-        logoUrl: prog.logoUrl || form.logoUrl,
-      })
-      setAssignments(
-        Array.isArray(prog.assignments)
-          ? prog.assignments.map((a: any) => ({
-              id: a.sectionOrder || a.id,
-              name: a.roleName || a.sectionName || a.name,
-              sectionName: a.sectionName || a.name,
-              person: a.person?.name || '',
-              personId: a.person?.id || '',
-            }))
-          : assignments
-      )
-      toast.success('¡Programa guardado exitosamente!', {
-        style: { background: '#22C55E', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
-        duration: 3500,
-      })
+      await programsApi.update(id as string, buildUpdatePayload(form, assignments))
+      setSavedSnapshot(JSON.stringify({ form, assignments }))
+      toast.success('Cambios guardados')
+      return true
     } catch {
-      toast.error('Error al guardar el programa', {
-        style: { background: '#EF4444', color: 'white', fontWeight: 700, fontSize: '1.1rem', textAlign: 'center' },
-        duration: 3500,
-      })
-    } finally {
-      setSaving(false)
-    }
-  }, [id, form, assignments, validateRequired])
+      toast.error('No se pudieron guardar los cambios. Inténtalo de nuevo.')
+      return false
+    } finally { setSaving(false) }
+  }, [id, form, assignments, saving, downloadingPdf, sharingWhatsApp, validateRequired])
 
   // ─── Download PDF (Descarga directa sin guardar cambios) ────────────────
 
@@ -673,7 +652,7 @@ const FlyerPreviewPage = () => {
       console.error('Error al generar PDF desde backend, usando fallback local:', err)
       // Fallback: generate PDF client-side with jsPDF when backend fails
       try {
-        exportPDFLocal()
+        await exportPDFLocal()
       } catch (localErr) {
         console.error('Error en fallback local PDF:', localErr)
         toast.error('Error al generar el PDF', {
@@ -693,6 +672,7 @@ const FlyerPreviewPage = () => {
     setDownloadingPdf(true)
     try {
       await programsApi.update(id as string, buildUpdatePayload(form, assignments))
+      setSavedSnapshot(JSON.stringify({ form, assignments }))
       // ✅ Usar downloadFlyer en lugar de downloadPdf para manejar correctamente ambos tipos de programas
       const res = await programsApi.downloadFlyer(id as string)
       const blob = new Blob([res.data], { type: 'application/pdf' })
@@ -708,7 +688,7 @@ const FlyerPreviewPage = () => {
       console.error('Error al guardar o generar el PDF desde backend, usando fallback local:', err)
       // Fallback: generate PDF client-side with jsPDF when backend fails
       try {
-        exportPDFLocal()
+        await exportPDFLocal()
       } catch (localErr) {
         console.error('Error en fallback local PDF:', localErr)
         toast.error('Error al guardar o generar el PDF', {
@@ -723,7 +703,7 @@ const FlyerPreviewPage = () => {
 
   // ─── Export PDF Local con jsPDF (Alternativa sin backend) ────────────────
 
-  const exportPDFLocal = useCallback(() => {
+  const exportPDFLocal = useCallback(async () => {
     toast.info('⏳ Generando PDF...', { duration: 1500 })
 
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
@@ -758,27 +738,31 @@ const FlyerPreviewPage = () => {
     let y = 0
 
     // 1. HEADER
-    const HH = 42
+    const HH = 55
     setFill(...NAVY)
     rect(0, 0, PW, HH)
     setFill(...GOLD)
     rect(0, HH, PW, 2)
 
-    // Logo placeholder
-    setFill(...NAVYM)
-    doc.circle(M + 8, HH / 2, 8, 'F')
-    setTxt(...GOLDF)
-    doc.setFontSize(14)
-    doc.setFont('helvetica', 'bold')
-    doc.text('+', M + 8 - 2.5, HH / 2 + 2.5)
+    try {
+      const response = await fetch('/arca-logo.png')
+      if (!response.ok) throw new Error('Logo no disponible')
+      const image = new Uint8Array(await response.arrayBuffer())
+      setFill(...WHITE)
+      rrect(M, 6, 48, 30, 2)
+      doc.addImage(image, 'PNG', M + 2, 7, 44, 26)
+    } catch {
+      toast.error('No se pudo cargar el logo. Inténtalo de nuevo.')
+      return
+    }
 
     // Nombre iglesia
-    const nx = M + 20
+    const nx = M + 56
     setTxt(255, 255, 255)
     doc.setFontSize(15)
     doc.setFont('helvetica', 'bold')
     const cname = form.churchName.toUpperCase()
-    doc.text(cname, nx, HH / 2 - 4)
+    doc.text(doc.splitTextToSize(cname, PW - nx - M), nx, 17)
 
     setTxt(...GOLDF)
     doc.setFontSize(9)
@@ -929,25 +913,7 @@ const FlyerPreviewPage = () => {
     })
   }, [form, assignments])
 
-  // Usar logo real de la iglesia si existe
-  const logoSrc = useMemo(
-    () => {
-      if (form.logoUrl) {
-        // Si ya es una URL absoluta (Cloudinary, http, https), úsala directamente
-        if (form.logoUrl.startsWith('http://') || form.logoUrl.startsWith('https://')) {
-          return form.logoUrl
-        }
-        // Ruta relativa: construir desde el backend
-        const logoPath = form.logoUrl.startsWith('/') ? form.logoUrl : `/uploads/${form.logoUrl}`
-        return `${BACKEND_URL}${logoPath}`
-      }
-      // Fallback: imagen de logo genérico del backend
-      return `${BACKEND_URL}/uploads/logo.png`
-    },
-    [form.logoUrl]
-  )
-
-  // ─── Loading / Error ─────────────────────────────────────────────────────
+  const logoSrc = '/arca-logo.png'
 
   if (loading) {
     return (
@@ -973,75 +939,29 @@ const FlyerPreviewPage = () => {
     <>
       <style>{SCOPED_CSS}</style>
 
-      <div className="fe-page">
-        {/* ══════════════════════ TOP BAR ══════════════════════ */}
-        <div style={styles.topbar} className="fe-topbar">
-          <div className="fe-topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button onClick={() => navigate(-1)} className="fe-topbar-btn" style={styles.topbarBackBtn}>
-              ← Volver
-            </button>
-            <span style={styles.topbarBrand} className="fe-topbar-brand">
-              ✝ IGLESIA DIOS FUERTE <span style={{ color: C.goldLight }}>ARCA EVANGELICA</span>
-            </span>
+      <div className="fe-page" data-tab={activeTab}>
+        <header className="fe-toolbar">
+          <div className="fe-toolbar-heading">
+            <button onClick={() => navigate('/programs')} className="fe-back" aria-label="Volver a programas"><ArrowLeft size={18} /></button>
+            <div><p className="fe-eyebrow">Programas de la iglesia</p><h1>Editor del programa</h1><p className="fe-save-status" role="status">{saving ? "Guardando…" : savedSnapshot && savedSnapshot !== JSON.stringify({ form, assignments }) ? "Cambios sin guardar" : "Todos los cambios guardados"}</p></div>
           </div>
-          <div className="fe-topbar-actions" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <div style={styles.liveBadge} className="fe-live-badge-top">
-              <div className="fe-live-dot" />
-              <span className="fe-hide-mobile">Vista en tiempo real</span>
-            </div>
-            <span style={styles.topbarBadge} className="fe-hide-mobile">Editor de Programa</span>
-            <button 
-              onClick={async () => {
-                if (!id || sharingWhatsApp) return
-                setSharingWhatsApp(true)
-                try {
-                  await sharePdfViaWhatsApp(id, {
-                    activityName: form.worshipType,
-                    dateStr: form.dateInput,
-                    churchName: form.churchName,
-                  })
-                } finally {
-                  setSharingWhatsApp(false)
+          <div className="fe-toolbar-actions">
+            <button onClick={canEdit ? handleDownloadPdf : handleDirectDownloadPdf} disabled={!canDownload || saving || downloadingPdf || sharingWhatsApp} className="fe-tool-button"><Download size={16} /> PDF</button>
+            <button onClick={async () => {
+              if (!canShare || !id || saving || downloadingPdf || sharingWhatsApp || (canEdit && !validateRequired())) return
+              setSharingWhatsApp(true)
+              try {
+                if (canEdit) {
+                  await programsApi.update(id, buildUpdatePayload(form, assignments))
+                  setSavedSnapshot(JSON.stringify({ form, assignments }))
                 }
-              }} 
-              disabled={sharingWhatsApp}
-              className="fe-btn-whatsapp fe-action-btn" 
-              style={{
-                ...styles.topbarActionBtn, 
-                background: sharingWhatsApp ? 'rgba(0,0,0,0.2)' : 'rgba(37,211,102,0.15)',
-                color: sharingWhatsApp ? 'rgba(255,255,255,0.5)' : '#25D366',
-                border: '1px solid ' + (sharingWhatsApp ? 'rgba(255,255,255,0.1)' : 'rgba(37,211,102,0.3)'),
-              }}
-              title="Compartir por WhatsApp"
-            >
-              {sharingWhatsApp ? '⏳' : '📱'} <span className="fe-btn-text">WhatsApp</span>
-            </button>
-            <button 
-              onClick={handleDirectDownloadPdf} 
-              disabled={downloadingPdf} 
-              className="fe-btn-download fe-action-btn" 
-              style={{
-                ...styles.topbarActionBtn,
-                background: downloadingPdf ? 'rgba(0,0,0,0.2)' : 'rgba(200,168,75,0.15)',
-                color: downloadingPdf ? 'rgba(255,255,255,0.5)' : C.goldLight,
-                border: '1px solid ' + (downloadingPdf ? 'rgba(255,255,255,0.1)' : 'rgba(200,168,75,0.3)'),
-              }}
-              title="Descargar PDF del programa guardado"
-            >
-              {downloadingPdf ? '⏳' : '⬇️'} <span className="fe-btn-text">Descargar</span>
-            </button>
-            <button onClick={handleSave} disabled={saving} className="fe-btn-save fe-action-btn" style={{
-              ...styles.topbarActionBtn,
-              background: saving ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.15)',
-              color: saving ? 'rgba(255,255,255,0.5)' : 'white',
-              border: '1px solid ' + (saving ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.25)'),
-              fontWeight: 600,
-            }}
-            title="Guardar cambios">
-              {saving ? '⏳' : '💾'} <span className="fe-btn-text">Guardar</span>
-            </button>
+                await sharePdfViaWhatsApp(id, { activityName: form.worshipType, dateStr: form.dateInput, churchName: form.churchName })
+              } catch { toast.error('No se pudieron guardar los cambios para compartir') }
+              finally { setSharingWhatsApp(false) }
+            }} disabled={!canShare || saving || downloadingPdf || sharingWhatsApp} className="fe-tool-button"><Share2 size={16} /> Compartir</button>
+            <button onClick={handleSave} disabled={!canEdit || saving || downloadingPdf || sharingWhatsApp} className="fe-tool-button fe-save"><Save size={16} /> {saving ? 'Guardando…' : 'Guardar'}</button>
           </div>
-        </div>
+        </header>
 
         {/* ══════════════════════ MOBILE TABS ══════════════════════ */}
         <div className="fe-mobile-tabs" style={styles.mobileTabs} aria-label="Vista del editor">
@@ -1054,7 +974,7 @@ const FlyerPreviewPage = () => {
               ...(activeTab === 'preview' ? styles.mobileTabActive : {})
             }}
           >
-            👁️ Vista Previa
+            Vista previa
           </button>
           <button 
             className={`fe-tab ${activeTab === 'edit' ? 'active' : ''}`}
@@ -1065,365 +985,34 @@ const FlyerPreviewPage = () => {
               ...(activeTab === 'edit' ? styles.mobileTabActive : {})
             }}
           >
-            ⚙️ Configuración
+            Editar programa
           </button>
         </div>
 
         {/* ══════════════════════ WORKSPACE ══════════════════════ */}
         <div className="fe-workspace" style={styles.workspace}>
 
-          {/* ─── MOBILE: VERTICAL LAYOUT (Preview + Config) ─── */}
-          <div className="fe-mobile-vertical" data-tab={activeTab}>
-            {/* Preview superior */}
-            <div className="fe-mobile-preview" style={{
-              ...styles.previewWrapper,
-              marginBottom: '1rem'
-            }}>
-              {/* Label */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={styles.previewLabel}>
-                  Vista previa del flyer
-                  <span style={styles.previewLabelLine} />
-                </span>
-                <div style={styles.liveBadge}>
-                  <div className="fe-live-dot" />
-                  Se actualiza en tiempo real
-                </div>
-              </div>
-
-              {/* ══════════ FLYER ══════════ */}
-              <div style={styles.flyerContainer} className="fe-flyer-container">
-
-                {/* ── HEADER ── */}
-                <div style={styles.flyerHeader}>
-                  <div style={styles.flyerHeaderCircle1} />
-                  <div style={styles.flyerHeaderCircle2} />
-
-                  <div style={styles.headerInner} className="fe-flyer-heading">
-                    {/* Logo a la IZQUIERDA */}
-                    <img
-                      src={logoSrc}
-                      alt="Logo Iglesia"
-                      style={styles.logoImg}
-                      onError={(e) => {
-                        const img = e.target as HTMLImageElement
-                        img.style.display = 'none'
-                      }}
-                    />
-                    {/* Texto CENTRADO visualmente en el ancho total */}
-                    <div style={{ flex: 1, textAlign: 'center', paddingRight: 64 }}>
-                      <div style={styles.flyerChurchName}>{form.churchName || 'Iglesia'}</div>
-                      {form.churchSub && <div style={styles.flyerChurchSub}>{form.churchSub}</div>}
-                      {form.location && <div style={styles.flyerChurchLoc}>{form.location}</div>}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Gold band */}
-                <div style={styles.goldBand} />
-
-                {/* Badge */}
-                <div style={styles.badgeRow}>
-                  <div style={styles.flyerBadge}>{form.worshipType || 'Culto'}</div>
-                </div>
-
-                {/* Date & Time */}
-                <div style={styles.dateRow}>
-                  <div style={styles.flyerDate}>{formatDateES(form.dateInput)}</div>
-                  <div style={styles.flyerTime}>{formatTimeES(form.timeInput, form.timePeriod)}</div>
-                </div>
-
-                {/* Ornament */}
-                <div style={styles.ornament}>
-                  <div style={styles.ornamentLine} />
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    {[0.7, 1, 0.7].map((op, idx) => (
-                      <span key={idx} style={{ ...styles.diamond, opacity: op }} />
-                    ))}
-                  </div>
-                  <div style={styles.ornamentLine} />
-                </div>
-
-                {/* Section title */}
-                <div style={styles.flyerSectionTitle}>Orden del Culto</div>
-
-                {/* Program table */}
-                <div style={styles.flyerTable}>
-                  {assignments.map((a, i) => (
-                    <div key={`prev-${a.id}-${i}`} style={{
-                      ...styles.flyerRow,
-                      background: i % 2 === 0 ? C.gray100 : C.white,
-                      border: i % 2 === 1 ? `1px solid ${C.gray100}` : 'none',
-                    }}>
-                      <div style={styles.flyerRowNum}>{String(a.id).padStart(2, '0')}</div>
-                      <div style={styles.flyerRowRole} className="fe-flyer-role">{a.name}</div>
-                      {a.person ? (
-                        <div style={styles.flyerRowPerson}>{a.person}</div>
-                      ) : (
-                        <div style={styles.flyerRowEmpty}>— — — — — — —</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Verse */}
-                {form.verse && (
-                  <div style={styles.flyerVerse}>
-                    {form.verseText && (
-                      <p style={styles.flyerVerseText}>
-                        "{form.verseText}"
-                      </p>
-                    )}
-                    <cite style={styles.flyerVerseCite}>{form.verse}</cite>
-                  </div>
-                )}
-
-                {/* Footer */}
-                <div style={styles.flyerFooter}>
-                  <span style={styles.flyerFooterText}>
-                    {(form.churchName || 'Iglesia').toUpperCase()}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Panel de configuración inferior */}
-            <div className="fe-panel" style={{
-              ...styles.panel,
-              position: 'static',
-              borderRadius: '12px',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
-              marginBottom: '1rem'
-            }}>
-              <div style={styles.panelHeader}>
-                <h2 style={styles.panelHeaderTitle}>⚙️ Configuración Manual</h2>
-              </div>
-
-              <div style={styles.panelBody}>
-                {/* Iglesia */}
-                <FormGroup label="Nombre de la iglesia" id="churchName" value={form.churchName} onChange={handleInput} />
-
-                <div style={styles.formRow}>
-                  <FormGroup label="Subtítulo" id="churchSub" value={form.churchSub} onChange={handleInput} />
-                  <FormGroup label="Tipo de culto" id="worshipType" value={form.worshipType} onChange={handleInput} />
-                </div>
-
-                <FormGroup label="Ubicación" id="location" value={form.location} onChange={handleInput} />
-
-                <div style={styles.formRow}>
-                  <FormGroup label="Fecha" id="dateInput" type="date" value={form.dateInput} onChange={handleInput} />
-                  <div style={{ display: 'flex', gap: '0.5rem', flex: 1 }}>
-                    <FormGroup label="Hora" id="timeInput" type="text" value={form.timeInput} onChange={handleInput} placeholder="HH:MM" />
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#64748b' }}>Período</label>
-                      <select
-                        id="timePeriod"
-                        value={form.timePeriod}
-                        onChange={handleInput}
-                        style={{
-                          padding: '0.5rem',
-                          borderRadius: '0.375rem',
-                          border: '1px solid #cbd5e1',
-                          fontSize: '0.875rem',
-                          cursor: 'pointer',
-                          backgroundColor: 'white',
-                          minWidth: '70px'
-                        }}
-                      >
-                        <option value="AM">AM</option>
-                        <option value="PM">PM</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Versículo con búsqueda */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label htmlFor="verse" style={styles.formLabel}>Versículo (footer)</label>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <input
-                      type="text"
-                      id="verse"
-                      value={form.verse}
-                      onChange={handleInput}
-                      placeholder="Ej: Mateo 28:19"
-                      style={{ ...styles.formInput, flex: 1, marginBottom: 0 }}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleFetchVerse}
-                      disabled={fetchingVerse || !form.verse.trim()}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        borderRadius: '0.375rem',
-                        border: 'none',
-                        backgroundColor: fetchingVerse ? '#cbd5e1' : '#2563eb',
-                        color: 'white',
-                        cursor: fetchingVerse || !form.verse.trim() ? 'not-allowed' : 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        whiteSpace: 'nowrap',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.25rem'
-                      }}
-                    >
-                      {fetchingVerse ? (
-                        <>
-                          <Loader2 size={16} className="animate-spin" />
-                          Buscando...
-                        </>
-                      ) : (
-                        <>🔍 Buscar</>  
-                      )}
-                    </button>
-                  </div>
-                  {versePreview && (
-                    <div style={{ marginTop: '0.5rem' }}>
-                      <div style={{
-                        padding: '0.75rem',
-                        backgroundColor: '#f0f9ff',
-                        borderLeft: '3px solid #2563eb',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem',
-                        color: '#1e40af',
-                        fontStyle: 'italic'
-                      }}>
-                        {versePreview}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleInsertVerse}
-                        style={{
-                          marginTop: '0.5rem',
-                          padding: '0.5rem 1rem',
-                          borderRadius: '0.375rem',
-                          border: 'none',
-                          backgroundColor: '#10b981',
-                          color: 'white',
-                          cursor: 'pointer',
-                          fontSize: '0.875rem',
-                          fontWeight: 500,
-                          width: '100%'
-                        }}
-                      >
-                        ✅ Insertar en flyer
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Sección Asignaciones */}
-                <div style={styles.sectionTitle}>
-                  <span>Asignaciones del programa</span>
-                  <button className="fe-btn-randomize" onClick={randomizeAll} style={styles.randomizeBtn}>
-                    🎲 Asignar al azar
-                  </button>
-                </div>
-
-                {/* Rows */}
-                <div>
-                  {assignments.map((a, i) => (
-                    <div
-                      key={`a-${a.id}-${i}`}
-                      className="fe-assignment-row"
-                      style={{
-                        ...styles.assignmentRow,
-                        borderBottom: i < assignments.length - 1 ? `1px solid ${C.gray100}` : 'none',
-                      }}
-                    >
-                      <div style={styles.roleBadge}>
-                        {String(a.id).padStart(2, '0')}
-                      </div>
-                      <div style={styles.roleLabel} className="fe-role-label" title={a.name}>{a.name}</div>
-                      <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
-                        <input
-                          ref={(el) => { inputRefs.current[i] = el }}
-                          type="text"
-                          className={`fe-name-input${a.personId ? ' assigned' : ''}`}
-                          placeholder="Sin asignar"
-                          value={a.person}
-                          onChange={(e) => handleAssignmentInput(i, e.target.value)}
-                          onBlur={() => setTimeout(() => confirmAssignment(i), 150)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') { e.preventDefault(); confirmAssignment(i) }
-                            if (e.key === 'Escape') { setSuggestions([]); setActiveSuggestionIdx(null) }
-                          }}
-                          autoComplete="off"
-                          style={styles.nameInput}
-                        />
-                        {activeSuggestionIdx === i && suggestions.length > 0 && (
-                          <div ref={suggestionsRef} style={styles.suggestionsDropdown}>
-                            {suggestions.map((s) => (
-                              <div
-                                key={s.id}
-                                className="fe-suggestion-item"
-                                style={styles.suggestionItem}
-                                onMouseDown={(e) => { e.preventDefault(); selectSuggestion(i, s) }}
-                              >
-                                {s.fullName}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <button
-                        className="fe-btn-clear"
-                        onClick={() => clearAssignment(i)}
-                        title="Limpiar"
-                        style={styles.clearBtn}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Actions */}
-                <div style={styles.actions}>
-                  <button className="fe-btn-gold" onClick={exportPDFLocal} style={{
-                    ...styles.btn, ...styles.btnGold,
-                  }} title="Descargar PDF generado en el navegador (sin guardar)">
-                    ⬇️ Descargar PDF (Vista Previa)
-                  </button>
-                  <button className="fe-btn-gold" onClick={handleDownloadPdf} disabled={downloadingPdf || saving} style={{
-                    ...styles.btn, ...styles.btnGold, opacity: (downloadingPdf || saving) ? 0.6 : 1,
-                  }} title="Guardar cambios y descargar PDF desde el servidor">
-                    {downloadingPdf ? '⏳' : '💾⬇️'} Guardar y Descargar PDF
-                  </button>
-                  <button className="fe-btn-outline" onClick={randomizeAll} style={{ ...styles.btn, ...styles.btnOutline }}>
-                    🔀 Reasignar personas
-                  </button>
-                  <button className="fe-btn-outline" onClick={clearAll} style={{ ...styles.btn, ...styles.btnOutline }}>
-                    🗑️ Limpiar todas las asignaciones
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* Fin fe-mobile-vertical */}
-
           {/* ─── DESKTOP: TWO-PANEL LAYOUT ─── */}
           <div 
-            className="fe-panel fe-desktop-only" 
+            className="fe-panel fe-edit-panel"
             style={styles.panel}
           >
             <div style={styles.panelHeader}>
-              <h2 style={styles.panelHeaderTitle}>⚙️ Configuración</h2>
+              <h2 style={styles.panelHeaderTitle}>Datos del encuentro</h2>
             </div>
 
-            <div style={styles.panelBody}>
+            <fieldset disabled={!canEdit || saving || downloadingPdf || sharingWhatsApp} style={styles.panelBody} className="fe-panel-body">
               {/* Iglesia */}
               <FormGroup label="Nombre de la iglesia" id="churchName" value={form.churchName} onChange={handleInput} />
 
-              <div style={styles.formRow}>
+              <div style={styles.formRow} className="fe-form-row">
                 <FormGroup label="Subtítulo" id="churchSub" value={form.churchSub} onChange={handleInput} />
                 <FormGroup label="Tipo de culto" id="worshipType" value={form.worshipType} onChange={handleInput} />
               </div>
 
               <FormGroup label="Ubicación" id="location" value={form.location} onChange={handleInput} />
 
-              <div style={styles.formRow}>
+              <div style={styles.formRow} className="fe-form-row">
                 <FormGroup label="Fecha" id="dateInput" type="date" value={form.dateInput} onChange={handleInput} />
                 <div style={{ display: 'flex', gap: '0.5rem', flex: 1 }}>
                   <FormGroup label="Hora" id="timeInput" type="text" value={form.timeInput} onChange={handleInput} placeholder="HH:MM" />
@@ -1527,7 +1116,7 @@ const FlyerPreviewPage = () => {
               </div>
 
               {/* Sección Asignaciones */}
-              <div style={styles.sectionTitle}>
+              <div style={styles.sectionTitle} className="fe-section-title">
                 <span>Asignaciones del programa</span>
                 <button className="fe-btn-randomize" onClick={randomizeAll} style={styles.randomizeBtn}>
                   🎲 Asignar al azar
@@ -1548,11 +1137,12 @@ const FlyerPreviewPage = () => {
                     <div style={styles.roleBadge}>
                       {String(a.id).padStart(2, '0')}
                     </div>
-                    <div style={styles.roleLabel} title={a.name}>{a.name}</div>
-                    <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
+                    <label htmlFor={`assigned-person-${i}`} style={styles.roleLabel} className="fe-role-label" title={a.name}>{a.name}</label>
+                    <div className="fe-person-field" style={{ flex: 1, position: 'relative', minWidth: 0 }}>
                       <input
                         ref={(el) => { inputRefs.current[i] = el }}
                         type="text"
+                        id={`assigned-person-${i}`}
                         className={`fe-name-input${a.personId ? ' assigned' : ''}`}
                         placeholder="Sin asignar"
                         value={a.person}
@@ -1583,7 +1173,7 @@ const FlyerPreviewPage = () => {
                     <button
                       className="fe-btn-clear"
                       onClick={() => clearAssignment(i)}
-                      title="Limpiar"
+                      title="Limpiar" aria-label={`Quitar participante de ${a.name}`}
                       style={styles.clearBtn}
                     >
                       ✕
@@ -1611,12 +1201,12 @@ const FlyerPreviewPage = () => {
                   🗑️ Limpiar todas las asignaciones
                 </button>
               </div>
-            </div>
+            </fieldset>
           </div>
 
           {/* ─── DESKTOP: RIGHT PANEL - FLYER PREVIEW ─── */}
           <div 
-            className="fe-desktop-only"
+            className="fe-preview-panel"
             style={styles.previewWrapper}
           >
             {/* Label */}
@@ -1632,16 +1222,16 @@ const FlyerPreviewPage = () => {
             </div>
 
             {/* ══════════ FLYER ══════════ */}
-            <div style={styles.flyerContainer}>
+            <div style={styles.flyerContainer} className="fe-flyer-container">
 
               {/* ── HEADER ── */}
               <div style={styles.flyerHeader}>
                 <div style={styles.flyerHeaderCircle1} />
                 <div style={styles.flyerHeaderCircle2} />
 
-                <div style={styles.headerInner}>
+                <div style={styles.headerInner} className="fe-flyer-heading">
                   {/* Logo a la IZQUIERDA */}
-                  <div style={{ position: 'relative', flexShrink: 0, width: 60, height: 60 }}>
+                  <div style={{ position: 'relative', flexShrink: 0, width: 208, height: 'auto' }}>
                     <img
                       src={logoSrc}
                       alt="Logo Iglesia"
@@ -1708,11 +1298,11 @@ const FlyerPreviewPage = () => {
                     border: i % 2 === 1 ? `1px solid ${C.gray100}` : 'none',
                   }}>
                     <div style={styles.flyerRowNum}>{String(a.id).padStart(2, '0')}</div>
-                    <div style={styles.flyerRowRole}>{a.name}</div>
+                    <div style={styles.flyerRowRole} className="fe-flyer-role">{a.name}</div>
                     {a.person ? (
-                      <div style={styles.flyerRowPerson}>{a.person}</div>
+                      <div style={styles.flyerRowPerson} className="fe-flyer-person">{a.person}</div>
                     ) : (
-                      <div style={styles.flyerRowEmpty}>— — — — — — —</div>
+                      <div style={styles.flyerRowEmpty} className="fe-flyer-person">— — — — — — —</div>
                     )}
                   </div>
                 ))}
@@ -1846,120 +1436,75 @@ const SCOPED_CSS = `
     background: rgba(255,255,255,0.1) !important;
   }
 
-  /* Responsive Styles */
-  @container editor (max-width: 1400px) {
-    .fe-workspace { grid-template-columns: 360px 1fr !important; gap: 1.5rem !important; }
-  }
 
-  @container editor (max-width: 1280px) {
-    .fe-workspace { grid-template-columns: 340px 1fr !important; gap: 1.25rem !important; }
-  }
-
-  @container editor (max-width: 1024px) {
-    .fe-workspace { grid-template-columns: 320px 1fr !important; gap: 1rem !important; padding: 1rem !important; }
-    .fe-topbar-brand { font-size: 1rem !important; }
-    .fe-panel { top: 54px !important; }
-  }
-
-  @container editor (max-width: 900px) {
-    .fe-mobile-tabs { display: flex !important; position: sticky; top: 64px; z-index: 25; }
-    .fe-mobile-vertical[data-tab="edit"] > .fe-mobile-preview { display: none !important; }
-    .fe-mobile-vertical[data-tab="preview"] > .fe-panel { display: none !important; }
-    .fe-mobile-vertical { display: block !important; }
-    .fe-desktop-only { display: none !important; }
-    .fe-workspace { display: block !important; padding: 0.75rem !important; }
-    .fe-topbar { 
-      height: auto !important; 
-      min-height: 48px !important;
-      padding: 0.5rem 0.75rem !important;
-      gap: 8px !important; 
-    }
-    .fe-topbar-actions {
-      flex-wrap: nowrap !important;
-      justify-content: flex-end !important;
-      gap: 6px !important;
-    }
-    .fe-topbar-brand { display: none !important; }
-    .fe-hide-mobile { display: none !important; }
-    .fe-btn-text { display: inline !important; font-size: 12px; }
-    .fe-action-btn { 
-      padding: 8px 10px !important; 
-      font-size: 1rem !important;
-      gap: 0 !important;
-      border-radius: 8px !important;
-      min-width: 40px !important;
-      justify-content: center !important;
-    }
-    .fe-live-badge-top { display: none !important; }
-  }
-
-  @container editor (max-width: 640px) {
-    .fe-page { font-size: 14px; }
-    .fe-topbar { 
-      padding: 0.4rem 0.6rem !important; 
-      height: auto !important; 
-      min-height: 48px !important;
-      flex-direction: column !important;
-      align-items: center !important;
-      gap: 0.5rem !important;
-    }
-    .fe-topbar-left {
-      flex: 1 !important;
-      min-width: 0 !important;
-    }
-    .fe-topbar-actions {
-      justify-content: flex-end !important;
-      flex-shrink: 0 !important;
-      gap: 6px !important;
-    }
-    .fe-topbar-back-btn { 
-      font-size: 0.7rem !important; 
-      padding: 7px 10px !important;
-      white-space: nowrap !important;
-    }
-    .fe-topbar-badge { display: none !important; }
-    .fe-action-btn { 
-      font-size: 1.1rem !important; 
-      padding: 7px 9px !important;
-      min-width: 38px !important;
-      height: 38px !important;
-      justify-content: center !important;
-      align-items: center !important;
-      border-radius: 8px !important;
-    }
-    .fe-btn-text { display: inline !important; font-size: 12px; }
-    .fe-topbar-actions { width: 100%; justify-content: stretch !important; }
-    .fe-action-btn { flex: 1; min-height: 44px; gap: 4px !important; }
-    .fe-topbar { position: static !important; z-index: auto !important; border-radius: 16px 16px 0 0; }
-    .fe-flyer-container { overflow-wrap: anywhere; }
-    .fe-flyer-heading { flex-direction: column; gap: 12px !important; }
-    .fe-flyer-heading > div { padding-right: 0 !important; }
-    .fe-flyer-role { width: 30% !important; min-width: 0; font-size: 12px !important; white-space: normal !important; overflow: visible !important; padding-right: 8px; }
-    .fe-role-label { flex: 1; width: auto !important; white-space: normal !important; overflow: visible !important; }
-    .fe-mobile-vertical .fe-panel > div:last-child { padding: 16px !important; }
-    .fe-mobile-vertical .fe-panel div[style*="grid-template-columns"] { grid-template-columns: minmax(0, 1fr) !important; }
-    .fe-mobile-preview > div:first-child { flex-wrap: wrap; gap: 8px; }
-    .fe-assignment-row { flex-wrap: wrap; gap: 8px !important; }
-    .fe-assignment-row > div[style*="position: relative"] { flex-basis: 60% !important; }
-    .fe-live-badge-top { display: none !important; }
+  .fe-toolbar { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; padding: 24px; background: white; border: 1px solid #e2e6ed; border-radius: 18px; margin-bottom: 20px; }
+  .fe-toolbar-heading { display: flex; gap: 12px; align-items: center; min-width: 0; }
+  .fe-toolbar h1 { font-size: 20px; font-weight: 700; color: #14263f; margin: 2px 0 0; }
+  .fe-save-status { font-size: 12px; color: #64748b; margin: 4px 0 0; }
+  .fe-eyebrow { font-size: 10px; text-transform: uppercase; letter-spacing: .16em; color: #77715f; margin: 0; }
+  .fe-back { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; border: 1px solid #e2e6ed; background: #f8f9fb; border-radius: 12px; }
+  .fe-toolbar-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .fe-tool-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #e2e6ed; border-radius: 10px; background: white; color: #14263f; padding: 11px 16px; font-size: 13px; font-weight: 600; min-height: 44px; }
+  .fe-tool-button:disabled { opacity: .5; cursor: wait; }
+  .fe-save { background: #14263f; color: white; border-color: #14263f; }
+  .fe-workspace { grid-template-columns: minmax(320px, .9fr) minmax(0, 1.1fr) !important; align-items: start; padding: 0 !important; }
+  .fe-workspace > *, .fe-page input, .fe-page select { min-width: 0; }
+  .fe-edit-panel { position: static !important; overflow: visible !important; }
+  .fe-panel-body > div, .fe-form-row > div { min-width: 0; }
+  .fe-panel-body { min-inline-size: 0; border: 0; margin: 0; }
+  .fe-form-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+  .fe-assignment-row { display: grid !important; grid-template-columns: 28px minmax(0, 1fr) 44px; gap: 10px !important; padding: 16px 0 !important; align-items: center; }
+  .fe-role-label { grid-column: 2 / 4; width: auto !important; white-space: normal !important; overflow: visible !important; font-size: 13px !important; }
+  .fe-person-field { grid-column: 1 / 3; grid-row: 2; width: 100%; }
+  .fe-btn-clear { grid-column: 3; grid-row: 2; width: 44px !important; height: 44px !important; }
+  .fe-name-input { min-height: 46px; font-size: 16px !important; }
+  .fe-flyer-container { overflow-wrap: anywhere; }
+  .fe-flyer-heading { flex-direction: column; }
+  .fe-flyer-heading > div { padding-right: 0 !important; }
+  .fe-flyer-heading img { width: 208px !important; height: auto !important; padding: 10px; border-radius: 10px !important; background: white; object-fit: contain; }
+  @media (max-width: 1200px) {
+    .fe-workspace { display: flex !important; flex-direction: column; gap: 20px !important; padding: 16px !important; }
+    .fe-workspace > * { width: 100%; min-width: 0; }
+    .fe-page[data-tab="preview"] .fe-edit-panel { display: none !important; }
+    .fe-page[data-tab="edit"] .fe-preview-panel { display: none !important; }
+    .fe-mobile-tabs { display: flex !important; position: static; border-radius: 12px; padding: 4px !important; margin: 0 16px; }
+    .fe-tab { min-height: 44px; border-radius: 8px; }
+    .fe-edit-panel { position: static !important; }
+    .fe-toolbar { align-items: stretch; flex-direction: column; padding: 20px 16px; }
+    .fe-toolbar-actions { display: grid; grid-template-columns: .75fr 1fr 1fr; width: 100%; }
+    .fe-tool-button { padding: 10px 8px; font-size: 12px; min-width: 0; }
+    .fe-form-row { grid-template-columns: minmax(0, 1fr) !important; }
+    .fe-panel-body { padding: 20px 16px !important; }
+    .fe-preview-panel > div:first-child { flex-wrap: wrap; gap: 8px; }
     .fe-live-badge { display: none !important; }
-    .fe-panel-body { padding: 0.75rem !important; }
-    
-    /* Táctil-friendly inputs */
-    .fe-form-input { min-height: 40px !important; font-size: 16px !important; }
-    .fe-name-input { min-height: 40px !important; font-size: 16px !important; }
-    .fe-btn { min-height: 44px !important; font-size: 0.9rem !important; }
-    .fe-assignment-row { padding: 10px 0 !important; }
-    .fe-role-badge { width: 28px !important; height: 28px !important; }
-    .fe-clear-btn { width: 28px !important; height: 28px !important; }
-    
-    /* Mobile vertical layout */
-    .fe-mobile-vertical .fe-flyer-container { 
-      margin: 0 !important;
-      border-radius: 8px !important;
-      max-width: none !important;
-    }
-  }
+    .fe-flyer-heading { flex-direction: column; gap: 16px !important; }
+    .fe-flyer-heading > div { padding-right: 0 !important; }
+    .fe-flyer-role { flex: 1; min-width: 0; width: auto !important; white-space: normal !important; overflow: visible !important; font-size: 12px !important; }
+    .fe-flyer-person { min-width: 0; font-size: 15px !important; overflow-wrap: anywhere; }
+    .fe-section-title { align-items: flex-start !important; gap: 12px; flex-wrap: wrap; }
+ }
+  @container editor (max-width: 900px) {
+    .fe-workspace { display: flex !important; flex-direction: column; gap: 20px !important; padding: 16px !important; }
+    .fe-workspace > * { width: 100%; min-width: 0; }
+    .fe-page[data-tab="preview"] .fe-edit-panel { display: none !important; }
+    .fe-page[data-tab="edit"] .fe-preview-panel { display: none !important; }
+    .fe-mobile-tabs { display: flex !important; position: static; border-radius: 12px; padding: 4px !important; margin: 0 16px; }
+    .fe-tab { min-height: 44px; border-radius: 8px; }
+    .fe-edit-panel { position: static !important; }
+    .fe-toolbar { align-items: stretch; flex-direction: column; padding: 20px 16px; }
+    .fe-toolbar-actions { display: grid; grid-template-columns: .75fr 1fr 1fr; width: 100%; }
+    .fe-tool-button { padding: 10px 8px; font-size: 12px; min-width: 0; }
+    .fe-form-row { grid-template-columns: minmax(0, 1fr) !important; }
+    .fe-panel-body { padding: 20px 16px !important; }
+    .fe-preview-panel > div:first-child { flex-wrap: wrap; gap: 8px; }
+    .fe-live-badge { display: none !important; }
+    .fe-flyer-heading { flex-direction: column; gap: 16px !important; }
+    .fe-flyer-heading > div { padding-right: 0 !important; }
+    .fe-flyer-role { flex: 1; min-width: 0; width: auto !important; white-space: normal !important; overflow: visible !important; font-size: 12px !important; }
+    .fe-flyer-person { min-width: 0; font-size: 15px !important; overflow-wrap: anywhere; }
+    .fe-section-title { align-items: flex-start !important; gap: 12px; flex-wrap: wrap; }
+ }
+
 `
 
 // ─── Styles object ───────────────────────────────────────────────────────────

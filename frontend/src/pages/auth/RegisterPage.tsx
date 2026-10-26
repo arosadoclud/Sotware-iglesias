@@ -8,6 +8,7 @@ import { UserPlus, Mail, Lock, User, Eye, EyeOff, CheckCircle2, XCircle } from '
 import { authApi } from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
+import { BrandLogo } from '../../components/layout/BrandLogo';
 
 // Lista de contraseñas comunes que deben ser rechazadas (todas en minúsculas)
 const COMMON_PASSWORDS = [
@@ -177,11 +178,12 @@ const RegisterPage: React.FC = () => {
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white text-center">
+          <BrandLogo className="w-48 mx-auto mb-6 p-3" />
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="mx-auto w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-4"
+            className="hidden"
           >
             <UserPlus className="w-8 h-8" />
           </motion.div>

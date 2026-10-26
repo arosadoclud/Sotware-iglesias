@@ -137,6 +137,19 @@ const UsersManagementPage = () => {
     }
   }
 
+  useEffect(() => {
+    const refresh = () => {
+      if (!useAuthStore.getState().hasPermission('users:view')) return
+      adminApi.getUsers({ limit: 100 }).then(res => setUsers(res.data.data || [])).catch(() => {})
+    }
+    window.addEventListener('users:changed', refresh)
+    window.addEventListener('focus', refresh)
+    return () => {
+      window.removeEventListener('users:changed', refresh)
+      window.removeEventListener('focus', refresh)
+    }
+  }, [])
+
   // ── Filter users ────────────────────────────────────────────────────────────
   
   const filteredUsers = users.filter(user => {

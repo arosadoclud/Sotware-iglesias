@@ -6,6 +6,7 @@ import { IChurch } from "../../models/Church.model";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import puppeteer from "puppeteer";
+import { getProgramLogoDataUri } from '../../config/brand';
 
 /**
  * PDF SERVICE
@@ -126,71 +127,7 @@ export class PdfService {
       const location = "";
       const worshipType = (program as any).activityType?.name || "Culto";
 
-      // Logo: embeber como base64 data URI para máxima compatibilidad con Puppeteer
-      let logoUrl: string | null = null;
-      const rawLogo = (program as any).logoUrl || church.logoUrl || null;
-      
-      // Directorios donde buscar el logo
-      const searchDirs = [
-        path.join(process.cwd(), "uploads"),
-        path.join(process.cwd(), "backend", "uploads"),
-        path.join(__dirname, "..", "..", "..", "uploads"),
-        path.join(process.cwd(), "public"),
-        path.join(process.cwd(), "public", "uploads"),
-      ];
-      
-      if (rawLogo) {
-        if (rawLogo.startsWith("http://") || rawLogo.startsWith("https://")) {
-          // URL absoluta (Cloudinary u otro CDN): usarla directamente
-          logoUrl = rawLogo;
-        } else if (rawLogo.startsWith("data:")) {
-          logoUrl = rawLogo;
-        } else {
-          // Ruta relativa como /uploads/logo.png: buscar en disco
-          const logoFilename = rawLogo.startsWith("/uploads/") 
-            ? rawLogo.replace("/uploads/", "") 
-            : path.basename(rawLogo);
-          const searchNames = [logoFilename, "logo.png"];
-
-          for (const dir of searchDirs) {
-            if (logoUrl) break;
-            for (const name of searchNames) {
-              const candidate = path.join(dir, name);
-              if (fs.existsSync(candidate)) {
-                const fileBuffer = fs.readFileSync(candidate);
-                const ext = path.extname(name).toLowerCase().replace(".", "");
-                const mime = ext === "png" ? "image/png"
-                  : ext === "jpg" || ext === "jpeg" ? "image/jpeg"
-                  : ext === "svg" ? "image/svg+xml"
-                  : ext === "webp" ? "image/webp"
-                  : "image/png";
-                logoUrl = `data:${mime};base64,${fileBuffer.toString("base64")}`;
-                break;
-              }
-            }
-          }
-
-          // Fallback: si no se encontró en disco, intentar via HTTP desde el propio servidor
-          if (!logoUrl) {
-            const backendUrl = process.env.BACKEND_URL || process.env.RENDER_EXTERNAL_URL
-              || `http://localhost:${process.env.PORT || 4000}`;
-            const httpLogoUrl = `${backendUrl}${rawLogo.startsWith('/') ? rawLogo : '/' + rawLogo}`;
-            logoUrl = httpLogoUrl; // Puppeteer lo cargará desde la red
-          }
-        }
-      }
-      
-      // Fallback: buscar logo.png siempre si no se encontró
-      if (!logoUrl) {
-        for (const dir of searchDirs) {
-          const candidate = path.join(dir, "logo.png");
-          if (fs.existsSync(candidate)) {
-            const fileBuffer = fs.readFileSync(candidate);
-            logoUrl = `data:image/png;base64,${fileBuffer.toString("base64")}`;
-            break;
-          }
-        }
-      }
+      const logoUrl = getProgramLogoDataUri();
 
       const templateData = {
         churchName,
@@ -241,7 +178,7 @@ export class PdfService {
     const templateData = {
       church: {
         name: church.name,
-        logoUrl: church.logoUrl || null,
+        logoUrl: getProgramLogoDataUri(),
         signatureUrl: (church as any).signatureUrl || null,
         pastorName: (church as any).pastorName || null,
         phone: church.phone || null,

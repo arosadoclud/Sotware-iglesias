@@ -8,7 +8,7 @@ const AuthLayout = () => {
     return <Navigate to="/" replace />
   }
 
-  return <Outlet />
+  return <div className="auth-surface"><Outlet /></div>
 }
 
 export default AuthLayout

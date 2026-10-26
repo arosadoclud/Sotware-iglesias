@@ -43,6 +43,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import LogoutSplash from '../ui/LogoutSplash'
+import { BrandLogo } from './BrandLogo'
 
 interface NavItemProps {
   item: {
@@ -226,7 +227,7 @@ const DashboardLayoutImproved = () => {
   const [showLogoutSplash, setShowLogoutSplash] = useState(false)
   const { restartTour } = useOnboarding()
 
-  const isViewer = user?.role === 'VIEWER'
+  const isViewer = user?.role === 'VIEWER' && !user?.useCustomPermissions
 
   const handleLogout = () => {
     setShowLogoutSplash(true)
@@ -282,9 +283,9 @@ const DashboardLayoutImproved = () => {
       key: 'tesoreria',
       label: 'Tesorería',
       icon: DollarSign,
-      show: !isViewer && (hasPermission(P.FINANCES_VIEW) || isAdmin()),
+      show: hasPermission(P.FINANCES_VIEW),
       items: [
-        { name: 'Finanzas', href: '/finances', icon: DollarSign, show: hasPermission(P.FINANCES_VIEW) || isAdmin(), className: 'sidebar-finances' },
+        { name: 'Finanzas', href: '/finances', icon: DollarSign, show: hasPermission(P.FINANCES_VIEW), className: 'sidebar-finances' },
       ],
     },
     {
@@ -318,11 +319,11 @@ const DashboardLayoutImproved = () => {
       key: 'administracion',
       label: 'Administración',
       icon: Shield,
-      show: !isViewer && isAdmin(),
+      show: hasPermission(P.USERS_VIEW) || hasPermission(P.AUDIT_VIEW) || hasPermission(P.SETTINGS_VIEW),
       items: [
-        { name: 'Usuarios',       href: '/admin/users', icon: UserCog,  show: isAdmin() },
-        { name: 'Auditoría',      href: '/admin/audit', icon: Shield,   show: isAdmin() },
-        { name: 'Configuración',  href: '/settings',    icon: Settings, show: hasPermission(P.SETTINGS_VIEW) || isAdmin(), className: 'sidebar-settings' },
+        { name: 'Usuarios',       href: '/admin/users', icon: UserCog,  show: hasPermission(P.USERS_VIEW) },
+        { name: 'Auditoría',      href: '/admin/audit', icon: Shield,   show: hasPermission(P.AUDIT_VIEW) },
+        { name: 'Configuración',  href: '/settings',    icon: Settings, show: hasPermission(P.SETTINGS_VIEW), className: 'sidebar-settings' },
       ],
     },
   ]
@@ -350,7 +351,7 @@ const DashboardLayoutImproved = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="app-shell min-h-screen bg-slate-50">
       {/* Mobile Menu Button */}
       <header className="lg:hidden sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur-md">
         <Button
@@ -365,7 +366,7 @@ const DashboardLayoutImproved = () => {
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </Button>
-        <div className="min-w-0 flex-1"><p className="text-sm font-bold text-slate-900">Dios Fuerte</p><p className="text-xs text-slate-500 truncate">Arca Evangélica · Gestión de la iglesia</p></div>
+        <div className="min-w-0 flex-1 flex items-center gap-3"><BrandLogo className="brand-logo-mobile" /><div><p className="text-sm font-bold text-slate-900">Dios Fuerte</p><p className="text-[10px] tracking-wider uppercase text-slate-500">Arca Evangélica</p></div></div>
         <Avatar className="h-9 w-9"><AvatarFallback className="bg-blue-50 text-blue-700 text-xs">{user?.fullName?.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
       </header>
 
@@ -377,51 +378,12 @@ const DashboardLayoutImproved = () => {
       >
         {/* Header */}
         <div className="flex items-center justify-between h-20 px-4 border-b border-neutral-100 bg-gradient-to-r from-white to-neutral-50/50">
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.3 }}
-                className="flex items-center gap-3"
-              >
-                <motion.div 
-                  className="relative"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                >
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                    <Church className="w-7 h-7 text-white drop-shadow-sm" />
-                  </div>
-                  {/* Decorative glow */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-2xl blur-lg opacity-30 -z-10" />
-                </motion.div>
-                <div className="flex flex-col">
-                  <h1 className="font-bold text-neutral-800 text-base leading-tight tracking-tight">
-                    Programa de
-                  </h1>
-                  <p className="text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    Oportunidades
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          {collapsed && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="w-10 h-10 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-md mx-auto"
-            >
-              <Church className="w-5 h-5 text-white" />
-            </motion.div>
-          )}
+          <Link to="/" className="brand-home" aria-label="Arca Evangélica, inicio"><BrandLogo className={collapsed ? 'brand-logo-collapsed' : 'brand-logo-sidebar'} /></Link>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setCollapsed(!collapsed)}
-            className="hover:bg-neutral-100 rounded-xl"
+            className="hover:bg-neutral-100 rounded-xl shrink-0" aria-label={collapsed ? "Expandir navegación" : "Contraer navegación"}
           >
             <ChevronLeft
               className={`w-5 h-5 text-neutral-500 transition-transform duration-300 ${
@@ -435,7 +397,7 @@ const DashboardLayoutImproved = () => {
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {/* Dashboard - siempre visible solo */}
           <NavItem
-            item={{ name: 'Dashboard', href: '/', icon: LayoutDashboard, className: 'sidebar-dashboard' }}
+            item={{ name: 'Inicio', href: '/', icon: LayoutDashboard, className: 'sidebar-dashboard' }}
             collapsed={collapsed}
             isActive={isActive('/')}
           />
@@ -544,30 +506,13 @@ const DashboardLayoutImproved = () => {
             >
               <div className="flex items-center gap-3 h-20 px-5 border-b border-neutral-100 bg-gradient-to-r from-white to-neutral-50/50">
                 <button onClick={() => setMobileMenuOpen(false)} aria-label="Cerrar menú" className="absolute right-2 top-2 p-2 rounded-lg"><X className="h-5 w-5" /></button>
-                <motion.div 
-                  className="relative"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                >
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                    <Church className="w-7 h-7 text-white drop-shadow-sm" />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-2xl blur-lg opacity-30 -z-10" />
-                </motion.div>
-                <div className="flex flex-col">
-                  <h1 className="font-bold text-neutral-800 text-base leading-tight tracking-tight">
-                    Programa de
-                  </h1>
-                  <p className="text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    Oportunidades
-                  </p>
-                </div>
+                <BrandLogo className="brand-logo-sidebar" />
               </div>
               <nav className="flex-1 overflow-y-auto p-3 space-y-1 pb-4">
                 {/* Dashboard */}
                 <div onClick={() => setMobileMenuOpen(false)}>
                   <NavItem
-                    item={{ name: 'Dashboard', href: '/', icon: LayoutDashboard, className: 'sidebar-dashboard' }}
+                    item={{ name: 'Inicio', href: '/', icon: LayoutDashboard, className: 'sidebar-dashboard' }}
                     collapsed={false}
                     isActive={isActive('/')}
                   />
@@ -627,6 +572,7 @@ const DashboardLayoutImproved = () => {
 
       {/* Main Content */}
       <main className={`min-w-0 min-h-screen transition-all duration-300 ${collapsed ? 'lg:pl-[80px]' : 'lg:pl-[280px]'}`}>
+        <header className="brand-desktop-bar hidden lg:flex"><div><span className="brand-workspace-label">ARCA EVANGÉLICA</span><p>Dios Fuerte · Gestión de la iglesia</p></div><div className="brand-account"><span>{user?.fullName}</span><Avatar className="h-9 w-9"><AvatarFallback>{user?.fullName?.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar></div></header>
         <div className="app-content mx-auto max-w-[1800px] px-4 sm:px-6 lg:px-8 py-5 sm:py-6 lg:py-8">
           <Outlet />
         </div>

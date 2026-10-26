@@ -175,7 +175,7 @@ const DashboardPage = () => {
               transition={{ delay: 0.1 }}
               className="text-lg sm:text-2xl lg:text-3xl font-bold text-neutral-900 tracking-tight"
             >
-              Dashboard
+              Tu iglesia, en perspectiva
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, x: -20 }}
@@ -183,7 +183,7 @@ const DashboardPage = () => {
               transition={{ delay: 0.15 }}
               className="text-xs sm:text-sm lg:text-base text-neutral-500 mt-0.5"
             >
-              Resumen general de tu iglesia
+              Participación, encuentros y comunidad en un solo lugar.
             </motion.p>
           </div>
           <motion.div

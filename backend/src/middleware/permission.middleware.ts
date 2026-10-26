@@ -150,8 +150,8 @@ function getUserPermissions(req: AuthRequest): string[] {
   }
 
   // Si el usuario tiene permisos personalizados habilitados
-  if (user.useCustomPermissions && user.permissions && user.permissions.length > 0) {
-    return user.permissions;
+  if (user.useCustomPermissions) {
+    return user.permissions || [];
   }
 
   // Usar permisos por defecto del rol

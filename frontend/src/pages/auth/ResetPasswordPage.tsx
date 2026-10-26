@@ -23,7 +23,7 @@ const resetSchema = z.object({
 
 type ResetForm = z.infer<typeof resetSchema>
 
-const LOGO_LOCAL = '/logo.png'
+const LOGO_LOCAL = '/arca-logo.png'
 const LOGO_BACKEND = `${BACKEND_URL}/uploads/logo.png`
 
 const ResetPasswordPage = () => {

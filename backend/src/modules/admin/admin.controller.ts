@@ -1,3 +1,4 @@
+import { notifyUserAccessChanged } from '../../services/sessionRealtime.service';
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../../middleware/auth.middleware';
 import User, { UserRole } from '../../models/User.model';
@@ -148,6 +149,8 @@ export const createUser = async (req: AuthRequest, res: Response, next: NextFunc
       createdBy: req.userId,
     });
 
+    notifyUserAccessChanged(user.churchId.toString(), user._id.toString());
+
     // Audit log
     await AuditService.logFromRequest(req, AuditAction.USER_CREATE, AuditCategory.USERS, 'User', {
       resourceId: user._id.toString(),
@@ -242,6 +245,7 @@ export const updateUser = async (req: AuthRequest, res: Response, next: NextFunc
     if (useCustomPermissions !== undefined && (req.isSuperUser || req.userRole === UserRole.SUPER_ADMIN)) user.useCustomPermissions = useCustomPermissions;
 
     await user.save();
+    notifyUserAccessChanged(user.churchId.toString(), user._id.toString());
 
     // Calcular cambios para auditoría
     const changes = AuditService.calculateChanges(
@@ -308,6 +312,7 @@ export const updateUserPermissions = async (req: AuthRequest, res: Response, nex
     user.useCustomPermissions = useCustomPermissions ?? true;
 
     await user.save();
+    notifyUserAccessChanged(user.churchId.toString(), user._id.toString());
 
     // Audit log
     await AuditService.logFromRequest(req, AuditAction.USER_PERMISSION_CHANGE, AuditCategory.USERS, 'User', {
@@ -363,6 +368,7 @@ export const resetUserPassword = async (req: AuthRequest, res: Response, next: N
 
     user.passwordHash = newPassword;
     await user.save();
+    notifyUserAccessChanged(user.churchId.toString(), user._id.toString());
 
     // Audit log
     await AuditService.logFromRequest(req, AuditAction.PASSWORD_CHANGE, AuditCategory.USERS, 'User', {
@@ -405,6 +411,7 @@ export const deleteUser = async (req: AuthRequest, res: Response, next: NextFunc
     // Soft delete
     user.isActive = false;
     await user.save();
+    notifyUserAccessChanged(user.churchId.toString(), user._id.toString());
 
     // Audit log
     await AuditService.logFromRequest(req, AuditAction.USER_DELETE, AuditCategory.USERS, 'User', {
@@ -437,6 +444,7 @@ export const activateUser = async (req: AuthRequest, res: Response, next: NextFu
 
     user.isActive = true;
     await user.save();
+    notifyUserAccessChanged(user.churchId.toString(), user._id.toString());
 
     // Audit log
     await AuditService.logFromRequest(req, AuditAction.USER_ACTIVATE, AuditCategory.USERS, 'User', {
@@ -484,6 +492,7 @@ export const hardDeleteUser = async (req: AuthRequest, res: Response, next: Next
 
     // Hard delete - eliminar permanentemente
     await User.findByIdAndDelete(id);
+    notifyUserAccessChanged(req.churchId!, id);
 
     // Audit log
     await AuditService.logFromRequest(req, AuditAction.USER_DELETE, AuditCategory.USERS, 'User', {
@@ -518,6 +527,7 @@ export const unlockUser = async (req: AuthRequest, res: Response, next: NextFunc
     user.failedLoginAttempts = 0;
     user.lockUntil = undefined;
     await user.save();
+    notifyUserAccessChanged(user.churchId.toString(), user._id.toString());
 
     // También limpiar intentos en LoginAttempt si existe
     try {

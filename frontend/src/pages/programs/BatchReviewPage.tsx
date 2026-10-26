@@ -114,11 +114,7 @@ const FlyerMiniPreview = ({ prog, churchInfo }: { prog: ProgramData; churchInfo?
   const churchName = prog.church?.name || prog.churchName || churchInfo?.name || 'Iglesia'
   const logoUrl = prog.logoUrl || prog.church?.logoUrl || churchInfo?.logoUrl || ''
   // Si es URL absoluta (Cloudinary), úsala directamente; si es ruta relativa, construir desde path
-  const logoSrc = logoUrl
-    ? (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')
-        ? logoUrl
-        : (logoUrl.startsWith('/') ? logoUrl : `/uploads/${logoUrl}`))
-    : '/uploads/logo.png'
+  const logoSrc = '/arca-logo.png'
 
   return (
     <div style={{
@@ -131,11 +127,11 @@ const FlyerMiniPreview = ({ prog, churchInfo }: { prog: ProgramData; churchInfo?
         padding: '1.8rem 1.5rem 1.2rem', position: 'relative', overflow: 'hidden',
       }}>
         <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, background: 'rgba(200,168,75,0.08)', borderRadius: '50%' }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column-reverse', alignItems: 'center', gap: '1rem', position: 'relative', zIndex: 1 }}>
           <div style={{ flex: 1, textAlign: 'center' }}>
             <div style={{ fontFamily: F.display, fontSize: '1.1rem', fontWeight: 700, color: 'white', lineHeight: 1.1 }}>{churchName}</div>
           </div>
-          <img src={logoSrc} alt="" style={{ width: 45, height: 45, borderRadius: 8, objectFit: 'contain', border: '2px solid rgba(200,168,75,0.4)', background: 'rgba(255,255,255,0.1)' }}
+          <img src={logoSrc} alt="Arca Evangélica · Dios Fuerte" style={{ width: 164, height: 'auto', padding: 8, borderRadius: 8, objectFit: 'contain', background: 'white' }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
         </div>

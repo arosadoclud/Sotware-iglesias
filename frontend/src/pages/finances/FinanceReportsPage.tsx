@@ -23,7 +23,7 @@ import { motion } from 'framer-motion'
 import { format, subMonths } from 'date-fns'
 import { es } from 'date-fns/locale'
 
-const LOGO_LOCAL = '/logo.png'
+const LOGO_LOCAL = '/arca-logo.png'
 const LOGO_BACKEND = `${BACKEND_URL}/uploads/logo.png`
 
 /** Shared report header with logo left + church name & report title right */
@@ -38,7 +38,7 @@ const ReportCardHeader = ({ title, subtitle, icon: Icon, iconColor = 'text-prima
       <img
         src={LOGO_LOCAL}
         alt="Logo"
-        className="w-16 h-16 object-contain rounded-full border border-gray-200 shadow-sm bg-white p-1 flex-shrink-0"
+        className="w-32 h-auto object-contain rounded-xl border border-gray-200 shadow-sm bg-white p-2 flex-shrink-0"
         onError={(e) => {
           const img = e.target as HTMLImageElement
           if (!img.src.includes(BACKEND_URL)) {

@@ -1,6 +1,5 @@
 import puppeteer from 'puppeteer';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { getProgramLogoDataUri } from '../../config/brand';
 
 export interface CleaningMember {
   id: string;
@@ -23,29 +22,7 @@ export interface CleaningPdfData {
 }
 
 export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer> {
-  // Buscar logo de la iglesia en múltiples ubicaciones
-  let logoBase64 = '';
-  const possibleLogoPaths = [
-    path.join(process.cwd(), 'uploads', 'logo.png'),
-    path.join(process.cwd(), '..', 'uploads', 'logo.png'),
-    path.join(process.cwd(), '..', 'frontend', 'public', 'logo.png'),
-    path.join(process.cwd(), 'public', 'logo.png'),
-  ];
-  
-  for (const logoPath of possibleLogoPaths) {
-    try {
-      const logoBuffer = await fs.readFile(logoPath);
-      logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
-      console.log(`Logo cargado desde: ${logoPath}`);
-      break;
-    } catch (error) {
-      // Continuar buscando en la siguiente ubicación
-    }
-  }
-  
-  if (!logoBase64) {
-    console.warn('No se pudo cargar el logo desde ninguna ubicación');
-  }
+  const logoBase64 = getProgramLogoDataUri();
 
   // Build HTML for cleaning schedule - matching preview format
   const membersHtml = data.members
@@ -97,11 +74,11 @@ export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer
           gap: 16px;
         }
         .logo {
-          width: 96px;
-          height: 96px;
+          width: 184px;
+          height: 108px;
           object-fit: contain;
           border-radius: 12px;
-          background: rgba(255,255,255,0.1);
+          background: white;
           padding: 8px;
         }
         .logo-fallback {
@@ -359,18 +336,18 @@ export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer
       '--disable-gpu',
       '--no-first-run',
       '--no-zygote',
-      '--single-process',
     ],
   });
-  const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: 'networkidle0' });
-  
-  const pdfBuffer = await page.pdf({
-    format: 'A4',
-    printBackground: true,
-    margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' },
-  });
-  
-  await browser.close();
-  return pdfBuffer;
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    await page.evaluateHandle('document.fonts.ready');
+    return await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' },
+    });
+  } finally {
+    await browser.close();
+  }
 }

@@ -441,9 +441,9 @@ const CleaningProgramEditPage = () => {
                 {/* Header */}
                 <div className="bg-gradient-to-r from-[#2c4875] to-[#3d5a80] px-8 py-6 flex flex-col items-center justify-center text-center gap-4">
                   <img 
-                    src="/logo.png" 
+                    src="/arca-logo.png"
                     alt="Logo de la iglesia" 
-                    className="w-24 h-24 object-contain rounded-xl bg-white/10 p-2"
+                    className="w-48 h-auto object-contain rounded-xl bg-white p-2"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                       const fallback = document.createElement('div');
