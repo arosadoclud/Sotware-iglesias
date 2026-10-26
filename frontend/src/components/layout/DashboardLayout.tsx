@@ -60,9 +60,9 @@ const NavItem = ({ item, collapsed, isActive }: NavItemProps) => {
   const Icon = item.icon
 
   return (
-    <Link to={item.href}>
+    <Link to={item.href} className="brand-nav-link" aria-current={isActive ? "page" : undefined} title={collapsed ? item.name : undefined}>
       <motion.div
-        whileHover={{ scale: 1.02, x: 4 }}
+        whileHover={{ scale: 1 }}
         whileTap={{ scale: 0.98 }}
         className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer ${
           item.className || ''

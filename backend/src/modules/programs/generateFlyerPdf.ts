@@ -24,7 +24,7 @@ export async function generateFlyerPdf(data: any): Promise<Buffer> {
 
   // 3. Lanzar Puppeteer y generar PDF
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: 'new',
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     args: [
       '--no-sandbox',
@@ -42,10 +42,11 @@ export async function generateFlyerPdf(data: any): Promise<Buffer> {
     // timeout of 15s prevents indefinite waits
     await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 15000 });
     // Wait for fonts to finish loading (resolves immediately if fonts already loaded)
-    await page.evaluateHandle('document.fonts.ready');
+    await page.evaluateHandle("Promise.race([document.fonts.ready, new Promise(resolve => setTimeout(resolve, 4000))])");
     // Opcional: ajustar tamaño de página
     pdfBuffer = await page.pdf({
       format: 'A4',
+      scale: 1.15,
       printBackground: true,
       margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' },
     }) as Buffer;
@@ -55,4 +56,3 @@ export async function generateFlyerPdf(data: any): Promise<Buffer> {
 
   return pdfBuffer;
 }
-

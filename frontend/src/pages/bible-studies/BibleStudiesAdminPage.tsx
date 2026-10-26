@@ -1,3 +1,5 @@
+import { ChurchModuleHeader } from '../../components/layout/ChurchModuleHeader';
+import './bible-studies.css';
 import { useState, useEffect } from 'react';
 import { bibleStudiesApi } from '../../lib/api';
 import { toast } from 'sonner';
@@ -229,24 +231,8 @@ export default function BibleStudiesAdminPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <BookOpen className="w-8 h-8 text-blue-600" />
-            Administrar Estudios Bíblicos
-          </h1>
-          <p className="text-gray-600 mt-2">Gestiona los recursos disponibles para la congregación</p>
-        </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition shadow-md"
-        >
-          <Plus className="w-5 h-5" />
-          Nuevo Estudio
-        </button>
-      </div>
+    <div className="church-module-workspace bible-admin">
+      <ChurchModuleHeader eyebrow="Recursos que acompañan nuestra fe" title="Biblioteca bíblica" description="Publica y cuida los estudios que compartimos como iglesia."><button onClick={()=>handleOpenModal()}><Plus size={17}/>Nuevo estudio</button></ChurchModuleHeader>
 
       {/* List */}
       {loading ? (
@@ -343,7 +329,7 @@ export default function BibleStudiesAdminPage() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+          <div className="bible-admin-dialog bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="bg-blue-700 text-white px-6 py-4 flex items-center justify-between sticky top-0 z-10">
               <h2 className="text-xl font-bold">

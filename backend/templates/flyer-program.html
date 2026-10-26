@@ -8,6 +8,8 @@
   <title>Flyer Programa Iglesia</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    p { margin: 0; }
     :root {
       --navy: #1B2D5B;
       --navy-mid: #2A4080;
@@ -198,6 +200,7 @@
       border-radius: 8px;
       margin-bottom: 4px;
       min-height: 44px;
+      break-inside: avoid;
       transition: background 0.15s;
     }
     .flyer-row:nth-child(odd) { background: var(--gray-100); }
@@ -219,12 +222,18 @@
     .flyer-row-role {
       flex-shrink: 0;
       width: 140px;
+      padding-right: 8px;
+      overflow-wrap: anywhere;
       font-size: 0.82rem;
       font-weight: 600;
       color: var(--navy);
     }
     .flyer-row-person {
       flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      min-width: 0;
+      overflow-wrap: anywhere;
       font-family: 'Cormorant Garamond', serif;
       font-size: 1rem;
       font-weight: 600;

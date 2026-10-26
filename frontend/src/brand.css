@@ -48,3 +48,4 @@
   .app-content th { font-size: 10px; }
   .brand-account > span { display: none; }
 }
+.app-shell nav .brand-nav-link{border-radius:12px;margin:3px 0;outline-offset:3px}.app-shell nav .brand-nav-link>div{border-radius:12px;min-height:44px;box-shadow:none!important;border:1px solid transparent}.app-shell nav .brand-nav-link[aria-current=page]>div{background:#1d2d50;color:#fff;border-color:#293d60;box-shadow:0 4px 12px #1d2d5010!important}.app-shell nav .brand-nav-link[aria-current=page]>div>div:first-child[class*="absolute"]{width:2px;height:18px;left:0;background:#d2b16a}.app-shell nav .brand-nav-link[aria-current=page] svg{color:#dfc580}.app-shell nav .brand-nav-link:not([aria-current=page]):hover>div{background:#f7f5ef;border-color:#ebe5d8;color:#34445e}.app-shell nav .brand-nav-link:focus-visible{outline:2px solid #bb9951}

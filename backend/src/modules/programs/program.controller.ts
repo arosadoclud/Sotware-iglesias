@@ -1,3 +1,4 @@
+import { formatProgramTime as formatTimeES } from './formatProgramTime';
 import { generateFlyerPdf } from './generateFlyerPdf';
 import { generateCleaningPdf } from './generateCleaningPdf';
 export const downloadProgramFlyerPdf = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -29,15 +30,6 @@ export const downloadProgramFlyerPdf = async (req: AuthRequest, res: Response, n
       }
       if (program.ampm) {
         ampm = program.ampm;
-      }
-      function formatTimeES(timeStr: string, ampm?: string): string {
-        if (!timeStr) return '';
-        const parts = timeStr.split(':');
-        let h = parseInt(parts[0]);
-        let m = parts[1] || '00';
-        const displayAmpm = ampm || 'AM';
-        const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
-        return `${h12}:${m.padStart(2, '0')} ${displayAmpm}`;
       }
       
       const cleaningData = {
@@ -77,15 +69,6 @@ export const downloadProgramFlyerPdf = async (req: AuthRequest, res: Response, n
       ampm = program.ampm;
     }
     // Formatear hora igual que el frontend
-    function formatTimeES(timeStr: string, ampm?: string): string {
-      if (!timeStr) return '';
-      const parts = timeStr.split(':');
-      let h = parseInt(parts[0]);
-      let m = parts[1] || '00';
-      const displayAmpm = ampm || 'AM';
-      const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
-      return `${h12}:${m.padStart(2, '0')} ${displayAmpm}`;
-    }
     // Logo: usar el del programa; si es ruta relativa o está vacío, tomar el de la iglesia
     let resolvedLogoUrl: string = program.logoUrl || '';
     if (!resolvedLogoUrl || resolvedLogoUrl.startsWith('/')) {

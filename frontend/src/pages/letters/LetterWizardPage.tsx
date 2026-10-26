@@ -1175,7 +1175,7 @@ const LetterWizardPage = () => {
         )}
 
         {/* History Section */}
-        <Card>
+        <Card className="letters-history-panel">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-neutral-800 flex items-center gap-2">
@@ -1195,13 +1195,38 @@ const LetterWizardPage = () => {
               />
             </div>
             {visibleLetters.length === 0 ? (
-              <div className="text-center py-8 text-neutral-500">
-                <FileText className="w-12 h-12 mx-auto mb-2 opacity-30" />
+              <div className="letters-empty-state">
+                <div className="letters-empty-art" aria-hidden="true">
+                  <span />
+                  <FileText size={32} />
+                  <span />
+                </div>
+                <span className="letters-empty-eyebrow">
+                  CORRESPONDENCIA CON PROPÓSITO
+                </span>
+                <h4>
+                  {historySearch
+                    ? 'No encontramos esa carta'
+                    : 'Aquí comienza tu correspondencia'}
+                </h4>
                 <p>
                   {historySearch
-                    ? 'No encontramos cartas con esa búsqueda.'
-                    : 'No hay cartas generadas aún'}
+                    ? 'Busca otro destinatario o tipo de carta.'
+                    : 'Las cartas que prepares se guardarán aquí para que puedas consultarlas y reutilizar sus datos.'}
                 </p>
+                {historySearch ? (
+                  <button onClick={() => setHistorySearch('')}>
+                    Limpiar búsqueda
+                  </button>
+                ) : (
+                  canCreate && (
+                    <button onClick={openWizard}>
+                      <Plus size={15} />
+                      Crear mi primera carta
+                    </button>
+                  )
+                )}
+                <small>Invitaciones · Recomendaciones · Comunidad</small>
               </div>
             ) : (
               <div className="space-y-3 max-h-[320px] overflow-y-auto">

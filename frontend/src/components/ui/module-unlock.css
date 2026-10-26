@@ -1,0 +1,165 @@
+.module-unlock-dialog {
+  padding: 0 !important;
+  gap: 0 !important;
+  border: 1px solid #e5e1d8 !important;
+  border-radius: 24px !important;
+  max-width: 440px;
+  overflow-y: auto;
+  box-shadow: 0 30px 100px #14263f38;
+}
+.module-unlock-brand {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 18px;
+  padding: 30px 24px 24px;
+  background: linear-gradient(120deg, #fff, #f6f1e5);
+  border-bottom: 1px solid #e6decc;
+}
+.module-unlock-brand .brand-logo {
+  width: 170px;
+}
+.module-unlock-brand > span {
+  color: #9b7b35;
+  font-size: 8px;
+  letter-spacing: 2px;
+}
+.module-unlock-body {
+  padding: 28px;
+}
+.module-unlock-symbol {
+  color: #a67f2e;
+  background: #f7f1e4;
+  border: 1px solid #eee4ce;
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  margin-bottom: 22px;
+}
+.module-unlock-eyebrow {
+  font-size: 8px;
+  letter-spacing: 1.8px;
+  color: #a08345;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 10px;
+}
+.module-unlock-body h2 {
+  font-size: 24px;
+  line-height: 1.25;
+  color: #1d2d50;
+  letter-spacing: -0.5px;
+}
+.module-unlock-body h2 + p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #7d8797;
+  margin-top: 10px;
+}
+.module-unlock-body label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #536178;
+  margin: 24px 0 9px;
+}
+.module-password-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #dce2e9;
+  border-radius: 12px;
+  padding: 0 14px;
+  color: #919bab;
+}
+.module-password-field:focus-within {
+  border-color: #b69a59;
+  box-shadow: 0 0 0 3px #c5a14a13;
+}
+.module-password-field input {
+  width: 100%;
+  min-width: 0;
+  padding: 15px 0;
+  border: 0;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  color: #1d2d50;
+}
+.module-password-field button {
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  min-height: 44px;
+}
+.module-password-field.has-error {
+  border-color: #d19099;
+  background: #fff9f9;
+}
+.module-unlock-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  color: #b13b49;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.module-unlock-error svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.module-unlock-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 12px;
+  margin-top: 24px;
+}
+.module-unlock-actions button {
+  height: 46px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+.module-unlock-actions button[type='submit'] {
+  background: #1d2d50;
+  color: white;
+}
+.module-unlock-actions button[type='submit']:hover {
+  background: #314b72;
+  color: white;
+}
+.module-unlock-note {
+  font-size: 10px;
+  line-height: 1.8;
+  color: #929aaa;
+  margin-top: 22px;
+  border-top: 1px solid #eceef1;
+  padding-top: 16px;
+}
+.module-unlock-dialog > button {
+  background: white;
+  border: 1px solid #e7e4dc;
+  border-radius: 50%;
+  padding: 6px;
+  opacity: 1;
+}
+.module-unlock-dialog > button:focus-visible {
+  outline: 2px solid #b3944b;
+}
+.module-unlock-body button:focus-visible {
+  outline: 3px solid #b3944b;
+  outline-offset: 3px;
+}
+@media (max-width: 380px) {
+  .module-unlock-body {
+    padding: 22px;
+  }
+  .module-unlock-brand {
+    padding: 24px;
+  }
+  .module-unlock-body h2 {
+    font-size: 22px;
+  }
+}
