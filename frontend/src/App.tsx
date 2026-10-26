@@ -240,7 +240,7 @@ function App() {
     <>
       <AnimatePresence mode="wait">
         {showSplash && !hasSeenSplash && (
-          <SplashScreen onComplete={handleSplashComplete} minimumDisplayTime={2800} />
+          <SplashScreen onComplete={handleSplashComplete} minimumDisplayTime={1800} />
         )}
       </AnimatePresence>
       

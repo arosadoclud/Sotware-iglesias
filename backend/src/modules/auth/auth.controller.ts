@@ -1,3 +1,4 @@
+import { verificationEmail } from './verificationEmail.template';
 import { Request, Response, NextFunction } from 'express';
 import User from '../../models/User.model';
 import jwt from 'jsonwebtoken';
@@ -682,7 +683,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
     try {
       const nodemailer = await import('nodemailer');
       const emailFrom = process.env.EMAIL_FROM;
-      const emailFromName = process.env.EMAIL_FROM_NAME || 'Church Program Manager';
+      const emailFromName = process.env.EMAIL_FROM_NAME || 'Arca Evangélica · Dios Fuerte';
 
       if (emailFrom) {
         // Función para crear transporter
@@ -983,108 +984,16 @@ function calculateNameSimilarity(words1: string[], words2: string[]): number {
 async function sendVerificationEmail(email: string, fullName: string, token: string) {
   try {
     const { emailFrom, provider, isBrevo, apiKey } = getVerificationEmailConfig();
-    const emailFromName = process.env.EMAIL_FROM_NAME || 'Church Program Manager';
+    const emailFromName = process.env.EMAIL_FROM_NAME || 'Arca Evangélica · Dios Fuerte';
 
     const verifyUrl = `${envConfig.frontendUrl}/verify-email/${token}`;
+
+    const message = verificationEmail(fullName, verifyUrl, envConfig.frontendUrl);
 
     // Detectar si es Brevo y usar su API REST (más confiable que SMTP en plataformas cloud)
     if (isBrevo) {
       // Usar API REST de Brevo (puerto 443, nunca bloqueado)
-      const htmlContent = `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Verificación de Email - Church Program Manager</title>
-</head>
-<body style="font-family:'Segoe UI',Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px;line-height:1.6;">
-<div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-  
-  <!-- Header -->
-  <div style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);padding:32px 24px;text-align:center;">
-    <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:600;">Verificación de Email</h1>
-  </div>
-  
-  <!-- Body -->
-  <div style="padding:32px 24px;">
-    <p style="color:#333333;font-size:16px;margin:0 0 16px;">Hola <strong>${fullName}</strong>,</p>
-    
-    <p style="color:#555555;font-size:14px;margin:0 0 24px;">
-      Gracias por registrarte en Church Program Manager. Para activar tu cuenta y comenzar a usar 
-      nuestro sistema de gestión de programas para iglesias, necesitamos verificar tu dirección de email.
-    </p>
-    
-    <p style="color:#555555;font-size:14px;margin:0 0 24px;">
-      Por favor, haz clic en el siguiente botón para confirmar tu email:
-    </p>
-    
-    <!-- CTA Button -->
-    <div style="text-align:center;margin:32px 0;">
-      <a href="${verifyUrl}" 
-         style="display:inline-block;
-                background:#3b82f6;
-                color:#ffffff;
-                padding:14px 40px;
-                border-radius:6px;
-                text-decoration:none;
-                font-weight:600;
-                font-size:15px;">
-        Verificar mi Email
-      </a>
-    </div>
-    
-    <!-- Alternative Link -->
-    <p style="color:#888888;font-size:12px;margin:24px 0 0;text-align:center;">
-      Si el botón no funciona, copia y pega este enlace en tu navegador:<br/>
-      <a href="${verifyUrl}" style="color:#3b82f6;word-break:break-all;">${verifyUrl}</a>
-    </p>
-    
-    <!-- Security Info -->
-    <div style="background:#f8fafc;border-left:3px solid#3b82f6;padding:16px;margin:24px 0;border-radius:4px;">
-      <p style="color:#64748b;font-size:13px;margin:0;">
-        <strong>Información de Seguridad:</strong><br/>
-        Este enlace expirará en 24 horas por seguridad.<br/>
-        Si no creaste esta cuenta, puedes ignorar este mensaje de forma segura.
-      </p>
-    </div>
-    
-  </div>
-  
-  <!-- Footer -->
-  <div style="background:#f8fafc;padding:24px;border-top:1px solid #e2e8f0;">
-    <p style="color:#94a3b8;font-size:12px;margin:0 0 8px;text-align:center;">
-      <strong>Church Program Manager</strong><br/>
-      Sistema profesional de gestión de programas para iglesias
-    </p>
-    <p style="color:#cbd5e1;font-size:11px;margin:0;text-align:center;">
-      Este es un email transaccional automático. Por favor no respondas a este mensaje.<br/>
-      © ${new Date().getFullYear()} Church Program Manager. Todos los derechos reservados.
-    </p>
-  </div>
-  
-</div>
-</body>
-</html>`;
-
-      // Texto plano como fallback (mejora deliverability)
-      const textContent = `
-Hola ${fullName},
-
-Gracias por registrarte en Church Program Manager.
-
-Para activar tu cuenta, verifica tu email haciendo clic en el siguiente enlace:
-${verifyUrl}
-
-Este enlace expirará en 24 horas.
-
-Si no creaste esta cuenta, puedes ignorar este mensaje.
-
----
-Church Program Manager
-Sistema de gestión de programas para iglesias
-© ${new Date().getFullYear()} Todos los derechos reservados
-`;
+      const { html: htmlContent, text: textContent } = message;
 
       // Usar API REST de Brevo con módulo https nativo (compatible con todas las versiones de Node.js)
       const https = await import('https');
@@ -1092,7 +1001,7 @@ Sistema de gestión de programas para iglesias
       const postData = JSON.stringify({
         sender: { name: emailFromName, email: emailFrom },
         to: [{ email, name: fullName }],
-        subject: 'Verifica tu cuenta - Church Program Manager',
+        subject: message.subject,
         htmlContent,
         textContent,  // Versión texto plano (mejora deliverability)
         // Configuraciones anti-SPAM
@@ -1177,40 +1086,9 @@ Sistema de gestión de programas para iglesias
     await transporter.sendMail({
       from: `"${emailFromName}" <${emailFrom}>`,
       to: email,
-      subject: '✅ Verifica tu email - Church Program Manager',
-      html: `
-<!DOCTYPE html>
-<html lang="es">
-<head><meta charset="UTF-8"/></head>
-<body style="font-family:Arial,sans-serif;background:#f0f4f8;margin:0;padding:20px;">
-<div style="max-width:480px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
-  <div style="background:linear-gradient(135deg,#0e1b33,#1a2d52);padding:28px 24px;text-align:center;">
-    <div style="font-size:32px;margin-bottom:8px;">✅</div>
-    <h1 style="color:#d4b86a;margin:0;font-size:18px;font-weight:600;">Verifica tu Email</h1>
-  </div>
-  <div style="padding:28px 24px;">
-    <p style="color:#333;font-size:15px;">Hola <strong>${fullName}</strong>,</p>
-    <p style="color:#555;font-size:14px;line-height:1.6;">
-      ¡Bienvenido a Church Program Manager! Para completar tu registro y activar tu cuenta, 
-      por favor verifica tu dirección de email haciendo clic en el botón de abajo:
-    </p>
-    <div style="text-align:center;margin:28px 0;">
-      <a href="${verifyUrl}" style="display:inline-block;background:linear-gradient(135deg,#c49a30,#dbb854);color:#0a0e1a;padding:14px 32px;border-radius:6px;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.5px;">
-        Verificar Email
-      </a>
-    </div>
-    <p style="color:#888;font-size:12px;line-height:1.5;">
-      Este enlace expirará en <strong>24 horas</strong>.<br/>
-      Si no creaste esta cuenta, puedes ignorar este mensaje.
-    </p>
-    <hr style="border:none;border-top:1px solid #eee;margin:20px 0;"/>
-    <p style="color:#aaa;font-size:11px;text-align:center;">
-      Church Program Manager · Este es un mensaje automático
-    </p>
-  </div>
-</div>
-</body>
-</html>`,
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
     });
 
     console.log('Email de verificación enviado a:', email);

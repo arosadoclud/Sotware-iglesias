@@ -1,0 +1,86 @@
+.premium-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 32px 48px;
+  background:
+    radial-gradient(ellipse at 10% 90%, #e9ddbf80, transparent 55%),
+    radial-gradient(ellipse at 90% 10%, #dce3ee70, transparent 55%), #faf9f5;
+  color: #1d2d50;
+}
+.premium-splash header,
+.premium-splash footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.premium-splash header button {
+  border: 1px solid #dad9d2;
+  padding: 12px 18px;
+  border-radius: 30px;
+  letter-spacing: 0;
+  font-size: 12px;
+}
+.splash-center {
+  text-align: center;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding: 24px 0;
+}
+.splash-center .brand-logo {
+  width: clamp(210px, 30vw, 370px);
+  height: auto;
+}
+.splash-rule {
+  height: 1px;
+  width: 60px;
+  background: #bd933e;
+  margin: 30px 0;
+}
+.splash-center p {
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  color: #9a792f;
+}
+.splash-center h1 {
+  font:
+    normal clamp(34px, 5vw, 68px)/1.15 Georgia,
+    serif;
+  letter-spacing: -1px;
+  margin: 18px 0;
+}
+.splash-center > div {
+  color: #727c8b;
+  font-size: 14px;
+  line-height: 1.9;
+}
+.splash-welcome {
+  font-size: 11px;
+  color: #9a792f;
+  margin-top: 30px;
+}
+.premium-splash footer {
+  color: #8a8c91;
+  font-size: 9px;
+}
+.premium-splash footer strong {
+  color: #1d2d50;
+}
+@media (max-width: 600px) {
+  .premium-splash {
+    padding: 24px;
+  }
+  .premium-splash footer {
+    letter-spacing: 1px;
+    font-size: 8px;
+  }
+  .splash-center > div {
+    font-size: 12px;
+  }
+}

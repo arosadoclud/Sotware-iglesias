@@ -1,3 +1,4 @@
+import { transactionTextFilter } from './transactionFilters';
 // Endpoint: GET /finances/tithes-details?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
 export const getMonthlyTithesDetails = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -271,6 +272,7 @@ export const getTransactions = async (req: AuthRequest, res: Response, next: Nex
 
     const filter: any = { church: churchId }
     
+    Object.assign(filter, transactionTextFilter(req.query.search))
     if (type) filter.type = type
     if (category) filter.category = category
     if (fund) filter.fund = fund

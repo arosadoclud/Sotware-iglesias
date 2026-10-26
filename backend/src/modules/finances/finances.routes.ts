@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { authenticate } from '../../middleware/auth.middleware'
 import { tenantGuard } from '../../middleware/tenant.middleware'
-import { rbac } from '../../middleware/rbac.middleware'
+import { requirePermission, Permission } from '../../middleware/permission.middleware'
 import {
   // Categorías
   getCategories,
@@ -38,40 +38,40 @@ router.use(authenticate, tenantGuard)
 // ============================================
 // CATEGORÍAS
 // ============================================
-router.get('/categories', rbac('finances', 'read'), getCategories)
-router.post('/categories/seed', rbac('finances', 'create'), seedCategories)
-router.post('/categories', rbac('finances', 'create'), createCategory)
+router.get('/categories', requirePermission(Permission.FINANCES_VIEW), getCategories)
+router.post('/categories/seed', requirePermission(Permission.FINANCES_CREATE), seedCategories)
+router.post('/categories', requirePermission(Permission.FINANCES_CREATE), createCategory)
 
 // ============================================
 // FONDOS
 // ============================================
-router.get('/funds', rbac('finances', 'read'), getFunds)
-router.post('/funds/seed', rbac('finances', 'create'), seedFunds)
-router.post('/funds', rbac('finances', 'create'), createFund)
+router.get('/funds', requirePermission(Permission.FINANCES_VIEW), getFunds)
+router.post('/funds/seed', requirePermission(Permission.FINANCES_CREATE), seedFunds)
+router.post('/funds', requirePermission(Permission.FINANCES_CREATE), createFund)
 
 // ============================================
 // TRANSACCIONES
 // ============================================
-router.get('/transactions', rbac('finances', 'read'), getTransactions)
-router.post('/transactions', rbac('finances', 'create'), createTransaction)
-router.put('/transactions/:id', rbac('finances', 'update'), updateTransaction)
-router.patch('/transactions/:id/approve', rbac('finances', 'update'), approveTransaction)
-router.delete('/transactions/:id', rbac('finances', 'delete'), deleteTransaction)
+router.get('/transactions', requirePermission(Permission.FINANCES_VIEW), getTransactions)
+router.post('/transactions', requirePermission(Permission.FINANCES_CREATE), createTransaction)
+router.put('/transactions/:id', requirePermission(Permission.FINANCES_EDIT), updateTransaction)
+router.patch('/transactions/:id/approve', requirePermission(Permission.FINANCES_APPROVE), approveTransaction)
+router.delete('/transactions/:id', requirePermission(Permission.FINANCES_DELETE), deleteTransaction)
 
 // ============================================
 // REPORTES
 // ============================================
-router.get('/summary', rbac('finances', 'read'), getSummary)
-router.get('/reports/tithing', rbac('finances', 'read'), getTithingReport)
-router.get('/reports/council', rbac('finances', 'read'), getCouncilReport)
-router.get('/reports/offerings', rbac('finances', 'read'), getOfferingsReport)
-router.get('/reports/monthly-comparison', rbac('finances', 'read'), getMonthlyComparison)
-router.get('/reports/annual', rbac('finances', 'read'), getAnnualReport)
-router.get('/reports/transactions', rbac('finances', 'read'), getDetailedTransactions)
-router.get('/reports/monthly-pdf', rbac('finances', 'read'), generateMonthlyPDFReport)
-router.get('/reports/council-annual', rbac('finances', 'read'), generateAnnualCouncilReport)
+router.get('/summary', requirePermission(Permission.FINANCES_VIEW), getSummary)
+router.get('/reports/tithing', requirePermission(Permission.FINANCES_REPORTS), getTithingReport)
+router.get('/reports/council', requirePermission(Permission.FINANCES_REPORTS), getCouncilReport)
+router.get('/reports/offerings', requirePermission(Permission.FINANCES_REPORTS), getOfferingsReport)
+router.get('/reports/monthly-comparison', requirePermission(Permission.FINANCES_REPORTS), getMonthlyComparison)
+router.get('/reports/annual', requirePermission(Permission.FINANCES_REPORTS), getAnnualReport)
+router.get('/reports/transactions', requirePermission(Permission.FINANCES_REPORTS), getDetailedTransactions)
+router.get('/reports/monthly-pdf', requirePermission(Permission.FINANCES_REPORTS), generateMonthlyPDFReport)
+router.get('/reports/council-annual', requirePermission(Permission.FINANCES_REPORTS), generateAnnualCouncilReport)
 
 // Desglose de diezmos (para vista web)
-router.get('/tithes-details', rbac('finances', 'read'), getMonthlyTithesDetails)
+router.get('/tithes-details', requirePermission(Permission.FINANCES_VIEW), getMonthlyTithesDetails)
 
 export default router

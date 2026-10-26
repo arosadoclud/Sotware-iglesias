@@ -273,6 +273,7 @@ export const financesApi = {
   
   // Transacciones
   getTransactions: (params?: {
+    search?: string;
     type?: string;
     category?: string;
     fund?: string;
