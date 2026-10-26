@@ -72,16 +72,6 @@ const NavItem = ({ item, collapsed, isActive }: NavItemProps) => {
             : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-sm'
         }`}
       >
-        {/* Active indicator line */}
-        {isActive && (
-          <motion.div
-            layoutId="activeNavIndicator"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-600 rounded-r-full"
-            initial={{ opacity: 0, scaleY: 0 }}
-            animate={{ opacity: 1, scaleY: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          />
-        )}
         <motion.div
           whileHover={{ rotate: [0, -10, 10, 0] }}
           transition={{ duration: 0.4 }}
