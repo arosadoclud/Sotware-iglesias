@@ -1743,13 +1743,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   badgeRow: { display: 'flex', justifyContent: 'center', padding: '1.1rem 2rem 0.4rem' },
   flyerBadge: {
-    background: C.gold, color: C.navy, fontFamily: F.display,
-    fontSize: '1.1rem', fontWeight: 700, padding: '6px 24px', borderRadius: 30,
-    letterSpacing: '0.06em', textTransform: 'uppercase',
+    background: '#F7F4EC', color: C.navy, fontFamily: F.body,
+    fontSize: '0.95rem', lineHeight: 1.4, fontWeight: 650, padding: '8px 20px', borderRadius: 8,
+    border: '1px solid #E6DDC6', borderLeft: '3px solid #C8A84B',
+    letterSpacing: '0.01em', textAlign: 'center', maxWidth: '100%', overflowWrap: 'anywhere',
   },
   dateRow: { textAlign: 'center', padding: '0.4rem 2rem 0.2rem' },
   flyerDate: {
-    fontFamily: F.display, fontSize: '1.05rem', color: C.navy, fontWeight: 600,
+    fontFamily: F.body, fontSize: '0.9rem', lineHeight: 1.5, color: '#344563', fontWeight: 500,
   },
   flyerTime: { fontSize: '0.8rem', color: C.gray500, marginTop: 2 },
 
