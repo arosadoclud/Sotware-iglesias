@@ -1808,12 +1808,12 @@ const styles: Record<string, React.CSSProperties> = {
 
   // Footer
   flyerFooter: {
-    background: C.navy, padding: '10px 2rem', display: 'flex',
-    alignItems: 'center', justifyContent: 'center', marginTop: '0.8rem',
+    background: '#F7F4EC', borderTop: '1px solid #D6BD77', padding: '12px 2rem', display: 'flex',
+    alignItems: 'center', justifyContent: 'center', textAlign: 'center', marginTop: '0.8rem',
   },
   flyerFooterText: {
-    fontSize: '0.72rem', fontWeight: 600, color: 'rgba(255,255,255,0.7)',
-    letterSpacing: '0.08em', textTransform: 'uppercase',
+    fontFamily: F.body, fontSize: '0.65rem', fontWeight: 600, color: '#52617B',
+    lineHeight: 1.5, letterSpacing: '0.04em', overflowWrap: 'anywhere',
   },
 }
 
