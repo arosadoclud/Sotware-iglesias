@@ -1,7 +1,22 @@
-import { useState, useEffect } from 'react'
-import { Plus, Edit, Trash2, Loader2, MoreHorizontal, Users, Settings, UserPlus, Search } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Loader2,
+  MoreHorizontal,
+  Users,
+  Settings,
+  UserPlus,
+  Search
+} from 'lucide-react'
 import { ColumnDef } from '@tanstack/react-table'
-import { personsApi, rolesApi, ministriesApi, personStatusesApi } from '../../lib/api'
+import {
+  personsApi,
+  rolesApi,
+  ministriesApi,
+  personStatusesApi
+} from '../../lib/api'
 import { toast } from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../../store/authStore'
@@ -18,13 +33,13 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
+  DialogFooter
 } from '../../components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '../../components/ui/dropdown-menu'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
@@ -33,11 +48,17 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '../../components/ui/select'
 
+import { ChurchModuleHeader } from '../../components/layout/ChurchModuleHeader'
+import './persons.css'
+
 // Mapeo de colores para badges
-const COLOR_VARIANTS: Record<string, 'success' | 'secondary' | 'default' | 'warning' | 'destructive'> = {
+const COLOR_VARIANTS: Record<
+  string,
+  'success' | 'secondary' | 'default' | 'warning' | 'destructive'
+> = {
   green: 'success',
   gray: 'secondary',
   blue: 'default',
@@ -47,7 +68,7 @@ const COLOR_VARIANTS: Record<string, 'success' | 'secondary' | 'default' | 'warn
   pink: 'warning',
   orange: 'warning',
   teal: 'success',
-  indigo: 'default',
+  indigo: 'default'
 }
 
 interface PersonStatus {
@@ -82,6 +103,17 @@ const PersonsPage = () => {
   const canEdit = hasPermission(P.PERSONS_EDIT)
   const canDelete = hasPermission(P.PERSONS_DELETE)
 
+  const [search, setSearch] = useState('')
+  const [query, setQuery] = useState('')
+  const [loadError, setLoadError] = useState(false)
+  const requestId = useRef(0)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1)
+      setQuery(search.trim())
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search])
   const [persons, setPersons] = useState<Person[]>([])
   const [roles, setRoles] = useState<any[]>([])
   const [ministries, setMinistries] = useState<Ministry[]>([])
@@ -102,23 +134,26 @@ const PersonsPage = () => {
     ministry: '',
     status: 'ACTIVE',
     priority: 5,
-    roleIds: [] as string[],
+    roleIds: [] as string[]
   })
   const [newStatusForm, setNewStatusForm] = useState({
     name: '',
-    color: 'gray' as string,
+    color: 'gray' as string
   })
   const [newMinistryForm, setNewMinistryForm] = useState({
     name: '',
     description: '',
-    color: '#3b82f6',
+    color: '#3b82f6'
   })
 
   // Helper para obtener el nombre y variante de un status
   const getStatusConfig = (statusCode: string) => {
     const found = statuses.find((s) => s.code === statusCode)
     if (found) {
-      return { label: found.name, variant: COLOR_VARIANTS[found.color] || 'secondary' }
+      return {
+        label: found.name,
+        variant: COLOR_VARIANTS[found.color] || 'secondary'
+      }
     }
     return { label: statusCode, variant: 'secondary' as const }
   }
@@ -141,12 +176,14 @@ const PersonsPage = () => {
                 {person.fullName}
               </span>
               {person.email && (
-                <p className="text-xs text-neutral-500 font-normal">{person.email}</p>
+                <p className="text-xs text-neutral-500 font-normal">
+                  {person.email}
+                </p>
               )}
             </div>
           </div>
         )
-      },
+      }
     },
     {
       accessorKey: 'phone',
@@ -155,7 +192,7 @@ const PersonsPage = () => {
         <span className="text-neutral-600 font-medium">
           {row.original.phone || <span className="text-neutral-300">—</span>}
         </span>
-      ),
+      )
     },
     {
       accessorKey: 'ministry',
@@ -163,26 +200,30 @@ const PersonsPage = () => {
       cell: ({ row }) => {
         const ministry = row.original.ministry
         return ministry ? (
-          <Badge variant="outline" className="font-medium bg-neutral-50 hover:bg-neutral-100 transition-colors text-xs max-w-[120px] truncate">
+          <Badge
+            variant="outline"
+            className="font-medium bg-neutral-50 hover:bg-neutral-100 transition-colors text-xs max-w-[120px] truncate"
+          >
             {ministry}
           </Badge>
         ) : (
           <span className="text-neutral-300">—</span>
         )
-      },
+      }
     },
     {
       accessorKey: 'roles',
       header: 'Roles',
       cell: ({ row }) => {
         const personRoles = row.original.roles
-        if (!personRoles.length) return <span className="text-neutral-300">—</span>
+        if (!personRoles.length)
+          return <span className="text-neutral-300">—</span>
         return (
           <div className="flex flex-wrap gap-1.5">
             {personRoles.slice(0, 2).map((role, i) => (
-              <Badge 
-                key={i} 
-                variant="secondary" 
+              <Badge
+                key={i}
+                variant="secondary"
                 className="text-xs bg-primary-50 text-primary-700 hover:bg-primary-100 transition-colors"
               >
                 {role.roleName}
@@ -195,7 +236,7 @@ const PersonsPage = () => {
             )}
           </div>
         )
-      },
+      }
     },
     {
       accessorKey: 'status',
@@ -204,11 +245,16 @@ const PersonsPage = () => {
         const status = row.original.status
         const config = getStatusConfig(status)
         return (
-          <Badge variant={config?.variant === 'destructive' ? 'danger' : config?.variant} className="font-medium shadow-sm">
+          <Badge
+            variant={
+              config?.variant === 'destructive' ? 'danger' : config?.variant
+            }
+            className="font-medium shadow-sm"
+          >
             {config?.label || status}
           </Badge>
         )
-      },
+      }
     },
     {
       id: 'actions',
@@ -218,48 +264,61 @@ const PersonsPage = () => {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-10 w-10 p-0 hover:bg-neutral-100 transition-colors">
+              <Button
+                variant="ghost"
+                className="h-10 w-10 p-0 hover:bg-neutral-100 transition-colors"
+              >
                 <MoreHorizontal className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
               {canEdit && (
-              <DropdownMenuItem onClick={() => openEdit(person)} className="cursor-pointer">
-                <Edit className="mr-2 h-4 w-4" />
-                Editar
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => openEdit(person)}
+                  className="cursor-pointer"
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  Editar
+                </DropdownMenuItem>
               )}
               {canDelete && (
-              <DropdownMenuItem
-                onClick={() => handleDelete(person._id, person.fullName)}
-                className="text-danger-600 cursor-pointer focus:text-danger-600 focus:bg-danger-50"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleDelete(person._id, person.fullName)}
+                  className="text-danger-600 cursor-pointer focus:text-danger-600 focus:bg-danger-50"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Eliminar
+                </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
         )
-      },
-    },
+      }
+    }
   ]
 
   const load = async (pageArg = page, pageSizeArg = pageSize) => {
+    const currentRequest = ++requestId.current
     setLoading(true)
+    setLoadError(false)
     try {
       const [pRes, rRes, mRes, sRes] = await Promise.all([
-        personsApi.getAll({ page: pageArg, limit: pageSizeArg }),
+        personsApi.getAll({
+          page: pageArg,
+          limit: pageSizeArg,
+          search: query || undefined
+        }),
         rolesApi.getAll(),
         ministriesApi.getAll(),
-        personStatusesApi.getAll(),
+        personStatusesApi.getAll()
       ])
+      if (currentRequest !== requestId.current) return
       setPersons(pRes.data.data)
       setTotal(pRes.data.total || 0)
       setRoles(rRes.data.data)
       setMinistries(mRes.data.data)
       setStatuses(sRes.data.data)
-      
+
       // Si no hay ministerios, inicializar los predeterminados
       if (!mRes.data.data || mRes.data.data.length === 0) {
         try {
@@ -269,7 +328,7 @@ const PersonsPage = () => {
           console.warn('No se pudieron crear ministerios predeterminados')
         }
       }
-      
+
       // Si no hay estados, inicializar los predeterminados
       if (!sRes.data.data || sRes.data.data.length === 0) {
         try {
@@ -280,14 +339,16 @@ const PersonsPage = () => {
         }
       }
     } catch {
+      if (currentRequest !== requestId.current) return
+      setLoadError(true)
       toast.error('Error cargando datos')
     }
-    setLoading(false)
+    if (currentRequest === requestId.current) setLoading(false)
   }
 
   useEffect(() => {
     load(page, pageSize)
-  }, [page, pageSize])
+  }, [page, pageSize, query])
 
   const openNew = () => {
     setEditingPerson(null)
@@ -298,7 +359,7 @@ const PersonsPage = () => {
       ministry: '',
       status: 'ACTIVE',
       priority: 5,
-      roleIds: [],
+      roleIds: []
     })
     setShowModal(true)
   }
@@ -312,22 +373,26 @@ const PersonsPage = () => {
       ministry: p.ministry || '',
       status: p.status,
       priority: p.priority,
-      roleIds: p.roles.map((r) => r.roleId),
+      roleIds: p.roles.map((r) => r.roleId)
     })
     setShowModal(true)
   }
 
   const handleSave = async () => {
     if (!form.fullName.trim()) return toast.error('El nombre es requerido')
-    if (!form.ministry.trim()) return toast.error('El ministerio es obligatorio')
-    if (!form.roleIds.length) return toast.error('Debe seleccionar al menos un rol')
+    if (!form.ministry.trim())
+      return toast.error('El ministerio es obligatorio')
+    if (!form.roleIds.length)
+      return toast.error('Debe seleccionar al menos un rol')
 
     setSaving(true)
     try {
       const validRoles = form.roleIds
         .map((rid) => {
           const r = roles.find((rl: any) => rl._id === rid)
-          return r && r._id && r.name ? { roleId: r._id, roleName: r.name } : null
+          return r && r._id && r.name
+            ? { roleId: r._id, roleName: r.name }
+            : null
         })
         .filter(Boolean)
       const body = { ...form, roles: validRoles }
@@ -363,7 +428,7 @@ const PersonsPage = () => {
       ...f,
       roleIds: f.roleIds.includes(roleId)
         ? f.roleIds.filter((r) => r !== roleId)
-        : [...f.roleIds, roleId],
+        : [...f.roleIds, roleId]
     }))
 
   return (
@@ -371,47 +436,57 @@ const PersonsPage = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="space-y-6"
+      className="church-module-workspace persons-workspace"
     >
-      {/* Header mejorado */}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-400 to-primary-600 rounded-xl rotate-3 opacity-20" />
-              <div className="relative p-2.5 sm:p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-500/25">
-                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-neutral-900">Personas</h1>
-              <p className="text-sm sm:text-base text-neutral-600">
-                Gestiona los participantes y sus roles
-                {total > 0 && (
-                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-primary-100 text-primary-700">
-                    {total} registrados
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
-          {canCreate && (
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full sm:w-auto"
-          >
-            <Button onClick={openNew} size="lg" className="shadow-lg hover:shadow-xl transition-shadow w-full sm:w-auto">
-              <UserPlus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-              <span className="sm:inline">Nueva Persona</span>
-            </Button>
-          </motion.div>
+      <ChurchModuleHeader
+        eyebrow="UNA COMUNIDAD CON PROPÓSITO"
+        title="Personas"
+        description="Cada persona tiene un lugar. Organiza los ministerios y la participación en nuestros programas."
+      >
+        {canCreate && (
+          <Button onClick={openNew}>
+            <UserPlus className="h-4 w-4" /> Nueva persona
+          </Button>
+        )}
+      </ChurchModuleHeader>
+      <section
+        className="persons-directory"
+        aria-label="Directorio de personas"
+      >
+        <div>
+          <span className="persons-eyebrow">DIRECTORIO DE LA IGLESIA</span>
+          <h2>Nuestra comunidad</h2>
+          <p>
+            {total}{' '}
+            {total === 1 ? 'persona registrada' : 'personas registradas'}
+            {query ? ' en esta búsqueda' : ''}
+          </p>
+        </div>
+        <div className="persons-search">
+          <Search aria-hidden="true" />
+          <Input
+            aria-label="Buscar personas por nombre"
+            placeholder="Buscar por nombre…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search && (
+            <button type="button" onClick={() => setSearch('')}>
+              Limpiar
+            </button>
           )}
         </div>
-      </div>
-
+      </section>
       {/* Content */}
-      {loading ? (
+      {loadError ? (
+        <Card className="persons-empty">
+          <CardContent>
+            <h2>No pudimos cargar el directorio</h2>
+            <p>Intenta nuevamente para consultar las personas de tu iglesia.</p>
+            <Button onClick={() => load()}>Reintentar</Button>
+          </CardContent>
+        </Card>
+      ) : loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <div className="relative">
             <div className="absolute inset-0 bg-primary-200/50 rounded-full animate-ping" />
@@ -430,13 +505,26 @@ const PersonsPage = () => {
             <CardContent className="p-0">
               <EmptyState
                 icon={Users}
-                title="No hay personas registradas"
-                description="Agrega participantes para empezar a gestionar roles y programas de oportunidades."
-                action={{
-                  label: 'Nueva Persona',
-                  onClick: openNew,
-                  icon: Plus,
-                }}
+                title={
+                  query
+                    ? 'No encontramos coincidencias'
+                    : 'Tu comunidad empieza aquí'
+                }
+                description={
+                  query
+                    ? 'Prueba otro nombre o limpia la búsqueda.'
+                    : 'Agrega personas y organiza su participación en los programas de la iglesia.'
+                }
+                action={
+                  query
+                    ? {
+                        label: 'Limpiar búsqueda',
+                        onClick: () => setSearch('')
+                      }
+                    : canCreate
+                      ? { label: 'Nueva persona', onClick: openNew, icon: Plus }
+                      : undefined
+                }
               />
             </CardContent>
           </Card>
@@ -445,26 +533,14 @@ const PersonsPage = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, type: "spring", bounce: 0.2 }}
+          transition={{ delay: 0.1, type: 'spring', bounce: 0.2 }}
         >
           {/* Mobile Card View */}
           <div className="block md:hidden space-y-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-              <Input
-                placeholder="Buscar por nombre..."
-                className="pl-9"
-                onChange={(e) => {
-                  const searchValue = e.target.value.toLowerCase()
-                  if (!searchValue) { load(page, pageSize); return }
-                  setPersons(prev => prev.filter(p => p.fullName.toLowerCase().includes(searchValue)))
-                }}
-              />
-            </div>
             {persons.map((person) => {
               const config = getStatusConfig(person.status)
               return (
-                <Card key={person._id} className="shadow-sm border-neutral-200/80">
+                <Card key={person._id} className="person-directory-card">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -474,25 +550,47 @@ const PersonsPage = () => {
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-neutral-900 truncate">{person.fullName}</p>
-                          {person.email && <p className="text-xs text-neutral-500 truncate">{person.email}</p>}
-                          {person.phone && <p className="text-xs text-neutral-500">{person.phone}</p>}
+                          <p className="font-semibold text-neutral-900 person-name">
+                            {person.fullName}
+                          </p>
+                          {person.email && (
+                            <p className="text-xs text-neutral-500 truncate">
+                              {person.email}
+                            </p>
+                          )}
+                          {person.phone && (
+                            <p className="text-xs text-neutral-500">
+                              {person.phone}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-10 w-10 p-0 flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            aria-label={`Acciones para ${person.fullName}`}
+                            className="h-10 w-10 p-0 flex-shrink-0"
+                          >
                             <MoreHorizontal className="h-5 w-5" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40">
                           {canEdit && (
-                            <DropdownMenuItem onClick={() => openEdit(person)} className="cursor-pointer">
+                            <DropdownMenuItem
+                              onClick={() => openEdit(person)}
+                              className="cursor-pointer"
+                            >
                               <Edit className="mr-2 h-4 w-4" /> Editar
                             </DropdownMenuItem>
                           )}
                           {canDelete && (
-                            <DropdownMenuItem onClick={() => handleDelete(person._id, person.fullName)} className="text-danger-600 cursor-pointer focus:text-danger-600 focus:bg-danger-50">
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleDelete(person._id, person.fullName)
+                              }
+                              className="text-danger-600 cursor-pointer focus:text-danger-600 focus:bg-danger-50"
+                            >
                               <Trash2 className="mr-2 h-4 w-4" /> Eliminar
                             </DropdownMenuItem>
                           )}
@@ -500,21 +598,37 @@ const PersonsPage = () => {
                       </DropdownMenu>
                     </div>
                     <div className="flex flex-wrap items-center gap-1.5 mt-3">
-                      <Badge variant={config?.variant === 'destructive' ? 'danger' : config?.variant} className="font-medium text-xs">
+                      <Badge
+                        variant={
+                          config?.variant === 'destructive'
+                            ? 'danger'
+                            : config?.variant
+                        }
+                        className="font-medium text-xs"
+                      >
                         {config?.label || person.status}
                       </Badge>
                       {person.ministry && (
-                        <Badge variant="outline" className="font-medium text-xs bg-neutral-50">
+                        <Badge
+                          variant="outline"
+                          className="font-medium text-xs bg-neutral-50"
+                        >
                           {person.ministry}
                         </Badge>
                       )}
                       {person.roles.slice(0, 2).map((role, i) => (
-                        <Badge key={i} variant="secondary" className="text-xs bg-primary-50 text-primary-700">
+                        <Badge
+                          key={i}
+                          variant="secondary"
+                          className="text-xs bg-primary-50 text-primary-700"
+                        >
                           {role.roleName}
                         </Badge>
                       ))}
                       {person.roles.length > 2 && (
-                        <Badge variant="outline" className="text-xs">+{person.roles.length - 2}</Badge>
+                        <Badge variant="outline" className="text-xs">
+                          +{person.roles.length - 2}
+                        </Badge>
                       )}
                     </div>
                   </CardContent>
@@ -527,10 +641,20 @@ const PersonsPage = () => {
                 Página {page} de {Math.ceil(total / pageSize) || 1}
               </p>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                >
                   Anterior
                 </Button>
-                <Button variant="outline" size="sm" disabled={page >= Math.ceil(total / pageSize)} onClick={() => setPage(p => p + 1)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= Math.ceil(total / pageSize)}
+                  onClick={() => setPage((p) => p + 1)}
+                >
                   Siguiente
                 </Button>
               </div>
@@ -543,14 +667,20 @@ const PersonsPage = () => {
               <DataTable
                 columns={columns}
                 data={persons}
-                searchKey="fullName"
                 searchPlaceholder="Buscar por nombre..."
                 pageSize={pageSize}
                 serverPagination
                 page={page}
                 total={total}
-                onPageChange={(newPage) => { if (newPage !== page) setPage(newPage) }}
-                onPageSizeChange={(newSize) => { if (newSize !== pageSize) { setPageSize(newSize); setPage(1) } }}
+                onPageChange={(newPage) => {
+                  if (newPage !== page) setPage(newPage)
+                }}
+                onPageSizeChange={(newSize) => {
+                  if (newSize !== pageSize) {
+                    setPageSize(newSize)
+                    setPage(1)
+                  }
+                }}
               />
             </CardContent>
           </Card>
@@ -559,7 +689,7 @@ const PersonsPage = () => {
 
       {/* Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="persons-dialog max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingPerson ? 'Editar' : 'Nueva'} Persona
@@ -619,7 +749,9 @@ const PersonsPage = () => {
                 </div>
                 <Select
                   value={form.ministry}
-                  onValueChange={(value) => setForm({ ...form, ministry: value })}
+                  onValueChange={(value) =>
+                    setForm({ ...form, ministry: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar ministerio" />
@@ -697,7 +829,9 @@ const PersonsPage = () => {
                   <Button
                     key={r._id}
                     type="button"
-                    variant={form.roleIds.includes(r._id) ? 'default' : 'outline'}
+                    variant={
+                      form.roleIds.includes(r._id) ? 'default' : 'outline'
+                    }
                     size="sm"
                     onClick={() => toggleRole(r._id)}
                     className="transition-all"
@@ -741,24 +875,41 @@ const PersonsPage = () => {
               <Input
                 id="statusName"
                 value={newStatusForm.name}
-                onChange={(e) => setNewStatusForm({ ...newStatusForm, name: e.target.value })}
+                onChange={(e) =>
+                  setNewStatusForm({ ...newStatusForm, name: e.target.value })
+                }
                 placeholder="Ej: Líder de Música"
               />
             </div>
             <div className="space-y-2">
               <Label>Color</Label>
               <div className="flex flex-wrap gap-2">
-                {['gray', 'green', 'blue', 'red', 'yellow', 'purple', 'pink', 'orange', 'teal', 'indigo'].map((color) => (
+                {[
+                  'gray',
+                  'green',
+                  'blue',
+                  'red',
+                  'yellow',
+                  'purple',
+                  'pink',
+                  'orange',
+                  'teal',
+                  'indigo'
+                ].map((color) => (
                   <button
                     key={color}
                     type="button"
-                    onClick={() => setNewStatusForm({ ...newStatusForm, color })}
+                    onClick={() =>
+                      setNewStatusForm({ ...newStatusForm, color })
+                    }
                     className={`w-8 h-8 rounded-full border-2 transition-all ${
                       newStatusForm.color === color
                         ? 'ring-2 ring-offset-2 ring-primary-500'
                         : 'border-neutral-200'
                     }`}
-                    style={{ backgroundColor: color === 'gray' ? '#9ca3af' : color }}
+                    style={{
+                      backgroundColor: color === 'gray' ? '#9ca3af' : color
+                    }}
                   />
                 ))}
               </div>
@@ -790,7 +941,9 @@ const PersonsPage = () => {
                   const sRes = await personStatusesApi.getAll()
                   setStatuses(sRes.data.data)
                 } catch (e: any) {
-                  toast.error(e.response?.data?.message || 'Error al crear estado')
+                  toast.error(
+                    e.response?.data?.message || 'Error al crear estado'
+                  )
                 }
                 setSaving(false)
               }}
@@ -815,7 +968,12 @@ const PersonsPage = () => {
               <Input
                 id="ministryName"
                 value={newMinistryForm.name}
-                onChange={(e) => setNewMinistryForm({ ...newMinistryForm, name: e.target.value })}
+                onChange={(e) =>
+                  setNewMinistryForm({
+                    ...newMinistryForm,
+                    name: e.target.value
+                  })
+                }
                 placeholder="Ej: Jóvenes, Adoración, Damas..."
               />
             </div>
@@ -824,7 +982,12 @@ const PersonsPage = () => {
               <Input
                 id="ministryDescription"
                 value={newMinistryForm.description}
-                onChange={(e) => setNewMinistryForm({ ...newMinistryForm, description: e.target.value })}
+                onChange={(e) =>
+                  setNewMinistryForm({
+                    ...newMinistryForm,
+                    description: e.target.value
+                  })
+                }
                 placeholder="Descripción opcional del ministerio"
               />
             </div>
@@ -834,15 +997,25 @@ const PersonsPage = () => {
                 <input
                   type="color"
                   value={newMinistryForm.color}
-                  onChange={(e) => setNewMinistryForm({ ...newMinistryForm, color: e.target.value })}
+                  onChange={(e) =>
+                    setNewMinistryForm({
+                      ...newMinistryForm,
+                      color: e.target.value
+                    })
+                  }
                   className="w-10 h-10 rounded border border-neutral-200 cursor-pointer"
                 />
-                <span className="text-sm text-neutral-500">{newMinistryForm.color}</span>
+                <span className="text-sm text-neutral-500">
+                  {newMinistryForm.color}
+                </span>
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowMinistryModal(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowMinistryModal(false)}
+            >
               Cancelar
             </Button>
             <Button
@@ -855,12 +1028,18 @@ const PersonsPage = () => {
                   await ministriesApi.create(newMinistryForm)
                   toast.success('Ministerio creado correctamente')
                   setShowMinistryModal(false)
-                  setNewMinistryForm({ name: '', description: '', color: '#3b82f6' })
+                  setNewMinistryForm({
+                    name: '',
+                    description: '',
+                    color: '#3b82f6'
+                  })
                   // Recargar los ministerios
                   const mRes = await ministriesApi.getAll()
                   setMinistries(mRes.data.data)
                 } catch (e: any) {
-                  toast.error(e.response?.data?.message || 'Error al crear ministerio')
+                  toast.error(
+                    e.response?.data?.message || 'Error al crear ministerio'
+                  )
                 }
                 setSaving(false)
               }}
