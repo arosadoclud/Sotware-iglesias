@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -197,6 +197,32 @@ const DashboardLayoutImproved = () => {
   const { user, logout, isAdmin, hasPermission } = useAuthStore()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const mobileNavRef = useRef<HTMLDivElement>(null)
+  useEffect(() => { setMobileMenuOpen(false) }, [location.pathname])
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const panel = mobileNavRef.current
+    const focusable = () => Array.from(panel?.querySelectorAll<HTMLElement>('a[href], button:not([disabled])') || [])
+    focusable()[0]?.focus()
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false)
+      if (event.key === 'Tab') {
+        const items = focusable()
+        const first = items[0], last = items[items.length - 1]
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+      }
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKey)
+      menuButtonRef.current?.focus()
+    }
+  }, [mobileMenuOpen])
   const [showLogoutSplash, setShowLogoutSplash] = useState(false)
   const { restartTour } = useOnboarding()
 
@@ -324,18 +350,24 @@ const DashboardLayoutImproved = () => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Mobile Menu Button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      <header className="lg:hidden sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur-md">
         <Button
           variant="outline"
           size="icon"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="bg-white shadow-lg"
+          ref={menuButtonRef}
+          aria-label="Abrir menú de navegación"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-navigation"
+          className="bg-slate-50 border-slate-200"
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </Button>
-      </div>
+        <div className="min-w-0 flex-1"><p className="text-sm font-bold text-slate-900">Dios Fuerte</p><p className="text-xs text-slate-500 truncate">Arca Evangélica · Gestión de la iglesia</p></div>
+        <Avatar className="h-9 w-9"><AvatarFallback className="bg-blue-50 text-blue-700 text-xs">{user?.fullName?.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+      </header>
 
       {/* Sidebar - Desktop */}
       <motion.aside
@@ -504,8 +536,14 @@ const DashboardLayoutImproved = () => {
               exit={{ x: -280 }}
               transition={{ duration: 0.3 }}
               className="lg:hidden fixed inset-y-0 left-0 w-[85vw] max-w-80 bg-white border-r border-neutral-200 z-50 shadow-xl flex flex-col"
+              ref={mobileNavRef}
+              id="mobile-navigation"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navegación principal"
             >
               <div className="flex items-center gap-3 h-20 px-5 border-b border-neutral-100 bg-gradient-to-r from-white to-neutral-50/50">
+                <button onClick={() => setMobileMenuOpen(false)} aria-label="Cerrar menú" className="absolute right-2 top-2 p-2 rounded-lg"><X className="h-5 w-5" /></button>
                 <motion.div 
                   className="relative"
                   whileHover={{ scale: 1.05 }}
@@ -588,8 +626,8 @@ const DashboardLayoutImproved = () => {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className={`min-h-screen transition-all duration-300 ${collapsed ? 'lg:pl-[80px]' : 'lg:pl-[280px]'}`}>
-        <div className="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pt-16 sm:pt-18 lg:pt-8">
+      <main className={`min-w-0 min-h-screen transition-all duration-300 ${collapsed ? 'lg:pl-[80px]' : 'lg:pl-[280px]'}`}>
+        <div className="app-content mx-auto max-w-[1800px] px-4 sm:px-6 lg:px-8 py-5 sm:py-6 lg:py-8">
           <Outlet />
         </div>
       </main>

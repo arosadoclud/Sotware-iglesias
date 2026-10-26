@@ -80,8 +80,8 @@ export enum AuditSeverity {
 }
 
 export interface IAuditLog extends Document {
-  churchId: mongoose.Types.ObjectId;
-  userId: mongoose.Types.ObjectId;
+  churchId: mongoose.Types.ObjectId | null;
+  userId: mongoose.Types.ObjectId | null;
   userEmail: string;
   userName: string;
   userRole: string;
@@ -121,13 +121,17 @@ const AuditLogSchema = new Schema<IAuditLog>(
     churchId: {
       type: Schema.Types.ObjectId,
       ref: 'Church',
-      required: true,
+      required: function (this: IAuditLog) {
+        return !(this.action === AuditAction.LOGIN_FAILED && this.category === AuditCategory.AUTH && this.success === false);
+      },
       index: true,
     },
     userId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: function (this: IAuditLog) {
+        return !(this.action === AuditAction.LOGIN_FAILED && this.category === AuditCategory.AUTH && this.success === false);
+      },
       index: true,
     },
     userEmail: {

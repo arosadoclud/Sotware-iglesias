@@ -1,5 +1,4 @@
 import cron, { ScheduledTask } from 'node-cron';
-import axios from 'axios';
 
 /**
  * Keep-Alive Service
@@ -81,8 +80,8 @@ class KeepAliveService {
       const startTime = Date.now();
       const healthUrl = `${this.apiUrl}/health`;
       
-      const response = await axios.get(healthUrl, {
-        timeout: 30000, // 30 segundos timeout
+      const response = await fetch(healthUrl, {
+        signal: AbortSignal.timeout(30000),
         headers: {
           'User-Agent': 'KeepAlive-Service/1.0',
         },
@@ -104,7 +103,7 @@ class KeepAliveService {
       });
       
       // Si el error es de timeout, el servidor probablemente se está despertando
-      if (error.code === 'ECONNABORTED') {
+      if (error.name === 'TimeoutError') {
         console.log('   ℹ️  Servidor posiblemente despertando...');
       }
     }

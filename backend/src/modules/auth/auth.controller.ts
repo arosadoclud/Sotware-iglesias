@@ -6,6 +6,7 @@ import envConfig from '../../config/env';
 import { AuditService, AuditAction, AuditCategory, AuditSeverity } from '../../middleware/audit.middleware';
 import { AuthRequest } from '../../middleware/auth.middleware';
 import { LoginSecurityService } from '../../services/loginSecurity.service';
+import { getVerificationEmailConfig } from './verificationEmail.config';
 
 /**
  * Registrar nuevo usuario (solo para crear el primer admin)
@@ -342,8 +343,8 @@ export const login = async (req: Request, res: Response) => {
     const securityCheck = await LoginSecurityService.canAttemptLogin(email, clientIp);
     if (!securityCheck.allowed) {
       await AuditService.log({
-        churchId: null as any,
-        userId: null as any,
+        churchId: null,
+        userId: null,
         userEmail: email,
         userName: 'Unknown',
         userRole: 'VIEWER',
@@ -370,8 +371,8 @@ export const login = async (req: Request, res: Response) => {
       await LoginSecurityService.recordFailedAttempt(email, clientIp);
       
       await AuditService.log({
-        churchId: null as any,
-        userId: null as any,
+        churchId: null,
+        userId: null,
         userEmail: email,
         userName: 'Unknown',
         userRole: 'VIEWER',
@@ -981,22 +982,13 @@ function calculateNameSimilarity(words1: string[], words2: string[]): number {
  */
 async function sendVerificationEmail(email: string, fullName: string, token: string) {
   try {
-    const emailFrom = process.env.EMAIL_FROM;
+    const { emailFrom, provider, isBrevo, apiKey } = getVerificationEmailConfig();
     const emailFromName = process.env.EMAIL_FROM_NAME || 'Church Program Manager';
 
-    if (!emailFrom) {
-      console.warn('Email no configurado - Token de verificación:', token);
-      return;
-    }
-
     const verifyUrl = `${envConfig.frontendUrl}/verify-email/${token}`;
-    const provider = process.env.EMAIL_PROVIDER || 'smtp';
-    const smtpHost = process.env.SMTP_HOST || '';
 
     // Detectar si es Brevo y usar su API REST (más confiable que SMTP en plataformas cloud)
-    const isBrevo = provider === 'brevo' || smtpHost.includes('brevo.com') || smtpHost.includes('sendinblue');
-    
-    if (isBrevo && process.env.BREVO_API_KEY) {
+    if (isBrevo) {
       // Usar API REST de Brevo (puerto 443, nunca bloqueado)
       const htmlContent = `
 <!DOCTYPE html>
@@ -1118,7 +1110,7 @@ Sistema de gestión de programas para iglesias
         method: 'POST',
         headers: {
           'accept': 'application/json',
-          'api-key': process.env.BREVO_API_KEY,
+          'api-key': apiKey!,
           'content-type': 'application/json',
           'content-length': Buffer.byteLength(postData),
         },
@@ -1144,6 +1136,10 @@ Sistema de gestión de programas para iglesias
 
         req.on('error', (error) => {
           reject(new Error(`Brevo API request failed: ${error.message}`));
+        });
+
+        req.setTimeout(15000, () => {
+          req.destroy(new Error('Brevo API timeout: 15000ms'));
         });
 
         req.write(postData);

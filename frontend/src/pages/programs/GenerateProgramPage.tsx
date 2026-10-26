@@ -22,7 +22,7 @@ const DAYS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábad
 
 // ── FAIRNESS BAR ──────────────────────────────────────────────────────────────
 const FairnessBar = ({ score }: { score: number }) => {
-  const pct = Math.round(((score + 1.35) / 2.7) * 100)
+  const pct = Math.max(0, Math.min(100, Math.round(((score + 1.35) / 2.7) * 100)))
   const color = pct >= 65 ? 'bg-success-500' : pct >= 40 ? 'bg-warning-400' : 'bg-danger-400'
   return (
     <div className="flex items-center gap-2 mt-1">
@@ -65,8 +65,8 @@ const ProgramPreviewCard = ({
     >
       {/* Header */}
       <div className="px-5 py-4 bg-gradient-to-r from-primary-50 to-primary-100/50 border-b border-primary-200">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
             <h3 className="font-bold text-neutral-900 text-lg mb-1">
               {program.activityType?.name}
             </h3>
@@ -143,14 +143,14 @@ const ProgramPreviewCard = ({
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
+                    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-baseline gap-1 sm:gap-2 break-words">
                       <span className="text-sm font-medium text-neutral-900">
                         {a.person?.name || <span className="text-neutral-400 italic">Sin asignar</span>}
                       </span>
                       <span className="text-xs text-neutral-500">• {a.roleName}</span>
                     </div>
                     {a.backup?.name && (
-                      <div className="flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 mt-1">
                         <Users className="w-3 h-3 text-neutral-400" />
                         <span className="text-xs text-neutral-500">Suplente: {a.backup.name}</span>
                       </div>
@@ -158,7 +158,7 @@ const ProgramPreviewCard = ({
                   </div>
 
                   {a.fairnessScore !== undefined && (
-                    <div className="w-24 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="hidden sm:block w-24 shrink-0">
                       <FairnessBar score={a.fairnessScore} />
                     </div>
                   )}
@@ -184,7 +184,7 @@ const ProgramPreviewCard = ({
       {/* Stats footer */}
       {meta?.stats && (
         <div className="px-5 py-4 bg-neutral-50 border-t border-neutral-200">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-4 text-xs text-neutral-600">
               <span className="flex items-center gap-1.5">
                 <Users className="w-4 h-4" />
@@ -279,6 +279,12 @@ const GenerateProgramPage = () => {
   const [generating, setGenerating] = useState(false)
   const [previewing, setPreviewing] = useState(false)
   const [mode, setMode] = useState<'single' | 'batch'>('single')
+  const [step, setStep] = useState(0)
+  const [loadError, setLoadError] = useState(false)
+  const [generatedIds, setGeneratedIds] = useState<string[]>([])
+  useEffect(() => {
+    document.getElementById('studio-step-heading')?.focus()
+  }, [step])
   const [selectedActivity, setSelectedActivity] = useState('')
   const [singleDate, setSingleDate] = useState('')
   const [startDate, setStartDate] = useState('')
@@ -298,6 +304,15 @@ const GenerateProgramPage = () => {
   const [allPersons, setAllPersons] = useState<any[]>([])
   const [selectedMessagePersons, setSelectedMessagePersons] = useState<string[]>([])
   const [showMessagePersonSelector, setShowMessagePersonSelector] = useState(false)
+  useEffect(() => {
+    setPreview(null)
+    setResult(null)
+    setGeneratedIds([])
+    setDuplicateAlert(null)
+  }, [mode, selectedActivity, singleDate, startDate, endDate, numberOfGroups, selectedMessagePersons])
+  useEffect(() => {
+    if (preview || result) document.getElementById('studio-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [preview, result])
 
   useEffect(() => {
     Promise.all([
@@ -313,10 +328,14 @@ const GenerateProgramPage = () => {
         console.log('✅ Personas con roles:', persons.filter((p: any) => p.roles?.length > 0).length)
         if (activitiesRes.data.data.length > 0) setSelectedActivity(activitiesRes.data.data[0]._id)
       })
+      .catch(() => { setLoadError(true); toast.error('No se pudieron cargar las actividades y los miembros') })
       .finally(() => setLoading(false))
   }, [])
 
   const selectedAct = activities.find(a => a._id === selectedActivity)
+  useEffect(() => {
+    if (selectedAct?.generationType === 'cleaning_groups') setMode('batch')
+  }, [selectedActivity, selectedAct?.generationType])
   
   // Detectar si es Culto Evangelístico del Domingo
   const isSundayEvangelistic = selectedAct && (
@@ -394,6 +413,7 @@ const GenerateProgramPage = () => {
   })()
 
   const handlePreview = async () => {
+    if (previewing || generating) return
     if (!selectedActivity || !singleDate) return toast.error('Selecciona actividad y fecha')
     setPreviewing(true)
     setPreview(null)
@@ -408,7 +428,11 @@ const GenerateProgramPage = () => {
   }
 
   const handleGenerate = async () => {
+    if (generating || previewing) return
     if (!selectedActivity) return toast.error('Selecciona una actividad')
+    if (mode === 'batch' && (!startDate || !endDate || endDate < startDate || batchDates.length === 0)) {
+      return toast.error('Selecciona un rango válido con fechas para esta actividad')
+    }
     
     // Verificar si necesita configuración especial para Mensaje en Culto Evangelístico
     if (isSundayEvangelistic && eligibleMessagePersons.length > 0) {
@@ -434,7 +458,7 @@ const GenerateProgramPage = () => {
         const res = await programsApi.generate(payload)
         setResult({ type: 'single', program: res.data.data, meta: res.data.meta })
         toast.success('✅ Programa generado exitosamente')
-        setTimeout(() => navigate(`/programs/${res.data.data._id}/flyer`), 600)
+        setGeneratedIds([res.data.data._id])
       } else {
         if (!startDate || !endDate) {
           setGenerating(false)
@@ -532,7 +556,8 @@ const GenerateProgramPage = () => {
           .map((r: any) => r.programId) || []
         console.log('🔗 Program IDs para redirección:', programIds)
         if (programIds.length > 0) {
-          setTimeout(() => navigate(`/programs/batch-review?ids=${programIds.join(',')}`), 600)
+          setGeneratedIds(programIds)
+          setResult({ type: 'batch', data: batchData })
         } else if (gen === 0 && errors > 0) {
           toast.info('No se generaron programas nuevos', {
             description: 'Todos los programas para las fechas seleccionadas ya existen. Puede editarlos o eliminarlos desde la lista de programas.',
@@ -600,7 +625,7 @@ const GenerateProgramPage = () => {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 p-6">
+    <div className="program-studio">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -617,20 +642,23 @@ const GenerateProgramPage = () => {
             Volver a Programas
           </Button>
           
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center shadow-lg">
+          <div className="studio-hero flex items-start gap-4">
+            <div className="hidden sm:flex w-12 h-12 shrink-0 bg-white/10 rounded-xl items-center justify-center border border-white/20">
               <Wand2 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-neutral-900">Generar Programa de Oportunidades</h1>
-              <p className="text-neutral-600 mt-1">
-                Asignación automática usando algoritmo de equidad
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-200 mb-2">Planificación de la iglesia</p>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Prepara el próximo encuentro</h1>
+              <p className="text-blue-100 mt-2 max-w-xl text-sm sm:text-base">
+                Organiza las fechas, distribuye las oportunidades y revisa tu programa antes de compartirlo.
               </p>
             </div>
           </div>
         </motion.div>
 
-        {activities.length === 0 ? (
+        {loadError ? (
+          <Card><CardContent className="pt-6 text-center space-y-4"><p>No pudimos cargar la información. Comprueba tu conexión e inténtalo de nuevo.</p><Button onClick={() => window.location.reload()}>Volver a intentar</Button></CardContent></Card>
+        ) : activities.length === 0 ? (
           <Card>
             <CardContent className="text-center py-16">
               <Calendar className="w-16 h-16 mx-auto mb-4 text-neutral-200" />
@@ -641,9 +669,18 @@ const GenerateProgramPage = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid lg:grid-cols-3 gap-6">
+          <div className="grid xl:grid-cols-3 gap-6 items-start">
             {/* Left Panel - Configuration */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="xl:col-span-2 space-y-5">
+              <nav aria-label="Pasos de generación" className="studio-steps">
+                {['Actividad', 'Fechas', 'Revisión'].map((label, index) => (
+                  <button key={label} className="studio-step" aria-current={step === index ? 'step' : undefined} disabled={index > step || generating} onClick={() => setStep(index)}>
+                    <span className="studio-step-number">{step > index ? '✓' : index + 1}</span><span className="font-semibold">{label}</span>
+                  </button>
+                ))}
+              </nav>
+              <h2 id="studio-step-heading" tabIndex={-1} className="text-lg font-semibold text-slate-900 outline-none">{['¿Qué vas a organizar?', 'Elige las fechas del encuentro', 'Revisa y genera tu programa'][step]}</h2>
+              <div hidden={step !== 0} className="space-y-5">
               {/* Mode Selection */}
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
                 <Card>
@@ -661,8 +698,10 @@ const GenerateProgramPage = () => {
                       ].map((m) => (
                         <button
                           key={m.id}
+                          aria-pressed={mode === m.id}
+                          disabled={m.id === 'single' && selectedAct?.generationType === 'cleaning_groups'}
                           onClick={() => { setMode(m.id as any); setResult(null); setPreview(null); setDuplicateAlert(null) }}
-                          className={`p-4 rounded-xl border-2 transition-all ${
+                          className={`p-4 rounded-xl border-2 transition-all disabled:opacity-40 ${
                             mode === m.id
                               ? 'border-primary-500 bg-primary-50 shadow-sm'
                               : 'border-neutral-200 hover:border-neutral-300'
@@ -692,6 +731,7 @@ const GenerateProgramPage = () => {
                       {activities.map((a) => (
                         <button
                           key={a._id}
+                          aria-pressed={selectedActivity === a._id}
                           onClick={() => { setSelectedActivity(a._id); setPreview(null); setResult(null); setDuplicateAlert(null) }}
                           className={`p-4 rounded-xl border-2 text-left transition-all ${
                             selectedActivity === a._id
@@ -722,6 +762,8 @@ const GenerateProgramPage = () => {
               </motion.div>
 
               {/* Date Selection */}
+              </div>
+              <div hidden={step !== 1}>
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
                 <Card>
                   <CardHeader>
@@ -733,8 +775,9 @@ const GenerateProgramPage = () => {
                   <CardContent>
                     {mode === 'single' ? (
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-neutral-700">Fecha del Programa</label>
+                        <label htmlFor="program-date" className="text-sm font-medium text-neutral-700">Fecha del Programa</label>
                         <input
+                          id="program-date"
                           type="date"
                           value={singleDate}
                           onChange={(e) => { setSingleDate(e.target.value); setPreview(null); setResult(null); setDuplicateAlert(null) }}
@@ -742,10 +785,11 @@ const GenerateProgramPage = () => {
                         />
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-neutral-700">Fecha Inicio</label>
+                          <label htmlFor="start-date" className="text-sm font-medium text-neutral-700">Fecha Inicio</label>
                           <input
+                            id="start-date"
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
@@ -753,8 +797,10 @@ const GenerateProgramPage = () => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-neutral-700">Fecha Fin</label>
+                          <label htmlFor="end-date" className="text-sm font-medium text-neutral-700">Fecha Fin</label>
                           <input
+                            id="end-date"
+                            min={startDate || undefined}
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
@@ -786,7 +832,7 @@ const GenerateProgramPage = () => {
                             </p>
                           </div>
                           {batchDates.length > 0 && (
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
                               {batchDates.map((d, i) => (
                                 <div key={i} className="flex items-center gap-2 text-sm text-primary-700 bg-white/60 rounded-lg px-3 py-2">
                                   <div className="w-5 h-5 rounded-full bg-primary-200 text-primary-800 flex items-center justify-center text-xs font-bold">
@@ -805,6 +851,12 @@ const GenerateProgramPage = () => {
               </motion.div>
 
               {/* Message Person Selector - shown for Culto Evangelístico */}
+              </div>
+              <div hidden={step !== 2} className="space-y-5">
+                <div className="rounded-2xl bg-blue-50 border border-blue-100 p-5 text-sm text-blue-900">
+                  <p className="font-semibold mb-1">Primero un borrador, después lo compartes</p>
+                  <p>La asignación toma en cuenta los roles y el historial de participación. Revisa los puestos sin cubrir y ajusta los responsables en el editor antes de publicar.</p>
+                </div>
               {isSundayEvangelistic && (
                 <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}>
                   <Card className="border-indigo-200 bg-indigo-50/50">
@@ -1082,26 +1134,28 @@ const GenerateProgramPage = () => {
               </AnimatePresence>
 
               {/* Actions */}
+              </div>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="flex gap-3"
+                className="studio-actions"
               >
-                {mode === 'single' && singleDate && (
+                {step > 0 && <Button variant="ghost" disabled={generating || previewing} onClick={() => setStep(step - 1)}>Atrás</Button>}
+                {step === 2 && mode === 'single' && singleDate && selectedAct?.generationType !== 'cleaning_groups' && (
                   <Button
                     variant="outline"
                     onClick={handlePreview}
-                    disabled={previewing}
+                    disabled={previewing || generating}
                     className="gap-2"
                   >
                     {previewing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
                     Vista Previa
                   </Button>
                 )}
-                <Button
+                {step < 2 ? <Button className="flex-1 gap-2" disabled={step === 0 ? !selectedActivity : mode === 'single' ? !singleDate : !startDate || !endDate || endDate < startDate || batchDates.length === 0} onClick={() => setStep(step + 1)}>Continuar →</Button> : <Button
                   onClick={handleGenerate}
-                  disabled={generating || (mode === 'batch' && batchDates.length === 0)}
+                  disabled={generating || previewing || !!result || (mode === 'batch' && batchDates.length === 0)}
                   className="flex-1 gap-2 h-11"
                 >
                   {generating ? (
@@ -1117,12 +1171,19 @@ const GenerateProgramPage = () => {
                         : 'Generar Programa'}
                     </>
                   )}
-                </Button>
+                </Button>}
               </motion.div>
             </div>
 
             {/* Right Panel - Preview/Results */}
-            <div className="space-y-6">
+            <aside id="studio-results" className="min-w-0 space-y-5 xl:sticky xl:top-6 scroll-mt-20" aria-label="Resumen y resultados" aria-live="polite">
+              <Card><CardHeader><CardTitle>Tu planificación</CardTitle></CardHeader><CardContent>
+                <dl className="space-y-4 text-sm">
+                  <div><dt className="text-slate-500 text-xs uppercase tracking-wide">Actividad</dt><dd className="font-semibold mt-1 break-words">{selectedAct?.name || 'Selecciona una actividad'}</dd></div>
+                  <div className="grid grid-cols-2 gap-4"><div><dt className="text-slate-500">Modalidad</dt><dd className="font-medium">{mode === 'single' ? 'Una fecha' : 'Varias fechas'}</dd></div><div><dt className="text-slate-500">Programas</dt><dd className="font-medium">{mode === 'single' ? (singleDate ? 1 : '—') : batchDates.length}</dd></div></div>
+                  <div><dt className="text-slate-500">Fecha{mode === 'batch' ? 's' : ''}</dt><dd className="font-medium mt-1">{mode === 'single' ? (singleDate ? format(safeDateParse(singleDate), "d 'de' MMMM yyyy", { locale: es }) : 'Por definir') : `${startDate || 'Inicio'} → ${endDate || 'Fin'}`}</dd></div>
+                </dl>
+              </CardContent></Card>
               {/* Activity Format Info */}
               {selectedAct && !preview && !result && (
                 <motion.div
@@ -1199,9 +1260,9 @@ const GenerateProgramPage = () => {
                     )}
 
                     {result.type === 'batch' && (
-                      <div className="text-center py-4">
-                        <Loader2 className="w-6 h-6 animate-spin text-primary-600 mx-auto mb-2" />
-                        <p className="text-sm text-neutral-500">Redirigiendo a la vista de programas...</p>
+                      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 space-y-3">
+                        <p className="text-sm text-blue-900">Los borradores están listos. Revisa cada programa antes de compartirlo.</p>
+                        <Button className="w-full" onClick={() => navigate(`/programs/batch-review?ids=${generatedIds.join(',')}`)}>Revisar programas →</Button>
                       </div>
                     )}
 
@@ -1214,7 +1275,7 @@ const GenerateProgramPage = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </aside>
           </div>
         )}
       </div>

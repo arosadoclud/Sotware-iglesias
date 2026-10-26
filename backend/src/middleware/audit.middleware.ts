@@ -8,8 +8,8 @@ export class AuditService {
    * Crear un log de auditoría
    */
   static async log(params: {
-    churchId: string | mongoose.Types.ObjectId;
-    userId: string | mongoose.Types.ObjectId;
+    churchId: string | mongoose.Types.ObjectId | null;
+    userId: string | mongoose.Types.ObjectId | null;
     userEmail: string;
     userName: string;
     userRole: string;

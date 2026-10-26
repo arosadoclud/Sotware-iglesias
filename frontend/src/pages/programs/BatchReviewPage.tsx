@@ -338,7 +338,7 @@ const BatchReviewPage = () => {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-neutral-100 p-6">
+    <div className="program-studio">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -351,8 +351,8 @@ const BatchReviewPage = () => {
           </Button>
 
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-12 h-12 shrink-0 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center shadow-lg">
                 <FileText className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -365,7 +365,7 @@ const BatchReviewPage = () => {
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <Button
                 onClick={async () => {
                   setSharingWhatsApp(true)
@@ -457,7 +457,7 @@ const BatchReviewPage = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-8 flex justify-center gap-4"
+          className="mt-8 flex flex-col sm:flex-row justify-center gap-4"
         >
           <Button variant="outline" onClick={() => navigate('/programs/generate')} className="gap-2">
             Generar M&aacute;s Programas

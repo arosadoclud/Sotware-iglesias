@@ -1044,9 +1044,10 @@ const FlyerPreviewPage = () => {
         </div>
 
         {/* ══════════════════════ MOBILE TABS ══════════════════════ */}
-        <div className="fe-mobile-tabs" style={styles.mobileTabs}>
+        <div className="fe-mobile-tabs" style={styles.mobileTabs} aria-label="Vista del editor">
           <button 
             className={`fe-tab ${activeTab === 'preview' ? 'active' : ''}`}
+            aria-pressed={activeTab === 'preview'}
             onClick={() => setActiveTab('preview')}
             style={{
               ...styles.mobileTab,
@@ -1057,6 +1058,7 @@ const FlyerPreviewPage = () => {
           </button>
           <button 
             className={`fe-tab ${activeTab === 'edit' ? 'active' : ''}`}
+            aria-pressed={activeTab === 'edit'}
             onClick={() => setActiveTab('edit')}
             style={{
               ...styles.mobileTab,
@@ -1071,9 +1073,9 @@ const FlyerPreviewPage = () => {
         <div className="fe-workspace" style={styles.workspace}>
 
           {/* ─── MOBILE: VERTICAL LAYOUT (Preview + Config) ─── */}
-          <div className="fe-mobile-vertical">
+          <div className="fe-mobile-vertical" data-tab={activeTab}>
             {/* Preview superior */}
-            <div style={{
+            <div className="fe-mobile-preview" style={{
               ...styles.previewWrapper,
               marginBottom: '1rem'
             }}>
@@ -1090,14 +1092,14 @@ const FlyerPreviewPage = () => {
               </div>
 
               {/* ══════════ FLYER ══════════ */}
-              <div style={styles.flyerContainer}>
+              <div style={styles.flyerContainer} className="fe-flyer-container">
 
                 {/* ── HEADER ── */}
                 <div style={styles.flyerHeader}>
                   <div style={styles.flyerHeaderCircle1} />
                   <div style={styles.flyerHeaderCircle2} />
 
-                  <div style={styles.headerInner}>
+                  <div style={styles.headerInner} className="fe-flyer-heading">
                     {/* Logo a la IZQUIERDA */}
                     <img
                       src={logoSrc}
@@ -1154,7 +1156,7 @@ const FlyerPreviewPage = () => {
                       border: i % 2 === 1 ? `1px solid ${C.gray100}` : 'none',
                     }}>
                       <div style={styles.flyerRowNum}>{String(a.id).padStart(2, '0')}</div>
-                      <div style={styles.flyerRowRole}>{a.name}</div>
+                      <div style={styles.flyerRowRole} className="fe-flyer-role">{a.name}</div>
                       {a.person ? (
                         <div style={styles.flyerRowPerson}>{a.person}</div>
                       ) : (
@@ -1333,7 +1335,7 @@ const FlyerPreviewPage = () => {
                       <div style={styles.roleBadge}>
                         {String(a.id).padStart(2, '0')}
                       </div>
-                      <div style={styles.roleLabel} title={a.name}>{a.name}</div>
+                      <div style={styles.roleLabel} className="fe-role-label" title={a.name}>{a.name}</div>
                       <div style={{ flex: 1, position: 'relative', minWidth: 0 }}>
                         <input
                           ref={(el) => { inputRefs.current[i] = el }}
@@ -1799,7 +1801,7 @@ const SCOPED_CSS = `
   @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
 
   .fe-page * { box-sizing: border-box; }
-  .fe-page { font-family: ${F.body}; background: ${C.bg}; color: ${C.gray900}; min-height: 100vh; }
+  .fe-page { container: editor / inline-size; font-family: ${F.body}; background: ${C.bg}; color: ${C.gray900}; min-height: 100vh; border-radius: 18px; }
 
   .fe-page input:focus {
     border-color: ${C.navyLight} !important;
@@ -1845,22 +1847,24 @@ const SCOPED_CSS = `
   }
 
   /* Responsive Styles */
-  @media (max-width: 1400px) {
+  @container editor (max-width: 1400px) {
     .fe-workspace { grid-template-columns: 360px 1fr !important; gap: 1.5rem !important; }
   }
 
-  @media (max-width: 1280px) {
+  @container editor (max-width: 1280px) {
     .fe-workspace { grid-template-columns: 340px 1fr !important; gap: 1.25rem !important; }
   }
 
-  @media (max-width: 1024px) {
+  @container editor (max-width: 1024px) {
     .fe-workspace { grid-template-columns: 320px 1fr !important; gap: 1rem !important; padding: 1rem !important; }
     .fe-topbar-brand { font-size: 1rem !important; }
     .fe-panel { top: 54px !important; }
   }
 
-  @media (max-width: 900px) {
-    .fe-mobile-tabs { display: none !important; }
+  @container editor (max-width: 900px) {
+    .fe-mobile-tabs { display: flex !important; position: sticky; top: 64px; z-index: 25; }
+    .fe-mobile-vertical[data-tab="edit"] > .fe-mobile-preview { display: none !important; }
+    .fe-mobile-vertical[data-tab="preview"] > .fe-panel { display: none !important; }
     .fe-mobile-vertical { display: block !important; }
     .fe-desktop-only { display: none !important; }
     .fe-workspace { display: block !important; padding: 0.75rem !important; }
@@ -1877,7 +1881,7 @@ const SCOPED_CSS = `
     }
     .fe-topbar-brand { display: none !important; }
     .fe-hide-mobile { display: none !important; }
-    .fe-btn-text { display: none !important; }
+    .fe-btn-text { display: inline !important; font-size: 12px; }
     .fe-action-btn { 
       padding: 8px 10px !important; 
       font-size: 1rem !important;
@@ -1889,13 +1893,13 @@ const SCOPED_CSS = `
     .fe-live-badge-top { display: none !important; }
   }
 
-  @media (max-width: 640px) {
+  @container editor (max-width: 640px) {
     .fe-page { font-size: 14px; }
     .fe-topbar { 
       padding: 0.4rem 0.6rem !important; 
       height: auto !important; 
       min-height: 48px !important;
-      flex-direction: row !important;
+      flex-direction: column !important;
       align-items: center !important;
       gap: 0.5rem !important;
     }
@@ -1923,7 +1927,20 @@ const SCOPED_CSS = `
       align-items: center !important;
       border-radius: 8px !important;
     }
-    .fe-btn-text { display: none !important; }
+    .fe-btn-text { display: inline !important; font-size: 12px; }
+    .fe-topbar-actions { width: 100%; justify-content: stretch !important; }
+    .fe-action-btn { flex: 1; min-height: 44px; gap: 4px !important; }
+    .fe-topbar { position: static !important; z-index: auto !important; border-radius: 16px 16px 0 0; }
+    .fe-flyer-container { overflow-wrap: anywhere; }
+    .fe-flyer-heading { flex-direction: column; gap: 12px !important; }
+    .fe-flyer-heading > div { padding-right: 0 !important; }
+    .fe-flyer-role { width: 30% !important; min-width: 0; font-size: 12px !important; white-space: normal !important; overflow: visible !important; padding-right: 8px; }
+    .fe-role-label { flex: 1; width: auto !important; white-space: normal !important; overflow: visible !important; }
+    .fe-mobile-vertical .fe-panel > div:last-child { padding: 16px !important; }
+    .fe-mobile-vertical .fe-panel div[style*="grid-template-columns"] { grid-template-columns: minmax(0, 1fr) !important; }
+    .fe-mobile-preview > div:first-child { flex-wrap: wrap; gap: 8px; }
+    .fe-assignment-row { flex-wrap: wrap; gap: 8px !important; }
+    .fe-assignment-row > div[style*="position: relative"] { flex-basis: 60% !important; }
     .fe-live-badge-top { display: none !important; }
     .fe-live-badge { display: none !important; }
     .fe-panel-body { padding: 0.75rem !important; }
