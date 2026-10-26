@@ -1,0 +1,125 @@
+.login-page .registration-story {
+  background:
+    radial-gradient(ellipse at 15% 85%, #dac89c90, transparent 65%),
+    linear-gradient(145deg, #f4f0e6, #edf0f3);
+}
+.login-page .registration-panel {
+  max-width: 520px;
+}
+.login-page .registration-story h1 {
+  font-size: clamp(38px, 4.5vw, 66px);
+}
+.login-forgot {
+  display: block;
+  margin: 16px 0 0 auto;
+  font-size: 12px;
+  color: #7d6125;
+}
+.login-signature {
+  border-top: 1px solid #e6e2d8;
+  margin-top: 40px;
+  padding-top: 22px;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #7d8490;
+}
+.login-signature span {
+  color: #c39a40;
+  margin: 0 8px;
+}
+.login-verification {
+  padding: 16px;
+  border-radius: 12px;
+  background: #f6efdc;
+  color: #735919;
+  font-size: 12px;
+  line-height: 1.8;
+  margin-top: 18px;
+}
+.login-verification button {
+  margin-top: 8px;
+  text-decoration: underline;
+}
+.login-recovery-success {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  font-size: 14px;
+  color: #647084;
+  margin-top: 24px;
+}
+.login-recovery-success strong {
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.login-recovery-success svg {
+  color: #b28b35;
+}
+.login-page .registration-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 24px;
+}
+@media (max-width: 760px) {
+  .login-page .registration-story h1 {
+    font-size: 34px;
+  }
+  .login-page .registration-story {
+    gap: 24px;
+  }
+  .login-page .registration-panel {
+    padding-top: 36px;
+  }
+  .login-signature {
+    margin-top: 30px;
+  }
+}
+.login-page .registration-story {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, #f3efe7 0%, #f3efe7eb 48%, #f3efe7b8 100%),
+    url('/gallery/palabra.png') center bottom/cover no-repeat;
+}
+.login-page .registration-story::after {
+  content: '';
+  position: absolute;
+  width: 580px;
+  height: 580px;
+  border: 1px solid #b9913c26;
+  border-radius: 50%;
+  top: -240px;
+  right: -280px;
+  z-index: -1;
+  box-shadow:
+    0 0 0 65px #b9913c08,
+    0 0 0 130px #b9913c06;
+}
+.login-page .registration-panel {
+  background: #ffffffa6;
+  border: 1px solid #fff;
+  border-radius: 24px;
+  box-shadow: 0 24px 80px #192e4c08;
+  margin: 36px 0;
+}
+.login-page {
+  background:
+    radial-gradient(ellipse at 95% 0, #e5eaf0, transparent 60%), #f7f6f2;
+}
+@media (max-width: 760px) {
+  .login-page .registration-panel {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+    background: transparent;
+  }
+  .login-page .registration-story {
+    background:
+      linear-gradient(90deg, #f3efe7f5, #f3efe7c9),
+      url('/gallery/palabra.png') right center/cover no-repeat;
+  }
+}

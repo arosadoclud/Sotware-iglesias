@@ -1,13 +1,24 @@
-import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'react-hot-toast'
-import { AlertCircle, Loader2, Eye, EyeOff, Mail, ArrowLeft, KeyRound, CheckCircle2 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import {
+  AlertCircle,
+  Loader2,
+  Eye,
+  EyeOff,
+  Mail,
+  ArrowLeft,
+  KeyRound,
+  CheckCircle2
+} from 'lucide-react'
+import { BrandLogo } from '../../components/layout/BrandLogo'
+import './registration.css'
+import './login.css'
 import { useAuthStore } from '../../store/authStore'
-import api, { BACKEND_URL, authApi } from '../../lib/api'
+import api, { authApi } from '../../lib/api'
 
 const loginSchema = z.object({
   email: z
@@ -17,23 +28,19 @@ const loginSchema = z.object({
   password: z
     .string()
     .min(1, 'La contraseña es requerida')
-    .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+    .min(6, 'La contraseña debe tener al menos 6 caracteres')
 })
 
 const forgotSchema = z.object({
   email: z
     .string()
     .min(1, 'El correo es requerido')
-    .email('Ingresa un correo electrónico válido'),
+    .email('Ingresa un correo electrónico válido')
 })
 
 type ForgotForm = z.infer<typeof forgotSchema>
 
 type LoginForm = z.infer<typeof loginSchema>
-
-// Logo: primero intenta desde el frontend public/, si falla usa el backend
-const LOGO_LOCAL = '/arca-logo.png'
-const LOGO_BACKEND = `${BACKEND_URL}/uploads/logo.png`
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -53,18 +60,18 @@ const LoginPage = () => {
     register,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors }
   } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(loginSchema)
   })
 
   const {
     register: registerForgot,
     handleSubmit: handleForgotSubmit,
     formState: { errors: forgotErrors },
-    reset: resetForgot,
+    reset: resetForgot
   } = useForm<ForgotForm>({
-    resolver: zodResolver(forgotSchema),
+    resolver: zodResolver(forgotSchema)
   })
 
   const onSubmit = async (data: LoginForm) => {
@@ -82,9 +89,13 @@ const LoginPage = () => {
         setEmailNotVerified(true)
         setUnverifiedEmail(data.email)
       } else if (data?.field === 'email') {
-        setError('email', { message: data.message || 'Este correo no está registrado' })
+        setError('email', {
+          message: data.message || 'Este correo no está registrado'
+        })
       } else if (data?.field === 'password') {
-        setError('password', { message: data.message || 'Contraseña incorrecta' })
+        setError('password', {
+          message: data.message || 'Contraseña incorrecta'
+        })
       } else {
         const msg = data?.message || 'Correo o contraseña incorrectos'
         setLoginError(msg)
@@ -98,7 +109,9 @@ const LoginPage = () => {
     setResendingVerification(true)
     try {
       await authApi.resendVerification(unverifiedEmail)
-      toast.success('Email de verificación reenviado. Revisa tu bandeja de entrada.')
+      toast.success(
+        'Email de verificación reenviado. Revisa tu bandeja de entrada.'
+      )
     } catch (error: any) {
       const msg = error.response?.data?.message || 'Error al reenviar el email'
       toast.error(msg)
@@ -127,1141 +140,177 @@ const LoginPage = () => {
     resetForgot()
   }
 
-  // Memoize random values so they don't change on re-render
-  const particles = useMemo(() => Array.from({ length: 30 }, (_, i) => ({
-    id: i,
-    left: Math.random() * 100,
-    delay: Math.random() * 8,
-    duration: 6 + Math.random() * 8,
-    size: 1.5 + Math.random() * 2.5,
-    startOpacity: 0.15 + Math.random() * 0.35,
-    drift: -30 + Math.random() * 60,
-  })), [])
-
-  const stars = useMemo(() => Array.from({ length: 50 }, (_, i) => ({
-    id: i,
-    left: Math.random() * 100,
-    top: Math.random() * 100,
-    size: 1 + Math.random() * 1.5,
-    delay: Math.random() * 5,
-    duration: 3 + Math.random() * 4,
-  })), [])
-
-  const crosses = useMemo(() => Array.from({ length: 6 }, (_, i) => ({
-    id: i,
-    left: 5 + Math.random() * 90,
-    top: 5 + Math.random() * 90,
-    size: 12 + Math.random() * 16,
-    delay: Math.random() * 10,
-    duration: 12 + Math.random() * 10,
-    rotate: Math.random() * 30 - 15,
-  })), [])
-
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Playfair+Display+SC:wght@400;700&display=swap');
-
-        /* Force dark on html/body so no white bleeds through */
-        html, body, #root {
-          background: #f7f8fa !important;
-        }
-
-        .login-root {
-          min-height: 100vh;
-          background: linear-gradient(170deg, #fcfbf7 0%, #f5f7fa 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-          position: relative;
-          font-family: 'Playfair Display', Georgia, serif;
-        }
-
-        /* ── Animated Aurora / Nebula layer ── */
-        .aurora-layer {
-          position: fixed;
-          inset: 0;
-          z-index: 0;
-          pointer-events: none;
-          overflow: hidden;
-        }
-
-        .aurora-orb {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(80px);
-          mix-blend-mode: screen;
-          will-change: transform;
-        }
-
-        .aurora-orb-1 {
-          width: 700px; height: 700px;
-          background: radial-gradient(circle, rgba(201, 168, 76, 0.18) 0%, transparent 65%);
-          top: -20%; left: 50%;
-          transform: translateX(-50%);
-          animation: auroraFloat1 16s ease-in-out infinite;
-        }
-
-        .aurora-orb-2 {
-          width: 550px; height: 450px;
-          background: radial-gradient(circle, rgba(40, 80, 200, 0.22) 0%, transparent 65%);
-          bottom: -10%; left: -5%;
-          animation: auroraFloat2 20s ease-in-out infinite;
-        }
-
-        .aurora-orb-3 {
-          width: 500px; height: 500px;
-          background: radial-gradient(circle, rgba(30, 90, 220, 0.18) 0%, transparent 65%);
-          top: 30%; right: -8%;
-          animation: auroraFloat3 18s ease-in-out infinite;
-        }
-
-        .aurora-orb-4 {
-          width: 400px; height: 400px;
-          background: radial-gradient(circle, rgba(200, 160, 70, 0.12) 0%, transparent 65%);
-          bottom: 20%; right: 20%;
-          animation: auroraFloat4 14s ease-in-out infinite;
-        }
-
-        .aurora-orb-5 {
-          width: 300px; height: 300px;
-          background: radial-gradient(circle, rgba(100, 140, 255, 0.10) 0%, transparent 65%);
-          top: 50%; left: 50%;
-          transform: translate(-50%, -50%);
-          animation: auroraFloat1 22s ease-in-out infinite reverse;
-        }
-
-        @keyframes auroraFloat1 {
-          0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
-          33% { transform: translateX(-40%) translateY(30px) scale(1.08); }
-          66% { transform: translateX(-60%) translateY(-20px) scale(0.95); }
-        }
-        @keyframes auroraFloat2 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          50% { transform: translate(60px, -40px) scale(1.12); }
-        }
-        @keyframes auroraFloat3 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          40% { transform: translate(-40px, 30px) scale(1.06); }
-          80% { transform: translate(20px, -20px) scale(0.94); }
-        }
-        @keyframes auroraFloat4 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          50% { transform: translate(-30px, -30px) scale(1.1); }
-        }
-
-        /* ── Light rays from center ── */
-        .light-rays {
-          position: fixed;
-          inset: 0;
-          z-index: 0;
-          pointer-events: none;
-          overflow: hidden;
-        }
-
-        .light-ray {
-          position: absolute;
-          top: 50%; left: 50%;
-          width: 1.5px;
-          height: 120vh;
-          transform-origin: top center;
-          background: linear-gradient(to bottom, rgba(201, 168, 76, 0.08), transparent 50%);
-          animation: rayPulse 10s ease-in-out infinite;
-        }
-
-        @keyframes rayPulse {
-          0%, 100% { opacity: 0.2; }
-          50% { opacity: 0.5; }
-        }
-
-        /* ── Subtle grid ── */
-        .grid-overlay {
-          position: fixed;
-          inset: 0;
-          background-image:
-            linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-          background-size: 70px 70px;
-          pointer-events: none;
-          z-index: 0;
-          mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 30%, transparent 80%);
-          -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 30%, transparent 80%);
-        }
-
-        /* ── Vignette ── */
-        .vignette {
-          position: fixed;
-          inset: 0;
-          background: radial-gradient(ellipse 80% 80% at 50% 45%, transparent 50%, rgba(5, 10, 25, 0.55) 100%);
-          pointer-events: none;
-          z-index: 1;
-        }
-
-        /* ── Floating particles (gold dust rising) ── */
-        .particle-gold {
-          position: absolute;
-          border-radius: 50%;
-          background: radial-gradient(circle, #d4b86a, #c9a84c);
-          z-index: 2;
-          pointer-events: none;
-          animation: goldRise linear infinite;
-        }
-
-        @keyframes goldRise {
-          0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
-          10% { opacity: var(--p-opacity); }
-          70% { opacity: var(--p-opacity); }
-          100% { transform: translateY(-200px) translateX(var(--p-drift)) scale(0.2); opacity: 0; }
-        }
-
-        /* ── Twinkling stars ── */
-        .star {
-          position: absolute;
-          border-radius: 50%;
-          background: rgba(220, 220, 255, 0.8);
-          z-index: 1;
-          pointer-events: none;
-          animation: twinkle ease-in-out infinite;
-        }
-
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.1; transform: scale(0.8); }
-          50% { opacity: 0.7; transform: scale(1.2); }
-        }
-
-        /* ── Floating crosses ── */
-        .cross-float {
-          position: absolute;
-          z-index: 1;
-          pointer-events: none;
-          opacity: 0;
-          animation: crossDrift linear infinite;
-        }
-
-        .cross-float::before,
-        .cross-float::after {
-          content: '';
-          position: absolute;
-          background: rgba(201, 168, 76, 0.6);
-          border-radius: 1px;
-        }
-
-        .cross-float::before {
-          width: 24%; height: 100%;
-          left: 38%; top: 0;
-        }
-
-        .cross-float::after {
-          width: 100%; height: 24%;
-          left: 0; top: 22%;
-        }
-
-        @keyframes crossDrift {
-          0% { transform: translateY(0) rotate(var(--cross-rotate)); opacity: 0; }
-          20% { opacity: 0.035; }
-          80% { opacity: 0.035; }
-          100% { transform: translateY(-120px) rotate(calc(var(--cross-rotate) + 5deg)); opacity: 0; }
-        }
-
-        /* ── Noise texture overlay ── */
-        .noise {
-          position: fixed;
-          inset: 0;
-          z-index: 1;
-          pointer-events: none;
-          opacity: 0.025;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-          background-repeat: repeat;
-          background-size: 256px 256px;
-        }
-
-        .login-card {
-          position: relative;
-          z-index: 10;
-          width: 100%;
-          max-width: 420px;
-          margin: 0 16px;
-        }
-
-        /* Decorative top ornament */
-        .ornament {
-          text-align: center;
-          margin-bottom: 28px;
-        }
-
-        .ornament-line {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          margin-bottom: 20px;
-        }
-
-        .ornament-line::before,
-        .ornament-line::after {
-          content: '';
-          flex: 1;
-          max-width: 90px;
-          height: 1px;
-          background: linear-gradient(to right, transparent, rgba(212, 184, 106, 0.5));
-        }
-
-        .ornament-line::after {
-          background: linear-gradient(to left, transparent, rgba(212, 184, 106, 0.5));
-        }
-
-        .ornament-diamond {
-          width: 7px;
-          height: 7px;
-          background: rgba(212, 184, 106, 0.7);
-          transform: rotate(45deg);
-          flex-shrink: 0;
-          box-shadow: 0 0 6px rgba(212, 184, 106, 0.3);
-        }
-
-        .logo-ring {
-          position: relative;
-          width: 220px;
-          height: auto;
-          margin: 0 auto 20px;
-        }
-
-        .logo-ring::before {
-          display: none;
-          content: '';
-          position: absolute;
-          inset: -5px;
-          border-radius: 50%;
-          border: 1px solid rgba(212, 184, 106, 0.35);
-          animation: pulse-ring 3s ease-in-out infinite;
-        }
-
-        .logo-ring::after {
-          display: none;
-          content: '';
-          position: absolute;
-          inset: -12px;
-          border-radius: 50%;
-          border: 1px solid rgba(212, 184, 106, 0.12);
-          animation: pulse-ring 3s ease-in-out infinite 0.5s;
-        }
-
-        @keyframes pulse-ring {
-          0%, 100% { transform: scale(1); opacity: 0.6; }
-          50% { transform: scale(1.05); opacity: 1; }
-        }
-
-        .logo-img {
-          width: 220px;
-          height: auto;
-          border-radius: 14px;
-          object-fit: contain;
-          background: transparent;
-          border: 0;
-          padding: 8px;
-          box-shadow: none;
-        }
-
-        .church-name {
-          font-family: 'Playfair Display SC', serif;
-          font-size: 13.5px;
-          font-weight: 600;
-          letter-spacing: 0.16em;
-          color: #14263f;
-          text-transform: uppercase;
-          line-height: 1.5;
-          margin-bottom: 8px;
-          text-shadow: 0 0 20px rgba(212, 184, 106, 0.15);
-        }
-
-        .subtitle {
-          font-family: 'Playfair Display', serif;
-          font-style: italic;
-          font-weight: 400;
-          font-size: 14.5px;
-          color: #64748b;
-          letter-spacing: 0.04em;
-        }
-
-        /* Glass card */
-        .form-card {
-          background: #14263f;
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(212, 184, 106, 0.18);
-          border-radius: 20px;
-          padding: 34px 30px;
-          box-shadow:
-            0 0 0 1px rgba(0,0,30,0.4),
-            0 20px 60px rgba(0,5,30,0.5),
-            0 0 40px rgba(201, 168, 76, 0.03),
-            inset 0 1px 0 rgba(255,255,255,0.08);
-          position: relative;
-          overflow: hidden;
-        }
-
-        /* Corner accents */
-        .form-card::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0;
-          width: 22px; height: 22px;
-          border-top: 1.5px solid rgba(212, 184, 106, 0.45);
-          border-left: 1.5px solid rgba(212, 184, 106, 0.45);
-        }
-
-        .form-card::after {
-          content: '';
-          position: absolute;
-          bottom: 0; right: 0;
-          width: 22px; height: 22px;
-          border-bottom: 1.5px solid rgba(212, 184, 106, 0.45);
-          border-right: 1.5px solid rgba(212, 184, 106, 0.45);
-        }
-
-        .sign-in-label {
-          font-family: 'Playfair Display', serif;
-          font-style: italic;
-          font-size: 13px;
-          letter-spacing: 0.08em;
-          color: rgba(201, 168, 76, 0.7);
-          text-align: center;
-          margin-bottom: 24px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .sign-in-label::before,
-        .sign-in-label::after {
-          content: '';
-          flex: 1;
-          height: 1px;
-          background: rgba(201, 168, 76, 0.2);
-        }
-
-        .field-label {
-          display: block;
-          font-family: 'Playfair Display SC', serif;
-          font-size: 10.5px;
-          letter-spacing: 0.12em;
-          color: rgba(255,255,255,0.55);
-          text-transform: uppercase;
-          margin-bottom: 8px;
-        }
-
-        .field-input {
-          width: 100%;
-          height: 46px;
-          padding: 0 14px;
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.16);
-          border-radius: 3px;
-          color: rgba(255,255,255,0.95);
-          font-family: 'Playfair Display', serif;
-          font-size: 15px;
-          outline: none;
-          transition: all 0.25s;
-          box-sizing: border-box;
-        }
-
-        .field-input::placeholder {
-          color: rgba(255,255,255,0.3);
-          font-style: italic;
-        }
-
-        .field-input:focus {
-          border-color: rgba(212, 184, 106, 0.5);
-          background: rgba(212, 184, 106, 0.06);
-          box-shadow: 0 0 0 3px rgba(212, 184, 106, 0.08), 0 0 16px rgba(212, 184, 106, 0.04);
-        }
-
-        .field-input.error {
-          border-color: rgba(220, 80, 80, 0.5);
-        }
-
-        .field-input-wrapper {
-          position: relative;
-        }
-
-        .field-input.has-icon {
-          padding-right: 42px;
-        }
-
-        .input-icon-btn {
-          position: absolute;
-          right: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          background: none;
-          border: none;
-          cursor: pointer;
-          color: rgba(255,255,255,0.25);
-          padding: 4px;
-          display: flex;
-          align-items: center;
-          transition: color 0.2s;
-        }
-
-        .input-icon-btn:hover {
-          color: rgba(201, 168, 76, 0.7);
-        }
-
-        .error-msg {
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          color: #e07070;
-          font-family: 'Playfair Display', serif;
-          font-style: italic;
-          font-size: 13px;
-          margin-top: 6px;
-        }
-
-        .submit-btn {
-          width: 100%;
-          height: 48px;
-          margin-top: 10px;
-          background: linear-gradient(135deg, #c49a30 0%, #dbb854 50%, #c49a30 100%);
-          background-size: 200% 100%;
-          border: none;
-          border-radius: 3px;
-          color: #0a0e1a;
-          font-family: 'Playfair Display SC', serif;
-          font-size: 12px;
-          font-weight: 700;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
-          cursor: pointer;
-          transition: all 0.35s;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .submit-btn::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
-          transform: translateX(-100%);
-          transition: transform 0.5s;
-        }
-
-        .submit-btn:hover::before {
-          transform: translateX(100%);
-        }
-
-        .submit-btn:hover {
-          background-position: right center;
-          box-shadow: 0 0 30px rgba(201, 168, 76, 0.3), 0 4px 20px rgba(0,0,0,0.4);
-          transform: translateY(-1px);
-        }
-
-        .submit-btn:active {
-          transform: translateY(0);
-        }
-
-        .submit-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-          transform: none;
-        }
-
-        .submit-inner {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-        }
-
-        .footer-text {
-          text-align: center;
-          margin-top: 28px;
-          font-family: 'Playfair Display SC', serif;
-          font-size: 10px;
-          letter-spacing: 0.12em;
-          color: rgba(255,255,255,0.28);
-          text-transform: uppercase;
-        }
-
-        .space-y-5 > * + * { margin-top: 20px; }
-
-        .forgot-link {
-          display: block;
-          text-align: center;
-          margin-top: 18px;
-          font-family: 'Playfair Display', serif;
-          font-style: italic;
-          font-size: 13px;
-          color: rgba(212, 184, 106, 0.55);
-          text-decoration: none;
-          cursor: pointer;
-          transition: color 0.25s;
-          border: none;
-          background: none;
-          padding: 0;
-          width: 100%;
-        }
-
-        .forgot-link:hover {
-          color: rgba(212, 184, 106, 0.9);
-        }
-
-        .forgot-back-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-family: 'Playfair Display', serif;
-          font-style: italic;
-          font-size: 13px;
-          color: rgba(212, 184, 106, 0.55);
-          cursor: pointer;
-          border: none;
-          background: none;
-          padding: 0;
-          transition: color 0.25s;
-          margin-bottom: 18px;
-        }
-
-        .forgot-back-btn:hover {
-          color: rgba(212, 184, 106, 0.9);
-        }
-
-        .forgot-description {
-          font-family: 'Playfair Display', serif;
-          font-size: 13.5px;
-          color: rgba(255,255,255,0.5);
-          line-height: 1.55;
-          text-align: center;
-          margin-bottom: 22px;
-        }
-
-        .forgot-success-icon {
-          width: 60px;
-          height: 60px;
-          margin: 0 auto 16px;
-          border-radius: 50%;
-          background: rgba(34, 197, 94, 0.1);
-          border: 1.5px solid rgba(34, 197, 94, 0.35);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #22c55e;
-        }
-
-        .forgot-success-text {
-          font-family: 'Playfair Display', serif;
-          font-size: 14px;
-          color: rgba(255,255,255,0.7);
-          text-align: center;
-          line-height: 1.6;
-          margin-bottom: 6px;
-        }
-
-        .forgot-success-email {
-          font-family: 'Playfair Display SC', serif;
-          font-size: 12px;
-          color: #dcc47a;
-          text-align: center;
-          letter-spacing: 0.05em;
-          margin-bottom: 16px;
-        }
-
-        .forgot-success-hint {
-          font-family: 'Playfair Display', serif;
-          font-style: italic;
-          font-size: 11.5px;
-          color: rgba(255,255,255,0.35);
-          text-align: center;
-          line-height: 1.5;
-        }
-      `}</style>
-
-      <div className="login-root">
-        {/* ── Background layers ── */}
-        <div className="aurora-layer">
-          <div className="aurora-orb aurora-orb-1" />
-          <div className="aurora-orb aurora-orb-2" />
-          <div className="aurora-orb aurora-orb-3" />
-          <div className="aurora-orb aurora-orb-4" />
-          <div className="aurora-orb aurora-orb-5" />
+    <main className="registration-page login-page">
+      <aside className="registration-story">
+        <BrandLogo />
+        <div>
+          <span className="registration-eyebrow">
+            ARCA EVANGÉLICA · DIOS FUERTE
+          </span>
+          <h1>
+            La fe nos une.
+            <br />
+            El propósito nos guía.
+          </h1>
+          <p>
+            Bienvenido al espacio de nuestra iglesia. Aquí nos organizamos para
+            servir mejor, juntos.
+          </p>
         </div>
-
-        {/* Light rays emanating from center */}
-        <div className="light-rays">
-          {[0, 30, 60, 90, 120, 150].map((deg) => (
-            <div
-              key={deg}
-              className="light-ray"
-              style={{
-                transform: `rotate(${deg}deg)`,
-                animationDelay: `${deg * 0.04}s`,
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="grid-overlay" />
-        <div className="noise" />
-        <div className="vignette" />
-
-        {/* Twinkling stars */}
-        {stars.map((s) => (
-          <div
-            key={`star-${s.id}`}
-            className="star"
-            style={{
-              left: `${s.left}%`,
-              top: `${s.top}%`,
-              width: `${s.size}px`,
-              height: `${s.size}px`,
-              animationDelay: `${s.delay}s`,
-              animationDuration: `${s.duration}s`,
-            }}
-          />
-        ))}
-
-        {/* Floating gold particles */}
-        {particles.map((p) => (
-          <div
-            key={`p-${p.id}`}
-            className="particle-gold"
-            style={{
-              left: `${p.left}%`,
-              bottom: '-5%',
-              width: `${p.size}px`,
-              height: `${p.size}px`,
-              animationDelay: `${p.delay}s`,
-              animationDuration: `${p.duration}s`,
-              ['--p-opacity' as string]: p.startOpacity,
-              ['--p-drift' as string]: `${p.drift}px`,
-            }}
-          />
-        ))}
-
-        {/* Floating crosses */}
-        {crosses.map((c) => (
-          <div
-            key={`cross-${c.id}`}
-            className="cross-float"
-            style={{
-              left: `${c.left}%`,
-              top: `${c.top}%`,
-              width: `${c.size}px`,
-              height: `${c.size * 1.4}px`,
-              animationDelay: `${c.delay}s`,
-              animationDuration: `${c.duration}s`,
-              ['--cross-rotate' as string]: `${c.rotate}deg`,
-            }}
-          />
-        ))}
-
-        <motion.div
-          className="login-card"
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {/* Header */}
-          <div className="ornament">
-            <div className="ornament-line">
-              <div className="ornament-diamond" />
-              <div className="ornament-diamond" style={{ width: 5, height: 5, opacity: 0.5 }} />
-              <div className="ornament-diamond" />
-            </div>
-
-            <div className="logo-ring">
-              <img
-                src={LOGO_LOCAL}
-                alt="Logo"
-                className="logo-img"
-                onError={(e) => {
-                  const img = e.target as HTMLImageElement
-                  if (img.src !== LOGO_BACKEND) {
-                    img.src = LOGO_BACKEND
-                  } else {
-                    img.style.display = 'none'
-                  }
-                }}
-              />
-            </div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-            >
-              <div className="church-name">
-                Iglesia Dios Fuerte<br />Arca Evangélica
+        <footer>Una comunidad que camina contigo.</footer>
+      </aside>
+      <section className="registration-panel">
+        <span className="registration-eyebrow">BIENVENIDO A CASA</span>
+        {!showForgot ? (
+          <>
+            <header>
+              <h2>Qué bueno verte</h2>
+              <p>Inicia sesión y conecta con tu comunidad.</p>
+            </header>
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
+              <label htmlFor="login-email">Correo electrónico</label>
+              <div className="registration-input">
+                <Mail size={18} />
+                <input
+                  id="login-email"
+                  type="email"
+                  autoComplete="username"
+                  placeholder="nombre@correo.com"
+                  {...register('email')}
+                  aria-invalid={!!errors.email}
+                />
               </div>
-              <div className="subtitle">Sistema de Gestión de Programas</div>
-            </motion.div>
-          </div>
-
-          {/* Form card */}
-          <motion.div
-            className="form-card"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.15, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <AnimatePresence mode="wait">
-              {/* ── LOGIN FORM ── */}
-              {!showForgot && (
-                <motion.div
-                  key="login-form"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
+              {errors.email && (
+                <p className="registration-error">{errors.email.message}</p>
+              )}
+              <label htmlFor="login-password">Contraseña</label>
+              <div className="registration-input">
+                <KeyRound size={18} />
+                <input
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  placeholder="Tu contraseña"
+                  {...register('password')}
+                  aria-invalid={!!errors.password}
+                />
+                <button
+                  type="button"
+                  aria-label={
+                    showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                  }
+                  onClick={() => setShowPassword(!showPassword)}
                 >
-                  <div className="sign-in-label">Acceso</div>
-
-                  {/* Email not verified alert */}
-                  {emailNotVerified && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
-                    >
-                      <div className="flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-yellow-800 mb-1">
-                            Email no verificado
-                          </p>
-                          <p className="text-xs text-yellow-700 mb-3">
-                            Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.
-                          </p>
-                          <button
-                            type="button"
-                            onClick={handleResendVerification}
-                            disabled={resendingVerification}
-                            className="text-xs font-semibold text-yellow-800 hover:text-yellow-900 underline disabled:opacity-50"
-                          >
-                            {resendingVerification ? 'Reenviando...' : 'Reenviar email de verificación'}
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                    {/* Email */}
-                    <div>
-                      <label htmlFor="email" className="field-label">
-                        Correo electrónico
-                      </label>
-                      <div className="field-input-wrapper">
-                        <input
-                          id="email"
-                          type="email"
-                          autoComplete="email"
-                          {...register('email', { onChange: () => setLoginError('') })}
-                          className={`field-input${errors.email ? ' error' : ''}`}
-                          placeholder="nombre@ejemplo.com"
-                        />
-                      </div>
-                      <AnimatePresence>
-                        {errors.email && (
-                          <motion.p
-                            initial={{ opacity: 0, y: -4 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0 }}
-                            className="error-msg"
-                          >
-                            <AlertCircle size={12} />
-                            {errors.email.message}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
-                    </div>
-
-                    {/* Password */}
-                    <div>
-                      <label htmlFor="password" className="field-label">
-                        Contraseña
-                      </label>
-                      <div className="field-input-wrapper">
-                        <input
-                          id="password"
-                          type={showPassword ? 'text' : 'password'}
-                          autoComplete="current-password"
-                          {...register('password', { onChange: () => setLoginError('') })}
-                          className={`field-input has-icon${errors.password ? ' error' : ''}`}
-                          placeholder="••••••••"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="input-icon-btn"
-                          tabIndex={-1}
-                        >
-                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
-                      <AnimatePresence>
-                        {errors.password && (
-                          <motion.p
-                            initial={{ opacity: 0, y: -4 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0 }}
-                            className="error-msg"
-                          >
-                            <AlertCircle size={12} />
-                            {errors.password.message}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
-                    </div>
-
-                    {/* Server-side login error */}
-                    <AnimatePresence>
-                      {loginError && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -4 }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'flex-start',
-                            gap: '10px',
-                            padding: '12px 14px',
-                            background: 'rgba(220,50,50,0.12)',
-                            border: '1px solid rgba(220,80,80,0.35)',
-                            borderRadius: '6px',
-                            marginBottom: '2px',
-                          }}
-                        >
-                          <AlertCircle size={16} style={{ color: '#f87171', flexShrink: 0, marginTop: '1px' }} />
-                          <span style={{ color: '#fca5a5', fontSize: '13px', fontFamily: 'Playfair Display, serif', fontStyle: 'italic', lineHeight: 1.4 }}>
-                            {loginError}
-                          </span>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    {/* Submit */}
-                    <motion.button
-                      type="submit"
-                      disabled={isLoading}
-                      className="submit-btn"
-                      whileTap={{ scale: 0.99 }}
-                    >
-                      <span className="submit-inner">
-                        {isLoading ? (
-                          <>
-                            <Loader2 size={16} className="animate-spin" />
-                            Verificando...
-                          </>
-                        ) : (
-                          'Continuar'
-                        )}
-                      </span>
-                    </motion.button>
-                  </form>
-
-                  {/* Forgot password link */}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="registration-error">{errors.password.message}</p>
+              )}
+              <button
+                type="button"
+                className="login-forgot"
+                onClick={() => setShowForgot(true)}
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+              {loginError && (
+                <p role="alert" className="registration-server-error">
+                  <AlertCircle size={18} />
+                  {loginError}
+                </p>
+              )}
+              {emailNotVerified && (
+                <div role="alert" className="login-verification">
+                  <strong>Confirma tu correo para continuar</strong>
+                  <p>Revisa tu bandeja de entrada o solicita otro enlace.</p>
                   <button
                     type="button"
-                    className="forgot-link"
-                    onClick={() => setShowForgot(true)}
+                    disabled={resendingVerification}
+                    onClick={handleResendVerification}
                   >
-                    ¿Olvidaste tu contraseña?
+                    {resendingVerification
+                      ? 'Enviando…'
+                      : 'Reenviar correo de verificación'}
                   </button>
-
-                  {/* Register link */}
-                  <div style={{ textAlign: 'center', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                    <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>
-                      ¿No tienes cuenta?{' '}
-                    </span>
-                    <a
-                      href="/register"
-                      style={{ 
-                        color: '#fff', 
-                        fontWeight: 600, 
-                        textDecoration: 'none',
-                        fontSize: '14px'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
-                      onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
-                    >
-                      Regístrate aquí
-                    </a>
-                  </div>
-                </motion.div>
+                </div>
               )}
-
-              {/* ── FORGOT PASSWORD FORM ── */}
-              {showForgot && (
-                <motion.div
-                  key="forgot-form"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3 }}
+              <button
+                type="submit"
+                className="registration-submit"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" /> Entrando…
+                  </>
+                ) : (
+                  'Entrar a mi comunidad'
+                )}
+              </button>
+            </form>
+            <p className="registration-login">
+              ¿Primera vez aquí? <Link to="/register">Crea tu cuenta</Link>
+            </p>
+          </>
+        ) : (
+          <>
+            <button className="registration-back" onClick={handleBackToLogin}>
+              <ArrowLeft size={14} /> Volver al acceso
+            </button>
+            <header>
+              <h2>{forgotSent ? 'Revisa tu correo' : 'Recupera tu acceso'}</h2>
+              <p>
+                {forgotSent
+                  ? 'Si existe una cuenta con ese correo, recibirás las instrucciones para crear una nueva contraseña.'
+                  : 'Escribe el correo de tu cuenta y te ayudaremos a volver.'}
+              </p>
+            </header>
+            {forgotSent ? (
+              <div className="login-recovery-success" role="status">
+                <CheckCircle2 size={32} />
+                <strong>{forgotEmail}</strong>
+                <p>Revisa también la carpeta de correo no deseado.</p>
+                <button
+                  className="registration-submit"
+                  onClick={handleBackToLogin}
                 >
-                  <AnimatePresence mode="wait">
-                    {/* Email input step */}
-                    {!forgotSent && (
-                      <motion.div
-                        key="forgot-input"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.25 }}
-                      >
-                        <button
-                          type="button"
-                          className="forgot-back-btn"
-                          onClick={handleBackToLogin}
-                        >
-                          <ArrowLeft size={14} />
-                          Volver
-                        </button>
-
-                        <div style={{ textAlign: 'center', marginBottom: '18px' }}>
-                          <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 0.1 }}
-                            style={{
-                              width: 56, height: 56, borderRadius: '50%',
-                              background: 'rgba(212, 184, 106, 0.08)',
-                              border: '1px solid rgba(212, 184, 106, 0.25)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              margin: '0 auto 12px', color: '#dcc47a',
-                            }}
-                          >
-                            <KeyRound size={24} strokeWidth={1.5} />
-                          </motion.div>
-                          <div className="sign-in-label" style={{ marginBottom: '8px' }}>
-                            Recuperar Contraseña
-                          </div>
-                        </div>
-
-                        <div className="forgot-description">
-                          Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
-                        </div>
-
-                        <form onSubmit={handleForgotSubmit(onForgotSubmit)}>
-                          <div style={{ marginBottom: '18px' }}>
-                            <label htmlFor="forgot-email" className="field-label">
-                              Correo electrónico
-                            </label>
-                            <div className="field-input-wrapper">
-                              <input
-                                id="forgot-email"
-                                type="email"
-                                autoComplete="email"
-                                {...registerForgot('email')}
-                                className={`field-input${forgotErrors.email ? ' error' : ''}`}
-                                placeholder="nombre@ejemplo.com"
-                                autoFocus
-                              />
-                            </div>
-                            <AnimatePresence>
-                              {forgotErrors.email && (
-                                <motion.p
-                                  initial={{ opacity: 0, y: -4 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  exit={{ opacity: 0 }}
-                                  className="error-msg"
-                                >
-                                  <AlertCircle size={12} />
-                                  {forgotErrors.email.message}
-                                </motion.p>
-                              )}
-                            </AnimatePresence>
-                          </div>
-
-                          <motion.button
-                            type="submit"
-                            disabled={forgotLoading}
-                            className="submit-btn"
-                            whileTap={{ scale: 0.99 }}
-                          >
-                            <span className="submit-inner">
-                              {forgotLoading ? (
-                                <>
-                                  <Loader2 size={16} className="animate-spin" />
-                                  Enviando...
-                                </>
-                              ) : (
-                                <>
-                                  <Mail size={15} />
-                                  Enviar Enlace
-                                </>
-                              )}
-                            </span>
-                          </motion.button>
-                        </form>
-                      </motion.div>
-                    )}
-
-                    {/* Success confirmation */}
-                    {forgotSent && (
-                      <motion.div
-                        key="forgot-sent"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.35 }}
-                        style={{ padding: '10px 0' }}
-                      >
-                        <motion.div
-                          className="forgot-success-icon"
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 0.15, type: 'spring', stiffness: 200 }}
-                        >
-                          <CheckCircle2 size={28} />
-                        </motion.div>
-
-                        <motion.div
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.3 }}
-                        >
-                          <div className="forgot-success-text">
-                            ¡Enlace enviado!<br />
-                            Revisa tu bandeja de entrada
-                          </div>
-                          <div className="forgot-success-email">{forgotEmail}</div>
-                          <div className="forgot-success-hint">
-                            Si no ves el correo, revisa la carpeta de spam.<br />
-                            El enlace expirará en 1 hora.
-                          </div>
-                        </motion.div>
-
-                        <button
-                          type="button"
-                          className="forgot-link"
-                          onClick={handleBackToLogin}
-                          style={{ marginTop: '22px' }}
-                        >
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                            <ArrowLeft size={14} />
-                            Volver al inicio de sesión
-                          </span>
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* Footer */}
-          <div className="footer-text">
-            © {new Date().getFullYear()} Church Program Manager
-          </div>
-        </motion.div>
-      </div>
-    </>
+                  Volver a iniciar sesión
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotSubmit(onForgotSubmit)} noValidate>
+                <label htmlFor="recovery-email">Correo electrónico</label>
+                <div className="registration-input">
+                  <Mail size={18} />
+                  <input
+                    id="recovery-email"
+                    type="email"
+                    autoComplete="email"
+                    {...registerForgot('email')}
+                  />
+                </div>
+                {forgotErrors.email && (
+                  <p className="registration-error">
+                    {forgotErrors.email.message}
+                  </p>
+                )}
+                <button
+                  className="registration-submit"
+                  disabled={forgotLoading}
+                >
+                  {forgotLoading ? 'Enviando…' : 'Enviar instrucciones'}
+                </button>
+              </form>
+            )}
+          </>
+        )}
+        <p className="login-signature">
+          ARCA EVANGÉLICA <span>·</span> DIOS FUERTE
+        </p>
+      </section>
+    </main>
   )
 }
-
 export default LoginPage

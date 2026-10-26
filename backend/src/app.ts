@@ -99,6 +99,7 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({
     success: true,
     message: 'Church Program Manager API — OK',
+    revision: process.env.RENDER_GIT_COMMIT || null,
     version: envConfig.apiVersion,
     env: envConfig.nodeEnv,
     timestamp: new Date().toISOString(),

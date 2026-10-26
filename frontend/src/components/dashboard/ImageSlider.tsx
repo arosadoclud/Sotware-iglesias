@@ -36,82 +36,30 @@ interface ImageSlide {
   attendees?: number
 }
 
-// Imágenes placeholder de ejemplo
-const DEMO_SLIDES: ImageSlide[] = [
-  {
-    id: '1',
-    url: 'https://images.unsplash.com/photo-1438032005730-c779502df39b?auto=format&fit=crop&w=1200&q=80',
-    title: 'Culto de Adoración Dominical',
-    description: 'Únete a nosotros este domingo para un tiempo de alabanza y adoración',
-    type: 'event',
-    date: '18 de Febrero, 2026',
-    location: 'Templo Principal',
-    time: '10:00 AM',
-    attendees: 250,
-  },
-  {
-    id: '2',
-    url: 'https://images.unsplash.com/photo-1510133744874-a58952684bc3?auto=format&fit=crop&w=1200&q=80',
-    title: 'Retiro de Jóvenes 2026',
-    description: 'Un fin de semana de comunión, crecimiento espiritual y diversión',
-    type: 'event',
-    date: '25-27 de Febrero',
-    location: 'Centro de Retiros Emanuel',
-    time: 'Viernes 6:00 PM',
-    attendees: 120,
-  },
-  {
-    id: '3',
-    url: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=80',
-    title: 'Conferencia de Matrimonios',
-    description: 'Fortaleciendo los lazos del amor cristiano en el matrimonio',
-    type: 'flyer',
-    date: '15 de Marzo, 2026',
-    location: 'Salón de Conferencias',
-    time: '7:00 PM',
-    attendees: 80,
-  },
-  {
-    id: '4',
-    url: 'https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=1200&q=80',
-    title: 'Escuela Bíblica Dominical',
-    description: 'Estudio profundo de la Palabra para todas las edades',
-    type: 'announcement',
-    date: 'Todos los Domingos',
-    location: 'Aulas de Enseñanza',
-    time: '9:00 AM',
-    attendees: 180,
-  },
-  {
-    id: '5',
-    url: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1200&q=80',
-    title: 'Concierto de Alabanza',
-    description: 'Noche especial de adoración con invitados especiales',
-    type: 'event',
-    date: '5 de Marzo, 2026',
-    location: 'Templo Principal',
-    time: '7:30 PM',
-    attendees: 300,
-  },
+// Visuales editoriales de la iglesia; no representan eventos celebrados.
+const CHURCH_SLIDES: ImageSlide[] = [
+  { id: 'arca-adoracion', url: '/gallery/adoracion.png', title: 'Unidos en adoración', description: 'Una misma fe. Un corazón que alaba. Un espacio para encontrarnos con Dios.', type: 'event' },
+  { id: 'arca-palabra', url: '/gallery/palabra.png', title: 'Su Palabra ilumina el camino', description: 'Crecer en la fe comienza con un corazón dispuesto a escuchar.', type: 'announcement' },
+  { id: 'arca-comunidad', url: '/gallery/comunidad.png', title: 'Juntos, con un propósito', description: 'Somos una familia llamada a amar, acompañar y servir.', type: 'flyer' },
 ]
 
 const TYPE_STYLES = {
   event: {
-    gradient: 'from-purple-500 via-pink-500 to-red-500',
+    gradient: 'from-slate-800 via-slate-800 to-slate-700',
     bg: 'bg-purple-50',
     text: 'text-purple-700',
     border: 'border-purple-200',
     label: 'Evento',
   },
   flyer: {
-    gradient: 'from-blue-500 via-cyan-500 to-teal-500',
+    gradient: 'from-amber-700 via-amber-600 to-yellow-600',
     bg: 'bg-blue-50',
     text: 'text-blue-700',
     border: 'border-blue-200',
     label: 'Anuncio',
   },
   announcement: {
-    gradient: 'from-amber-500 via-orange-500 to-red-500',
+    gradient: 'from-slate-700 via-slate-700 to-slate-600',
     bg: 'bg-amber-50',
     text: 'text-amber-700',
     border: 'border-amber-200',
@@ -152,7 +100,7 @@ export default function ImageSlider() {
         
         // Si no hay eventos de la API, usar demos como fallback
         if (events.length === 0) {
-          setSlides(DEMO_SLIDES)
+          setSlides(CHURCH_SLIDES.filter(item => selectedType === 'all' || item.type === selectedType))
         } else {
           // Mapear eventos de la API al formato del slider
           const mappedEvents = events.map((e: any) => ({
@@ -171,7 +119,7 @@ export default function ImageSlider() {
       } catch (error) {
         console.error('Error loading events:', error)
         // Usar demos como fallback en caso de error
-        setSlides(DEMO_SLIDES)
+        setSlides(CHURCH_SLIDES.filter(item => selectedType === 'all' || item.type === selectedType))
         toast.error('No se pudieron cargar los eventos')
       }
       setLoading(false)
@@ -484,7 +432,7 @@ export default function ImageSlider() {
                   {/* Badge de tipo */}
                   <div className="absolute top-4 left-4">
                     <Badge className={`${style.bg} ${style.text} border ${style.border} text-sm font-bold px-4 py-2 shadow-lg backdrop-blur-sm`}>
-                      {style.label}
+                      {slide.id.startsWith('arca-') ? 'Imagen ilustrativa' : style.label}
                     </Badge>
                   </div>
 
@@ -546,8 +494,8 @@ export default function ImageSlider() {
 
                       {/* CTA Button */}
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="hidden sm:block">
-                        <Button className={`bg-gradient-to-r ${style.gradient} text-white border-0 shadow-xl hover:shadow-2xl transition-all px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold`}>
-                          <span className="hidden sm:inline">Más información</span>
+                        <Button onClick={openModal} className={`bg-gradient-to-r ${style.gradient} text-white border-0 shadow-xl hover:shadow-2xl transition-all px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold`}>
+                          <span className="hidden sm:inline">Ver imagen</span>
                           <span className="sm:hidden">Info</span>
                           <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1.5 sm:ml-2" />
                         </Button>
