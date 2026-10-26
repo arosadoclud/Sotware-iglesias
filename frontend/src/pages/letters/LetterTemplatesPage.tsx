@@ -1,3 +1,5 @@
+import { ChurchModuleHeader } from '../../components/layout/ChurchModuleHeader'
+import '../../components/letters/letters.css'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -464,19 +466,7 @@ const LetterTemplatesPage = () => {
       animate={{ opacity: 1 }}
       className="space-y-6"
     >
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900">Plantillas de Cartas</h1>
-          <p className="text-neutral-500 mt-1">
-            Crea y gestiona plantillas para cartas, certificados e invitaciones
-          </p>
-        </div>
-        <Button onClick={() => openEditor()}>
-          <Plus className="w-4 h-4 mr-1.5" />
-          Nueva Plantilla
-        </Button>
-      </div>
+      <ChurchModuleHeader eyebrow="Correspondencia con identidad" title="Plantillas de cartas" description="Una base cuidada para cada mensaje de nuestra iglesia."><Button onClick={()=>openEditor()}><Plus size={17}/>Nueva plantilla</Button></ChurchModuleHeader>
 
       {/* View Toggle */}
       <div className="flex gap-1 p-1 bg-neutral-100 rounded-xl w-fit">
@@ -765,7 +755,7 @@ const LetterTemplatesPage = () => {
 
       {/* Editor Modal */}
       <Dialog open={showEditor} onOpenChange={setShowEditor}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="letter-dialog max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingTemplate ? 'Editar Plantilla' : 'Nueva Plantilla'}
@@ -855,7 +845,7 @@ const LetterTemplatesPage = () => {
 
       {/* Generate Modal */}
       <Dialog open={showGenerateModal} onOpenChange={setShowGenerateModal}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="letter-dialog max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Generar Carta de Invitación</DialogTitle>
             <DialogDescription>
@@ -1161,7 +1151,7 @@ const LetterTemplatesPage = () => {
 
       {/* Preview Modal */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="letter-dialog max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{previewTitle}</DialogTitle>
             <DialogDescription>Vista previa del contenido</DialogDescription>

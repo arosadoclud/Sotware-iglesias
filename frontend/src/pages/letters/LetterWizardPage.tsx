@@ -1,4 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
+import { ChurchModuleHeader } from '../../components/layout/ChurchModuleHeader'
+import { LetterPaper } from '../../components/letters/LetterPaper'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus,
@@ -16,6 +18,7 @@ import {
   CheckCircle2,
   Sparkles,
   Copy,
+  Search
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -28,7 +31,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from '@/components/ui/dialog'
 import { lettersApi } from '@/lib/api'
 import { downloadBlob } from '@/lib/downloadHelper'
@@ -41,22 +44,22 @@ const LETTER_TYPES = [
     name: 'Invitación a Iglesia',
     description: 'Carta formal para invitar a otra iglesia a un evento',
     icon: Church,
-    color: 'bg-blue-500',
+    color: 'bg-blue-500'
   },
   {
     id: 'individual',
     name: 'Invitación Individual',
     description: 'Invitación con destinatario específico (pastor/iglesia)',
     icon: Users,
-    color: 'bg-green-500',
+    color: 'bg-green-500'
   },
   {
     id: 'recommendation',
     name: 'Carta de Recomendación',
     description: 'Recomendar a un miembro para institución o propósito',
     icon: Award,
-    color: 'bg-purple-500',
-  },
+    color: 'bg-purple-500'
+  }
 ]
 
 // Plantillas por tipo (sin firma, el backend la genera automáticamente)
@@ -90,7 +93,7 @@ Carta de Recomendación
 
 El/la que suscribe, {{titulo_pastor}} {{nombre_pastor}}, doy constancia de que el/la {{titulo_persona}} {{nombre_persona}}, miembro activo de {{nombre_iglesia}}, a quien conozco hace {{años_conocido}}, ha demostrado ser un buen cristiano(a), además de ser una persona íntegra y respetuosa. Por tal motivo, extiendo esta recomendación para que {{proposito}}.
 
-Se extiende la presente para los fines que correspondan.`,
+Se extiende la presente para los fines que correspondan.`
 }
 
 interface GeneratedLetter {
@@ -110,14 +113,18 @@ const LetterWizardPage = () => {
   const canCreate = hasPermission(P.LETTERS_CREATE)
   const canDelete = hasPermission(P.LETTERS_DELETE)
 
+  const [historySearch, setHistorySearch] = useState('')
+  const [saving, setSaving] = useState(false)
+  const savedFingerprint = useRef('')
+  const stepScroll = useRef<HTMLDivElement>(null)
   const [generated, setGenerated] = useState<GeneratedLetter[]>([])
   const [loading, setLoading] = useState(true)
-  
+
   // Wizard state
   const [showWizard, setShowWizard] = useState(false)
   const [step, setStep] = useState(1)
   const [selectedType, setSelectedType] = useState<string | null>(null)
-  
+
   // Form data
   const [formData, setFormData] = useState({
     // Mi iglesia
@@ -137,19 +144,26 @@ const LetterWizardPage = () => {
     tema_evento: '',
     hora_actividad: '7:00 P.M.',
     // Recomendación
-    fecha_carta: new Date().toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' }),
+    fecha_carta: new Date().toLocaleDateString('es-DO', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }),
     nombre_persona: '',
     titulo_persona: 'Hno.',
     años_conocido: 'varios años',
-    proposito: 'sea aceptado como alumno del Instituto Bíblico',
+    proposito: 'sea aceptado como alumno del Instituto Bíblico'
   })
-  
+
   const [downloadingPdf, setDownloadingPdf] = useState(false)
-  
+
   // Preview modal for history
   const [showPreview, setShowPreview] = useState(false)
   const [previewContent, setPreviewContent] = useState('')
   const [previewTitle, setPreviewTitle] = useState('')
+  const [previewVariables, setPreviewVariables] = useState<
+    Record<string, string>
+  >({})
 
   useEffect(() => {
     loadData()
@@ -158,9 +172,7 @@ const LetterWizardPage = () => {
   const loadData = async () => {
     setLoading(true)
     try {
-      const [gRes] = await Promise.all([
-        lettersApi.getGenerated(),
-      ])
+      const [gRes] = await Promise.all([lettersApi.getGenerated()])
       setGenerated(gRes.data.data)
     } catch {
       toast.error('Error al cargar datos')
@@ -191,6 +203,7 @@ const LetterWizardPage = () => {
 
   // Open wizard
   const openWizard = () => {
+    savedFingerprint.current = ''
     setStep(1)
     setSelectedType(null)
     setFormData({
@@ -207,17 +220,48 @@ const LetterWizardPage = () => {
       fecha_actividad: '',
       tema_evento: '',
       hora_actividad: '7:00 P.M.',
-      fecha_carta: new Date().toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' }),
+      fecha_carta: new Date().toLocaleDateString('es-DO', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }),
       nombre_persona: '',
       titulo_persona: 'Hno.',
       años_conocido: 'varios años',
-      proposito: 'sea aceptado como alumno del Instituto Bíblico',
+      proposito: 'sea aceptado como alumno del Instituto Bíblico'
     })
     setShowWizard(true)
   }
 
   // Validate form based on type
   const validateForm = () => {
+    const fields = Array.from(
+      currentTemplate.matchAll(/{{([^}]+)}}/g),
+      (match) => match[1]
+    )
+    const labels: Record<string, string> = {
+      nombre_iglesia: 'el nombre de la iglesia',
+      nombre_pastor: 'el nombre del pastor',
+      iglesia_destinatario: 'la iglesia destinataria',
+      pastor_destinatario: 'el pastor destinatario',
+      fecha_actividad: 'la fecha de la actividad',
+      tema_evento: 'el tema del evento',
+      institucion_destino: 'la institución destinataria',
+      nombre_persona: 'la persona recomendada',
+      proposito: 'el propósito de la carta'
+    }
+    const missing = fields.find(
+      (key) => !String(formData[key as keyof typeof formData] || '').trim()
+    )
+    if (missing) {
+      toast.error(
+        'Completa ' +
+          (labels[missing] || missing.replace(/_/g, ' ')) +
+          ' antes de continuar'
+      )
+      return false
+    }
+
     if (!formData.nombre_iglesia.trim()) {
       toast.error('El nombre de tu iglesia es requerido')
       return false
@@ -226,7 +270,7 @@ const LetterWizardPage = () => {
       toast.error('El nombre del pastor es requerido')
       return false
     }
-    
+
     if (selectedType === 'invitation' || selectedType === 'individual') {
       if (!formData.iglesia_destinatario.trim()) {
         toast.error('La iglesia destinataria es requerida')
@@ -237,7 +281,7 @@ const LetterWizardPage = () => {
         return false
       }
     }
-    
+
     if (selectedType === 'recommendation') {
       if (!formData.nombre_persona.trim()) {
         toast.error('El nombre de la persona es requerido')
@@ -248,7 +292,7 @@ const LetterWizardPage = () => {
         return false
       }
     }
-    
+
     return true
   }
 
@@ -273,7 +317,7 @@ const LetterWizardPage = () => {
   const downloadPdf = async () => {
     let recipientName = 'carta'
     let letterType = 'Invitación'
-    
+
     if (selectedType === 'recommendation') {
       recipientName = formData.nombre_persona
       letterType = 'Recomendación'
@@ -284,7 +328,7 @@ const LetterWizardPage = () => {
       recipientName = formData.iglesia_destinatario
       letterType = 'Invitación Individual'
     }
-    
+
     setDownloadingPdf(true)
     try {
       const res = await lettersApi.downloadPdf({
@@ -296,33 +340,35 @@ const LetterWizardPage = () => {
           direccion: formData.direccion_iglesia,
           telefono: formData.telefono_iglesia,
           pastor: formData.nombre_pastor,
-          tituloPastor: formData.titulo_pastor,
+          tituloPastor: formData.titulo_pastor
         },
         eventData: {
           fecha: formData.fecha_actividad,
           tema: formData.tema_evento,
           hora: formData.hora_actividad,
           iglesiaDestinatario: formData.iglesia_destinatario,
-          pastorDestinatario: formData.pastor_destinatario,
-        },
+          pastorDestinatario: formData.pastor_destinatario
+        }
       })
       const filename = `carta-${recipientName?.replace(/\s+/g, '-') || 'documento'}-${new Date().toISOString().split('T')[0]}.pdf`
       downloadBlob(new Blob([res.data]), filename)
       toast.success('PDF descargado exitosamente')
+      return true
     } catch (e: any) {
       toast.error('Error al generar PDF')
-      console.error(e)
+      return false
+    } finally {
+      setDownloadingPdf(false)
     }
-    setDownloadingPdf(false)
   }
 
   // Save to history
   const saveAndDownload = async () => {
-    if (!validateForm()) return
-    
+    if (!validateForm() || saving) return
+
     let recipientName = 'carta'
     let letterType = 'Invitación'
-    
+
     if (selectedType === 'recommendation') {
       recipientName = formData.nombre_persona
       letterType = 'Recomendación'
@@ -334,30 +380,39 @@ const LetterWizardPage = () => {
       letterType = 'Invitación Individual'
     }
 
+    setSaving(true)
     try {
-      // Save to history
-      await lettersApi.generate({
-        templateId: 'wizard-' + selectedType,
-        customFields: formData,
-        content: previewContentMemo,
-        recipientName,
-        templateName: letterType,
-      })
-      
-      // Download PDF
-      await downloadPdf()
-      
+      const fingerprint = JSON.stringify({ formData, selectedType })
+      if (savedFingerprint.current !== fingerprint) {
+        await lettersApi.generate({
+          templateId: 'wizard-' + selectedType,
+          customFields: formData,
+          content: previewContentMemo,
+          recipientName,
+          templateName: letterType
+        })
+
+        savedFingerprint.current = fingerprint
+      }
+      const downloaded = await downloadPdf()
+      if (!downloaded) return
+
       setShowWizard(false)
       loadData()
     } catch (e: any) {
       toast.error('Error al guardar carta')
+    } finally {
+      setSaving(false)
     }
   }
 
   // Preview from history
   const viewHistoryLetter = (letter: GeneratedLetter) => {
+    setPreviewVariables(letter.variablesUsed || {})
     setPreviewContent(letter.finalContent)
-    setPreviewTitle(`${letter.templateName || 'Carta'} - ${letter.recipientName || 'Destinatario'}`)
+    setPreviewTitle(
+      `${letter.templateName || 'Carta'} - ${letter.recipientName || 'Destinatario'}`
+    )
     setShowPreview(true)
   }
 
@@ -375,14 +430,21 @@ const LetterWizardPage = () => {
 
   // Duplicar carta desde historial
   const duplicateLetter = (letter: GeneratedLetter) => {
+    savedFingerprint.current = ''
     // Determinar el tipo basado en templateId o templateName
     let type = 'invitation'
-    if (letter.templateId?.includes('recommendation') || letter.templateName?.includes('Recomendación')) {
+    if (
+      letter.templateId?.includes('recommendation') ||
+      letter.templateName?.includes('Recomendación')
+    ) {
       type = 'recommendation'
-    } else if (letter.templateId?.includes('individual') || letter.templateName?.includes('Individual')) {
+    } else if (
+      letter.templateId?.includes('individual') ||
+      letter.templateName?.includes('Individual')
+    ) {
       type = 'individual'
     }
-    
+
     // Precargar datos del formulario desde variablesUsed
     const vars = letter.variablesUsed || {}
     setFormData({
@@ -399,22 +461,35 @@ const LetterWizardPage = () => {
       fecha_actividad: vars.fecha_actividad || '',
       tema_evento: vars.tema_evento || '',
       hora_actividad: vars.hora_actividad || '7:00 P.M.',
-      fecha_carta: vars.fecha_carta || new Date().toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' }),
+      fecha_carta:
+        vars.fecha_carta ||
+        new Date().toLocaleDateString('es-DO', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        }),
       nombre_persona: vars.nombre_persona || '',
       titulo_persona: vars.titulo_persona || 'Hno.',
       años_conocido: vars.años_conocido || 'varios años',
-      proposito: vars.proposito || '',
+      proposito: vars.proposito || ''
     })
-    
+
     setSelectedType(type)
     setStep(2) // Ir directo al paso 2 (formulario)
     setShowWizard(true)
     toast.success('Carta cargada - modifica lo que necesites')
   }
 
+  const visibleLetters = generated.filter((letter) =>
+    [letter.templateName, letter.recipientName, letter.personName].some(
+      (value) =>
+        value?.toLocaleLowerCase().includes(historySearch.toLocaleLowerCase())
+    )
+  )
+
   // Step labels for indicator
   const STEP_LABELS = ['Tipo', 'Datos', 'Vista Previa']
-  
+
   // Step indicator component - Improved
   const StepIndicator = () => (
     <div className="flex items-center justify-center mb-8">
@@ -428,22 +503,32 @@ const LetterWizardPage = () => {
                 s === step
                   ? 'bg-gradient-to-br from-primary-500 to-primary-700 text-white ring-4 ring-primary-100'
                   : s < step
-                  ? 'bg-gradient-to-br from-green-500 to-green-600 text-white'
-                  : 'bg-neutral-100 text-neutral-400 border-2 border-neutral-200'
+                    ? 'bg-gradient-to-br from-green-500 to-green-600 text-white'
+                    : 'bg-neutral-100 text-neutral-400 border-2 border-neutral-200'
               }`}
             >
               {s < step ? <CheckCircle2 className="w-5 h-5" /> : s}
             </motion.div>
-            <span className={`text-xs mt-1.5 font-medium transition-colors ${
-              s === step ? 'text-primary-700' : s < step ? 'text-green-600' : 'text-neutral-400'
-            }`}>
+            <span
+              className={`text-xs mt-1.5 font-medium transition-colors ${
+                s === step
+                  ? 'text-primary-700'
+                  : s < step
+                    ? 'text-green-600'
+                    : 'text-neutral-400'
+              }`}
+            >
               {STEP_LABELS[idx]}
             </span>
           </div>
           {s < 3 && (
-            <div className={`w-8 sm:w-16 h-1 mx-1 sm:mx-3 rounded-full transition-colors duration-300 ${
-              s < step ? 'bg-gradient-to-r from-green-500 to-green-400' : 'bg-neutral-200'
-            }`} />
+            <div
+              className={`w-8 sm:w-16 h-1 mx-1 sm:mx-3 rounded-full transition-colors duration-300 ${
+                s < step
+                  ? 'bg-gradient-to-r from-green-500 to-green-400'
+                  : 'bg-neutral-200'
+              }`}
+            />
           )}
         </div>
       ))}
@@ -454,10 +539,14 @@ const LetterWizardPage = () => {
   const renderStep1 = () => (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold text-neutral-800">¿Qué tipo de carta deseas crear?</h3>
-        <p className="text-sm text-neutral-500">Selecciona una opción para continuar</p>
+        <h3 className="text-lg font-semibold text-neutral-800">
+          ¿Qué tipo de carta deseas crear?
+        </h3>
+        <p className="text-sm text-neutral-500">
+          Selecciona una opción para continuar
+        </p>
       </div>
-      
+
       <div className="grid gap-3">
         {LETTER_TYPES.map((type, index) => {
           const Icon = type.icon
@@ -472,6 +561,15 @@ const LetterWizardPage = () => {
               whileTap={{ scale: 0.99 }}
             >
               <Card
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setSelectedType(type.id)
+                  }
+                }}
                 className={`cursor-pointer transition-all duration-200 ${
                   isSelected
                     ? 'ring-2 ring-primary-500 bg-gradient-to-r from-primary-50 to-white shadow-md border-primary-200'
@@ -480,19 +578,31 @@ const LetterWizardPage = () => {
                 onClick={() => setSelectedType(type.id)}
               >
                 <CardContent className="flex items-center gap-4 p-4">
-                  <div className={`w-12 h-12 rounded-xl ${type.color} flex items-center justify-center shadow-sm`}>
+                  <div
+                    className={`w-12 h-12 rounded-xl ${type.color} flex items-center justify-center shadow-sm`}
+                  >
                     <Icon className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h4 className={`font-semibold ${isSelected ? 'text-primary-700' : 'text-neutral-800'}`}>{type.name}</h4>
-                    <p className="text-sm text-neutral-500">{type.description}</p>
+                    <h4
+                      className={`font-semibold ${isSelected ? 'text-primary-700' : 'text-neutral-800'}`}
+                    >
+                      {type.name}
+                    </h4>
+                    <p className="text-sm text-neutral-500">
+                      {type.description}
+                    </p>
                   </div>
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                    isSelected 
-                      ? 'border-primary-500 bg-primary-500' 
-                      : 'border-neutral-300'
-                  }`}>
-                    {isSelected && <CheckCircle2 className="w-4 h-4 text-white" />}
+                  <div
+                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                      isSelected
+                        ? 'border-primary-500 bg-primary-500'
+                        : 'border-neutral-300'
+                    }`}
+                  >
+                    {isSelected && (
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -507,7 +617,7 @@ const LetterWizardPage = () => {
   const renderStep2 = () => (
     <div className="space-y-5 pb-4">
       {/* Mi Iglesia Section */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className="rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50/50 to-white p-5 shadow-sm"
@@ -523,37 +633,69 @@ const LetterWizardPage = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-blue-800">Nombre de la Iglesia *</Label>
+            <Label
+              className="text-xs font-medium text-blue-800"
+              htmlFor="letter-nombre_iglesia"
+            >
+              Nombre de la Iglesia *
+            </Label>
             <Input
+              id="letter-nombre_iglesia"
               value={formData.nombre_iglesia}
-              onChange={(e) => setFormData({ ...formData, nombre_iglesia: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, nombre_iglesia: e.target.value })
+              }
               placeholder="Ej: Iglesia Pentecostal Nueva Vida"
               className="border-blue-200 focus:border-blue-400 focus:ring-blue-400/20"
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-blue-800">Dirección</Label>
+            <Label
+              className="text-xs font-medium text-blue-800"
+              htmlFor="letter-direccion_iglesia"
+            >
+              Dirección
+            </Label>
             <Input
+              id="letter-direccion_iglesia"
               value={formData.direccion_iglesia}
-              onChange={(e) => setFormData({ ...formData, direccion_iglesia: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, direccion_iglesia: e.target.value })
+              }
               placeholder="Ej: Calle Principal #123, Sector"
               className="border-blue-200 focus:border-blue-400 focus:ring-blue-400/20"
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-blue-800">Teléfono</Label>
+            <Label
+              className="text-xs font-medium text-blue-800"
+              htmlFor="letter-telefono_iglesia"
+            >
+              Teléfono
+            </Label>
             <Input
+              id="letter-telefono_iglesia"
               value={formData.telefono_iglesia}
-              onChange={(e) => setFormData({ ...formData, telefono_iglesia: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, telefono_iglesia: e.target.value })
+              }
               placeholder="Ej: 809-555-1234"
               className="border-blue-200 focus:border-blue-400 focus:ring-blue-400/20"
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-blue-800">Título del Pastor *</Label>
+            <Label
+              className="text-xs font-medium text-blue-800"
+              htmlFor="letter-titulo_pastor"
+            >
+              Título del Pastor *
+            </Label>
             <select
+              id="letter-titulo_pastor"
               value={formData.titulo_pastor}
-              onChange={(e) => setFormData({ ...formData, titulo_pastor: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, titulo_pastor: e.target.value })
+              }
               className="w-full h-9 rounded-md border border-blue-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/20 focus:border-blue-400"
             >
               <option value="Pastora">Pastora</option>
@@ -564,10 +706,18 @@ const LetterWizardPage = () => {
             </select>
           </div>
           <div className="space-y-1.5 md:col-span-2">
-            <Label className="text-xs font-medium text-blue-800">Nombre del Pastor/a *</Label>
+            <Label
+              className="text-xs font-medium text-blue-800"
+              htmlFor="letter-nombre_pastor"
+            >
+              Nombre del Pastor/a *
+            </Label>
             <Input
+              id="letter-nombre_pastor"
               value={formData.nombre_pastor}
-              onChange={(e) => setFormData({ ...formData, nombre_pastor: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, nombre_pastor: e.target.value })
+              }
               placeholder="Ej: María García de Rodríguez"
               className="border-blue-200 focus:border-blue-400 focus:ring-blue-400/20"
             />
@@ -577,7 +727,7 @@ const LetterWizardPage = () => {
 
       {/* Destinatario Section - Para Invitaciones */}
       {(selectedType === 'invitation' || selectedType === 'individual') && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -592,34 +742,64 @@ const LetterWizardPage = () => {
               <p className="text-xs text-green-600">Destinatario de la carta</p>
             </div>
           </div>
-          
+
           {selectedType === 'individual' && (
             <div className="space-y-1.5 mb-4">
-              <Label className="text-xs font-medium text-green-800">Fecha de la Carta</Label>
+              <Label
+                className="text-xs font-medium text-green-800"
+                htmlFor="letter-fecha_carta"
+              >
+                Fecha de la Carta
+              </Label>
               <Input
+                id="letter-fecha_carta"
                 value={formData.fecha_carta}
-                onChange={(e) => setFormData({ ...formData, fecha_carta: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, fecha_carta: e.target.value })
+                }
                 placeholder="14 de febrero del 2026"
                 className="border-green-200 focus:border-green-400 focus:ring-green-400/20"
               />
             </div>
           )}
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-green-800">Nombre de la Iglesia *</Label>
+              <Label
+                className="text-xs font-medium text-green-800"
+                htmlFor="letter-iglesia_destinatario"
+              >
+                Nombre de la Iglesia *
+              </Label>
               <Input
+                id="letter-iglesia_destinatario"
                 value={formData.iglesia_destinatario}
-                onChange={(e) => setFormData({ ...formData, iglesia_destinatario: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    iglesia_destinatario: e.target.value
+                  })
+                }
                 placeholder="Ej: Iglesia Bautista El Redentor"
                 className="border-green-200 focus:border-green-400 focus:ring-green-400/20"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-green-800">Pastor/a</Label>
+              <Label
+                className="text-xs font-medium text-green-800"
+                htmlFor="letter-pastor_destinatario"
+              >
+                Pastor/a
+              </Label>
               <Input
+                id="letter-pastor_destinatario"
                 value={formData.pastor_destinatario}
-                onChange={(e) => setFormData({ ...formData, pastor_destinatario: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    pastor_destinatario: e.target.value
+                  })
+                }
                 placeholder="Ej: Juan Pérez"
                 className="border-green-200 focus:border-green-400 focus:ring-green-400/20"
               />
@@ -630,7 +810,7 @@ const LetterWizardPage = () => {
 
       {/* Destinatario Section - Para Recomendación */}
       {selectedType === 'recommendation' && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -641,34 +821,65 @@ const LetterWizardPage = () => {
               <Award className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h4 className="font-semibold text-purple-900">Persona Recomendada</h4>
-              <p className="text-xs text-purple-600">Datos para la recomendación</p>
+              <h4 className="font-semibold text-purple-900">
+                Persona Recomendada
+              </h4>
+              <p className="text-xs text-purple-600">
+                Datos para la recomendación
+              </p>
             </div>
           </div>
           <div className="space-y-1.5 mb-4">
-            <Label className="text-xs font-medium text-purple-800">Fecha de la Carta</Label>
+            <Label
+              className="text-xs font-medium text-purple-800"
+              htmlFor="letter-fecha_carta"
+            >
+              Fecha de la Carta
+            </Label>
             <Input
+              id="letter-fecha_carta"
               value={formData.fecha_carta}
-              onChange={(e) => setFormData({ ...formData, fecha_carta: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, fecha_carta: e.target.value })
+              }
               placeholder="14 de febrero del 2026"
               className="border-purple-200 focus:border-purple-400 focus:ring-purple-400/20"
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-purple-800">Institución Destino *</Label>
+              <Label
+                className="text-xs font-medium text-purple-800"
+                htmlFor="letter-institucion_destino"
+              >
+                Institución Destino *
+              </Label>
               <Input
+                id="letter-institucion_destino"
                 value={formData.institucion_destino}
-                onChange={(e) => setFormData({ ...formData, institucion_destino: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    institucion_destino: e.target.value
+                  })
+                }
                 placeholder="Ej: Instituto Bíblico HASHEM"
                 className="border-purple-200 focus:border-purple-400 focus:ring-purple-400/20"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-purple-800">Título de la Persona</Label>
+              <Label
+                className="text-xs font-medium text-purple-800"
+                htmlFor="letter-titulo_persona"
+              >
+                Título de la Persona
+              </Label>
               <select
+                id="letter-titulo_persona"
                 value={formData.titulo_persona}
-                onChange={(e) => setFormData({ ...formData, titulo_persona: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, titulo_persona: e.target.value })
+                }
                 className="w-full h-9 rounded-md border border-purple-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/20 focus:border-purple-400"
               >
                 <option value="Hno.">Hno.</option>
@@ -680,28 +891,48 @@ const LetterWizardPage = () => {
               </select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-purple-800">Nombre de la Persona *</Label>
+              <Label
+                className="text-xs font-medium text-purple-800"
+                htmlFor="letter-nombre_persona"
+              >
+                Nombre de la Persona *
+              </Label>
               <Input
+                id="letter-nombre_persona"
                 value={formData.nombre_persona}
-                onChange={(e) => setFormData({ ...formData, nombre_persona: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, nombre_persona: e.target.value })
+                }
                 placeholder="Ej: José Antonio Martínez"
                 className="border-purple-200 focus:border-purple-400 focus:ring-purple-400/20"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-purple-800">Tiempo que lo conoce</Label>
+              <Label
+                className="text-xs font-medium text-purple-800"
+                htmlFor="letter-proposito"
+              >
+                Tiempo que lo conoce
+              </Label>
               <Input
+                id="letter-proposito"
                 value={formData.años_conocido}
-                onChange={(e) => setFormData({ ...formData, años_conocido: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, años_conocido: e.target.value })
+                }
                 placeholder="Ej: varios años"
                 className="border-purple-200 focus:border-purple-400 focus:ring-purple-400/20"
               />
             </div>
             <div className="space-y-1.5 md:col-span-2">
-              <Label className="text-xs font-medium text-purple-800">Propósito de la Recomendación</Label>
+              <Label className="text-xs font-medium text-purple-800">
+                Propósito de la Recomendación
+              </Label>
               <Input
                 value={formData.proposito}
-                onChange={(e) => setFormData({ ...formData, proposito: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, proposito: e.target.value })
+                }
                 placeholder="Ej: sea aceptado como alumno en el programa de liderazgo"
                 className="border-purple-200 focus:border-purple-400 focus:ring-purple-400/20"
               />
@@ -712,7 +943,7 @@ const LetterWizardPage = () => {
 
       {/* Evento Section - Para Invitaciones */}
       {(selectedType === 'invitation' || selectedType === 'individual') && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -723,25 +954,45 @@ const LetterWizardPage = () => {
               <Calendar className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h4 className="font-semibold text-orange-900">Detalles del Evento</h4>
-              <p className="text-xs text-orange-600">Información de la actividad</p>
+              <h4 className="font-semibold text-orange-900">
+                Detalles del Evento
+              </h4>
+              <p className="text-xs text-orange-600">
+                Información de la actividad
+              </p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-orange-800">Tipo de Evento *</Label>
+              <Label
+                className="text-xs font-medium text-orange-800"
+                htmlFor="letter-tipo_evento"
+              >
+                Tipo de Evento *
+              </Label>
               <Input
+                id="letter-tipo_evento"
                 value={formData.tipo_evento}
-                onChange={(e) => setFormData({ ...formData, tipo_evento: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, tipo_evento: e.target.value })
+                }
                 placeholder="Ej: Culto de Jóvenes"
                 className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-orange-800">Día de la Semana</Label>
+              <Label
+                className="text-xs font-medium text-orange-800"
+                htmlFor="letter-dia_actividad"
+              >
+                Día de la Semana
+              </Label>
               <select
+                id="letter-dia_actividad"
                 value={formData.dia_actividad}
-                onChange={(e) => setFormData({ ...formData, dia_actividad: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, dia_actividad: e.target.value })
+                }
                 className="w-full h-9 rounded-md border border-orange-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400"
               >
                 <option value="lunes">Lunes</option>
@@ -754,28 +1005,52 @@ const LetterWizardPage = () => {
               </select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-orange-800">Fecha del Evento</Label>
+              <Label
+                className="text-xs font-medium text-orange-800"
+                htmlFor="letter-fecha_actividad"
+              >
+                Fecha del Evento
+              </Label>
               <Input
+                id="letter-fecha_actividad"
                 value={formData.fecha_actividad}
-                onChange={(e) => setFormData({ ...formData, fecha_actividad: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, fecha_actividad: e.target.value })
+                }
                 placeholder="Ej: 14 de abril del 2026"
                 className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-orange-800">Hora</Label>
+              <Label
+                className="text-xs font-medium text-orange-800"
+                htmlFor="letter-hora_actividad"
+              >
+                Hora
+              </Label>
               <Input
+                id="letter-hora_actividad"
                 value={formData.hora_actividad}
-                onChange={(e) => setFormData({ ...formData, hora_actividad: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, hora_actividad: e.target.value })
+                }
                 placeholder="Ej: 7:00 P.M."
                 className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
               />
             </div>
             <div className="space-y-1.5 md:col-span-2">
-              <Label className="text-xs font-medium text-orange-800">Tema del Evento</Label>
+              <Label
+                className="text-xs font-medium text-orange-800"
+                htmlFor="letter-tema_evento"
+              >
+                Tema del Evento
+              </Label>
               <Input
+                id="letter-tema_evento"
                 value={formData.tema_evento}
-                onChange={(e) => setFormData({ ...formData, tema_evento: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, tema_evento: e.target.value })
+                }
                 placeholder="Ej: Unidos en Adoración"
                 className="border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
               />
@@ -794,109 +1069,22 @@ const LetterWizardPage = () => {
           <CheckCircle2 className="w-4 h-4" />
           ¡Carta lista para descargar!
         </div>
-        <p className="text-xs text-neutral-500">Revisa la vista previa y descarga tu PDF</p>
+        <p className="text-xs text-neutral-500">
+          Revisa la vista previa y descarga tu PDF
+        </p>
       </div>
 
-      {/* Letter Preview - Enhanced styling */}
-      <div className="border-2 border-neutral-200 rounded-xl shadow-lg overflow-hidden bg-white ring-1 ring-black/5">
-        {/* Header with logo simulation */}
-        <div className="p-6 bg-gradient-to-b from-neutral-50 to-white">
-          <div className="flex items-start gap-4 mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
-              <Church className="w-8 h-8 text-primary-600" />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-primary-800">{formData.nombre_iglesia || 'Nombre de la Iglesia'}</h2>
-              {formData.direccion_iglesia && (
-                <p className="text-sm font-medium text-neutral-600">{formData.direccion_iglesia}</p>
-              )}
-              {formData.telefono_iglesia && (
-                <p className="text-sm font-medium text-neutral-600">Tel: {formData.telefono_iglesia}</p>
-              )}
-            </div>
-          </div>
+      <LetterPaper
+        content={previewContentMemo}
+        churchName={formData.nombre_iglesia}
+        address={formData.direccion_iglesia}
+        phone={formData.telefono_iglesia}
+        pastor={formData.nombre_pastor}
+        pastorTitle={formData.titulo_pastor}
+        title={LETTER_TYPES.find((t) => t.id === selectedType)?.name}
+      />
 
-          {/* Letter Content with bold highlights */}
-          <div className="text-sm text-neutral-700 leading-relaxed space-y-3">
-            {previewContentMemo.split('\n').map((line, i) => {
-              if (line.trim() === '') return <br key={i} />
-              
-              // Aplicar negritas a campos importantes
-              let displayLine = line
-              
-              // Nombre de iglesia remitente en mayúsculas y negrita
-              if (formData.nombre_iglesia && line.includes(formData.nombre_iglesia)) {
-                displayLine = displayLine.replace(
-                  formData.nombre_iglesia,
-                  `<strong>${formData.nombre_iglesia.toUpperCase()}</strong>`
-                )
-              }
-              
-              // Fecha del evento en negrita
-              if (formData.fecha_actividad && line.includes(formData.fecha_actividad)) {
-                displayLine = displayLine.replace(
-                  formData.fecha_actividad,
-                  `<strong>${formData.fecha_actividad}</strong>`
-                )
-              }
-              
-              // Tema en mayúsculas y negrita
-              if (formData.tema_evento && line.includes(`"${formData.tema_evento}"`)) {
-                displayLine = displayLine.replace(
-                  `"${formData.tema_evento}"`,
-                  `"<strong>${formData.tema_evento.toUpperCase()}</strong>"`
-                )
-              }
-              
-              // Hora en negrita
-              if (formData.hora_actividad && line.includes(formData.hora_actividad)) {
-                displayLine = displayLine.replace(
-                  formData.hora_actividad,
-                  `<strong>${formData.hora_actividad}</strong>`
-                )
-              }
-              
-              // Nombre de iglesia destinatario en negrita
-              if (formData.iglesia_destinatario && line.includes(`Iglesia: ${formData.iglesia_destinatario}`)) {
-                displayLine = displayLine.replace(
-                  `Iglesia: ${formData.iglesia_destinatario}`,
-                  `Iglesia: <strong>${formData.iglesia_destinatario}</strong>`
-                )
-              }
-              
-              // Nombre del pastor destinatario en negrita
-              if (formData.pastor_destinatario && line.includes(formData.pastor_destinatario)) {
-                displayLine = displayLine.replace(
-                  formData.pastor_destinatario,
-                  `<strong>${formData.pastor_destinatario}</strong>`
-                )
-              }
-              
-              return (
-                <p 
-                  key={i} 
-                  className="text-justify"
-                  dangerouslySetInnerHTML={{ __html: displayLine }}
-                />
-              )
-            })}
-          </div>
-
-          {/* Firma centrada */}
-          <div className="text-center mt-10 pt-6">
-            <div className="w-52 border-t-2 border-neutral-300 mx-auto mb-2"></div>
-            <p className="font-bold text-neutral-800">{formData.nombre_pastor || 'Nombre del Pastor'}</p>
-            <p className="text-primary-600 font-medium">{formData.titulo_pastor || 'Pastor'}</p>
-            <div className="mt-3 flex justify-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg flex items-center justify-center shadow-sm">
-                <Church className="w-5 h-5 text-primary-600" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <motion.div 
+      <motion.div
         className="flex justify-center"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -904,7 +1092,7 @@ const LetterWizardPage = () => {
       >
         <Button
           onClick={saveAndDownload}
-          disabled={downloadingPdf}
+          disabled={downloadingPdf || saving}
           className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 gap-2 shadow-lg shadow-green-200 px-8"
           size="lg"
         >
@@ -933,52 +1121,57 @@ const LetterWizardPage = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-neutral-800">Cartas de Iglesia</h1>
-          <p className="text-sm sm:text-base text-neutral-500">Crea invitaciones, recomendaciones y más</p>
-        </div>
+    <div className="church-module-workspace letters-workspace">
+      <ChurchModuleHeader
+        eyebrow="Palabras que conectan nuestra comunidad"
+        title="Cartas de la iglesia"
+        description="Correspondencia con identidad, claridad y propósito."
+      >
         {canCreate && (
-        <Button onClick={openWizard} className="gap-2 bg-primary-600 hover:bg-primary-700 w-full sm:w-auto">
-          <Plus className="w-5 h-5" />
-          Nueva Carta
-        </Button>
+          <Button onClick={openWizard}>
+            <Plus size={17} />
+            Nueva carta
+          </Button>
         )}
-      </div>
+      </ChurchModuleHeader>
 
       {/* Main Content - Create Card + History */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Create New Card */}
         {canCreate && (
-        <motion.div
-          whileHover={{ scale: 1.01 }}
-          className="cursor-pointer"
-          onClick={openWizard}
-        >
-          <Card className="h-full border-2 border-dashed border-primary-200 hover:border-primary-400 hover:bg-primary-50/50 transition-all">
-            <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] sm:min-h-[300px] p-6 sm:p-8">
-              <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center mb-4">
-                <Sparkles className="w-10 h-10 text-primary-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-neutral-800 mb-2">Crear Nueva Carta</h3>
-              <p className="text-neutral-500 text-center max-w-sm">
-                Usa nuestro asistente paso a paso para crear cartas profesionales con el membrete de tu iglesia
-              </p>
-              <div className="flex gap-2 mt-6">
-                {LETTER_TYPES.map((type) => {
-                  const Icon = type.icon
-                  return (
-                    <div key={type.id} className={`p-2 rounded-lg ${type.color}`}>
-                      <Icon className="w-5 h-5 text-white" />
-                    </div>
-                  )
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+          <motion.div
+            whileHover={{ scale: 1.01 }}
+            className="cursor-pointer"
+            onClick={openWizard}
+          >
+            <Card className="h-full border-2 border-dashed border-primary-200 hover:border-primary-400 hover:bg-primary-50/50 transition-all">
+              <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] sm:min-h-[300px] p-6 sm:p-8">
+                <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center mb-4">
+                  <Sparkles className="w-10 h-10 text-primary-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-neutral-800 mb-2">
+                  Crear Nueva Carta
+                </h3>
+                <p className="text-neutral-500 text-center max-w-sm">
+                  Usa nuestro asistente paso a paso para crear cartas
+                  profesionales con el membrete de tu iglesia
+                </p>
+                <div className="flex gap-2 mt-6">
+                  {LETTER_TYPES.map((type) => {
+                    const Icon = type.icon
+                    return (
+                      <div
+                        key={type.id}
+                        className={`p-2 rounded-lg ${type.color}`}
+                      >
+                        <Icon className="w-5 h-5 text-white" />
+                      </div>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
 
         {/* History Section */}
@@ -992,18 +1185,28 @@ const LetterWizardPage = () => {
               <Badge variant="secondary">{generated.length}</Badge>
             </div>
 
-            {generated.length === 0 ? (
+            <div className="letters-history-search">
+              <Search size={17} />
+              <Input
+                aria-label="Buscar cartas"
+                placeholder="Buscar por destinatario o tipo de carta"
+                value={historySearch}
+                onChange={(e) => setHistorySearch(e.target.value)}
+              />
+            </div>
+            {visibleLetters.length === 0 ? (
               <div className="text-center py-8 text-neutral-500">
                 <FileText className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                <p>No hay cartas generadas aún</p>
+                <p>
+                  {historySearch
+                    ? 'No encontramos cartas con esa búsqueda.'
+                    : 'No hay cartas generadas aún'}
+                </p>
               </div>
             ) : (
               <div className="space-y-3 max-h-[320px] overflow-y-auto">
-                {generated.slice(0, 10).map((letter) => (
-                  <div
-                    key={letter._id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-neutral-50 hover:bg-neutral-100 transition-colors"
-                  >
+                {visibleLetters.map((letter) => (
+                  <div key={letter._id} className="letters-history-row">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
                         <FileText className="w-5 h-5 text-primary-600" />
@@ -1013,7 +1216,10 @@ const LetterWizardPage = () => {
                           {letter.templateName || 'Carta'}
                         </p>
                         <p className="text-xs text-neutral-500">
-                          {letter.recipientName || letter.personName || 'Destinatario'} • {new Date(letter.createdAt).toLocaleDateString()}
+                          {letter.recipientName ||
+                            letter.personName ||
+                            'Destinatario'}{' '}
+                          • {new Date(letter.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -1021,6 +1227,7 @@ const LetterWizardPage = () => {
                       <Button
                         variant="ghost"
                         size="sm"
+                        disabled={!canCreate}
                         title="Duplicar carta"
                         className="text-primary-600 hover:text-primary-800 hover:bg-primary-50"
                         onClick={() => duplicateLetter(letter)}
@@ -1036,15 +1243,15 @@ const LetterWizardPage = () => {
                         <Eye className="w-4 h-4" />
                       </Button>
                       {canDelete && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        title="Eliminar"
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => deleteHistoryLetter(letter._id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Eliminar"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => deleteHistoryLetter(letter._id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -1057,7 +1264,7 @@ const LetterWizardPage = () => {
 
       {/* Wizard Modal */}
       <Dialog open={showWizard} onOpenChange={setShowWizard}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col bg-gradient-to-b from-white to-neutral-50">
+        <DialogContent className="letter-dialog max-w-2xl max-h-[90vh] flex flex-col bg-gradient-to-b from-white to-neutral-50">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-center text-lg font-semibold text-neutral-800">
               {step === 1 && '✨ Nueva Carta'}
@@ -1068,10 +1275,17 @@ const LetterWizardPage = () => {
 
           <StepIndicator />
 
-          <div className="flex-1 overflow-y-auto px-1 min-h-0">
+          <div
+            ref={stepScroll}
+            style={{ overflowAnchor: 'none' }}
+            className="flex-1 overflow-y-auto px-1 min-h-0"
+          >
             <AnimatePresence mode="wait">
               <motion.div
                 key={step}
+                onAnimationComplete={() =>
+                  stepScroll.current?.scrollTo({ top: 0 })
+                }
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
@@ -1094,10 +1308,10 @@ const LetterWizardPage = () => {
               <ChevronLeft className="w-4 h-4" />
               {step === 1 ? 'Cancelar' : 'Anterior'}
             </Button>
-            
+
             {step < 3 && (
-              <Button 
-                onClick={nextStep} 
+              <Button
+                onClick={nextStep}
                 className="gap-2 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-sm"
               >
                 Siguiente
@@ -1110,14 +1324,20 @@ const LetterWizardPage = () => {
 
       {/* Preview Modal for History */}
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-2xl max-h-[80vh]">
+        <DialogContent className="letter-dialog max-w-2xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>{previewTitle}</DialogTitle>
           </DialogHeader>
-          <div className="bg-neutral-50 p-6 rounded-lg max-h-[60vh] overflow-auto">
-            <pre className="whitespace-pre-wrap font-sans text-sm text-neutral-700">
-              {previewContent}
-            </pre>
+          <div className="max-h-[65vh] overflow-auto">
+            <LetterPaper
+              content={previewContent}
+              title={previewTitle}
+              churchName={previewVariables.nombre_iglesia}
+              address={previewVariables.direccion_iglesia}
+              phone={previewVariables.telefono_iglesia}
+              pastor={previewVariables.nombre_pastor}
+              pastorTitle={previewVariables.titulo_pastor}
+            />
           </div>
         </DialogContent>
       </Dialog>

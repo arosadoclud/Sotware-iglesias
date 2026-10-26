@@ -585,3 +585,20 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+.finance-hero-actions .finance-primary:hover,
+.finance-hero-actions .finance-primary:focus-visible {
+  background: #e3c783;
+  color: #14263f;
+  border-color: #e3c783;
+  box-shadow: 0 6px 18px #0002;
+}
+.finance-hero-actions .finance-secondary:hover,
+.finance-hero-actions .finance-secondary:focus-visible {
+  background: #263c59;
+  color: #fff;
+  border-color: #a6b6cc;
+}
+.finance-hero-actions button:focus-visible {
+  outline: 3px solid #e2bf72;
+  outline-offset: 3px;
+}

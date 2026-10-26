@@ -1,3 +1,4 @@
+import { ChurchModuleHeader } from '../../components/layout/ChurchModuleHeader'
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
@@ -474,7 +475,7 @@ function DetailModal({ record, tab, onClose, onEdit, canEdit }: { record: any; t
         initial={{ opacity: 0, scale: 0.95, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 12 }}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
+        role="dialog" aria-modal="true" aria-label={tab.label} className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
       >
         {/* Header */}
         <div className={`${detailTheme.bg} px-6 py-4 border-b ${detailTheme.border} flex items-center justify-between`}>
@@ -487,7 +488,7 @@ function DetailModal({ record, tab, onClose, onEdit, canEdit }: { record: any; t
               <h2 className="text-base font-semibold text-gray-900">Detalle del registro</h2>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-black/5 rounded-xl transition-colors">
+          <button aria-label="Cerrar ventana" onClick={onClose} className="p-1.5 hover:bg-black/5 rounded-xl transition-colors">
             <X className="h-5 w-5 text-gray-500" />
           </button>
         </div>
@@ -585,7 +586,7 @@ function RecordModal({ tab, initial, onClose, onSaved }: RecordModalProps) {
         initial={{ opacity: 0, scale: 0.95, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 12 }}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
+        role="dialog" aria-modal="true" aria-label={tab.label} className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
       >
         {/* Header con color dinámico */}
         <div className={`${activeTheme.bg} px-6 py-4 border-b ${activeTheme.border} flex items-center justify-between transition-colors duration-300`}>
@@ -600,7 +601,7 @@ function RecordModal({ tab, initial, onClose, onSaved }: RecordModalProps) {
               </h2>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-black/5 rounded-xl transition-colors">
+          <button aria-label="Cerrar ventana" onClick={onClose} className="p-1.5 hover:bg-black/5 rounded-xl transition-colors">
             <X className="h-5 w-5 text-gray-500" />
           </button>
         </div>
@@ -609,12 +610,12 @@ function RecordModal({ tab, initial, onClose, onSaved }: RecordModalProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {fields.map(f => (
               <div key={f.key} className={f.textarea ? 'sm:col-span-2' : ''}>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label htmlFor={`record-${f.key}`} className="block text-sm font-medium text-gray-700 mb-1.5">
                   {f.label} {f.required && <span className="text-red-500">*</span>}
                 </label>
                 {f.options ? (
                   <select
-                    value={form[f.key] ?? ''}
+                    id={`record-${f.key}`} value={form[f.key] ?? ''}
                     onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
                     className={`w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-colors`}
                   >
@@ -624,7 +625,7 @@ function RecordModal({ tab, initial, onClose, onSaved }: RecordModalProps) {
                 ) : f.textarea ? (
                   <textarea
                     rows={3}
-                    value={form[f.key] ?? ''}
+                    id={`record-${f.key}`} value={form[f.key] ?? ''}
                     onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
                     required={f.required}
                     className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 resize-none transition-colors"
@@ -632,7 +633,7 @@ function RecordModal({ tab, initial, onClose, onSaved }: RecordModalProps) {
                 ) : (
                   <input
                     type={f.type || 'text'}
-                    value={form[f.key] ?? ''}
+                    id={`record-${f.key}`} value={form[f.key] ?? ''}
                     onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
                     required={f.required}
                     className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-colors"
@@ -714,7 +715,7 @@ export default function SecretaryPage() {
   const fetchStats = useCallback(async () => {
     try {
       const res = await secretaryApi.getStats(selectedYear)
-      setStats(res.data ?? {})
+      setStats(res.data?.data ?? {})
     } catch { /* silencioso */ }
   }, [selectedYear])
 
@@ -741,27 +742,14 @@ export default function SecretaryPage() {
   const CardRenderer = CARD_RENDERERS[activeTab]
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="church-module-workspace secretary-workspace">
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Secretaría</h1>
-          <p className="text-sm text-gray-500 mt-1">Registros oficiales de la congregación</p>
-        </div>
-        {canCreate && (
-          <button
-            onClick={() => { setEditRecord(null); setShowModal(true) }}
-            className="flex items-center gap-2 px-4 py-2.5 text-white text-sm font-medium rounded-xl shadow-sm transition-colors bg-indigo-600 hover:bg-indigo-700"
-          >
-            <Plus className="h-4 w-4" />
-            {tab.newLabel}
-          </button>
-        )}
-      </div>
+      <ChurchModuleHeader eyebrow="Cuidamos la historia de nuestra iglesia" title="Secretaría" description="Cada etapa de nuestra comunidad, organizada en un solo lugar.">
+        {canCreate && <button onClick={() => { setEditRecord(null); setShowModal(true) }}><Plus size={17}/>{tab.newLabel}</button>}
+      </ChurchModuleHeader>
 
       {/* Stats banner */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+      <div className="secretary-stats">
         {TABS.map(t => {
           const TIcon = t.icon
           const isActive = t.key === activeTab
@@ -769,6 +757,7 @@ export default function SecretaryPage() {
           return (
             <button
               key={t.key}
+              aria-pressed={isActive}
               onClick={() => { setActiveTab(t.key); setPage(1) }}
               className={`relative flex flex-col items-center gap-2 py-4 px-2 rounded-2xl border transition-all text-center overflow-hidden
                 ${isActive
@@ -805,12 +794,12 @@ export default function SecretaryPage() {
       </div>
 
       {/* Filtros + toggle de vista */}
-      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+      <div className="secretary-toolbar flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
-            placeholder={`Buscar en ${tab.label.toLowerCase()}…`}
+            aria-label="Buscar registros" placeholder={`Buscar en ${tab.label.toLowerCase()}…`}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-gray-50 focus:bg-white transition-colors"
@@ -818,7 +807,7 @@ export default function SecretaryPage() {
         </div>
         {activeTab !== 'preachers' && (
           <select
-            value={selectedYear}
+            aria-label="Año de los registros" value={selectedYear}
             onChange={e => setSelectedYear(Number(e.target.value))}
             className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-colors"
           >

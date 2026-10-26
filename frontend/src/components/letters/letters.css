@@ -1,0 +1,231 @@
+.letters-workspace .card {
+  border: 1px solid #e1e5ec;
+  border-radius: 20px;
+  box-shadow: 0 5px 20px #1d2d5004;
+}
+.letters-history-search {
+  position: relative;
+  margin: 18px 0;
+}
+.letters-history-search > svg {
+  position: absolute;
+  left: 13px;
+  top: 14px;
+  color: #8a94a4;
+}
+.letters-history-search input {
+  padding-left: 40px;
+  min-height: 44px;
+  border-radius: 11px;
+}
+.letters-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #e6e9ef;
+  border-radius: 14px;
+  padding: 15px;
+  background: white;
+}
+.letters-history-row > div:first-child {
+  min-width: 0;
+}
+.letters-history-row p {
+  overflow-wrap: anywhere;
+}
+.letters-history-row button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 8px;
+}
+.letter-dialog {
+  border: 1px solid #e0e4ea;
+  border-radius: 22px !important;
+  box-shadow: 0 30px 90px #14263f26;
+  max-width: min(860px, calc(100vw - 24px)) !important;
+}
+.letter-dialog input,
+.letter-dialog select,
+.letter-dialog textarea {
+  min-height: 44px;
+  border-radius: 10px;
+  border-color: #dce2e9;
+}
+.letter-dialog label {
+  color: #56657b;
+  font-size: 12px;
+}
+.letter-dialog button {
+  border-radius: 10px;
+}
+.letter-dialog [class*='bg-gradient'] {
+  background-image: none;
+}
+.letter-dialog [class*='from-green-600'] {
+  background: #1d2d50;
+  color: white;
+  box-shadow: none;
+}
+.letter-dialog [class*='from-green-600']:hover {
+  background: #314b72;
+  color: white;
+}
+.letter-dialog [class*='from-blue-50'],
+.letter-dialog [class*='from-green-50'],
+.letter-dialog [class*='from-purple-50'] {
+  background: #fff;
+  border-color: #e3e7ec;
+}
+.letter-paper {
+  background: white;
+  border: 1px solid #e5e2d8;
+  border-radius: 4px;
+  padding: 42px 46px;
+  color: #263448;
+  box-shadow: 0 7px 24px #14263f08;
+}
+.letter-paper > header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-bottom: 25px;
+  border-bottom: 2px solid #c29b46;
+  margin-bottom: 28px;
+}
+.letter-paper > header .brand-logo {
+  width: 140px;
+  flex-shrink: 0;
+}
+.letter-paper > header > div {
+  min-width: 0;
+}
+.letter-paper > header span {
+  font:
+    600 8px/1.5 Arial,
+    sans-serif;
+  letter-spacing: 1.8px;
+  color: #9b7930;
+}
+.letter-paper > header h2 {
+  font:
+    600 16px/1.4 Georgia,
+    serif;
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+.letter-paper > header p {
+  font:
+    11px/1.6 Arial,
+    sans-serif;
+  color: #7c8592;
+}
+.letter-paper-title {
+  font:
+    600 19px/1.4 Georgia,
+    serif;
+  margin: 22px 0;
+}
+.letter-paper-body {
+  font:
+    14px/1.85 Georgia,
+    serif;
+  overflow-wrap: anywhere;
+}
+.letter-paper-body p {
+  margin: 0 0 5px;
+}
+.letter-paragraph-gap {
+  height: 12px;
+}
+.letter-paper-signature {
+  margin: 50px 0 30px;
+  break-inside: avoid;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  font-size: 12px;
+  gap: 7px;
+}
+.letter-paper-signature > span {
+  display: block;
+  width: 180px;
+  border-top: 1px solid #bdc3cc;
+}
+.letter-paper-signature p {
+  color: #7b8390;
+}
+.letter-paper > footer {
+  border-top: 1px solid #e6e2d8;
+  margin-top: 35px;
+  padding-top: 16px;
+  color: #937736;
+  font:
+    8px/1.7 Arial,
+    sans-serif;
+  letter-spacing: 1px;
+}
+.letter-paper > footer span {
+  display: block;
+  color: #8b919b;
+  letter-spacing: 0;
+}
+.letter-dialog [role='button']:focus-visible {
+  outline: 3px solid #c9a54e;
+  outline-offset: 3px;
+}
+@media (max-width: 639px) {
+  .letter-paper {
+    padding: 24px 20px;
+  }
+  .letter-paper > header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+  .letter-paper > header .brand-logo {
+    width: 125px;
+  }
+  .letter-paper-body {
+    font-size: 13px;
+  }
+  .letter-dialog {
+    padding: 20px 14px !important;
+    max-height: 92dvh !important;
+  }
+  .letter-dialog [class*='p-5'] {
+    padding: 16px;
+  }
+  .letters-history-row {
+    flex-wrap: wrap;
+  }
+  .letters-history-row > div:last-child {
+    margin-left: auto;
+  }
+  .letter-dialog .letter-paper-title {
+    font-size: 17px;
+  }
+}
+.letter-dialog [class*='from-green-500'] {
+  background: #247c65;
+  color: white;
+}
+.letter-dialog [class*='from-primary-500'] {
+  background: #1d2d50;
+  color: white;
+}
+.letter-dialog [class*='bg-blue-500'],
+.letter-dialog [class*='bg-purple-500'],
+.letter-dialog [class*='bg-orange-500'],
+.letter-dialog [class*='bg-green-500'] {
+  background-color: #1d2d50;
+}
+.letter-dialog h4[class*='text-'] {
+  color: #1d2d50;
+}
+.letter-dialog p[class*='text-xs'][class*='text-blue'],
+.letter-dialog p[class*='text-xs'][class*='text-green'],
+.letter-dialog p[class*='text-xs'][class*='text-orange'],
+.letter-dialog p[class*='text-xs'][class*='text-purple'] {
+  color: #7c8796;
+}
