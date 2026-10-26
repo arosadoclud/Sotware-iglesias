@@ -223,7 +223,7 @@ function App() {
 
   useEffect(() => {
     // Check if user has already seen splash this session
-    const seen = sessionStorage.getItem('splashSeen:arca-2026-10')
+    const seen = sessionStorage.getItem('splashSeen:arca-2026-10-animada')
     const preview = new URLSearchParams(window.location.search).get('bienvenida') === '1'
     if (seen && !preview) {
       setShowSplash(false)
@@ -232,7 +232,7 @@ function App() {
   }, [])
 
   const handleSplashComplete = () => {
-    sessionStorage.setItem('splashSeen:arca-2026-10', 'true')
+    sessionStorage.setItem('splashSeen:arca-2026-10-animada', 'true')
     setShowSplash(false)
     setHasSeenSplash(true)
   }

@@ -11,7 +11,7 @@ const fs = require("fs");
       reducedMotion: "reduce",
     });
     await context.addInitScript(() =>
-      sessionStorage.setItem("splashSeen:arca-2026-10", "true"),
+      sessionStorage.setItem("splashSeen:arca-2026-10-animada", "true"),
     );
     const page = await context.newPage();
     let submitted = 0;
@@ -57,7 +57,7 @@ const fs = require("fs");
       reducedMotion: "reduce",
     });
     await ctx.addInitScript(() => {
-      sessionStorage.setItem("splashSeen:arca-2026-10", "true");
+      sessionStorage.setItem("splashSeen:arca-2026-10-animada", "true");
       localStorage.setItem(
         "protected-modules-storage",
         JSON.stringify({

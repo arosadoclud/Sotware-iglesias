@@ -15,7 +15,7 @@ const initialUser = { id: 'qa', email: 'qa@example.com', fullName: 'Administrado
   await page.addInitScript(user => {
     localStorage.setItem('auth-storage', JSON.stringify({ state: { user, accessToken: 'qa-only', isAuthenticated: true }, version: 0 }));
     localStorage.setItem('onboarding-state', JSON.stringify({ hasCompletedTour: true, hasSeenModule: {}, exploredFeatures: [] }));
-    sessionStorage.setItem('splashSeen:arca-2026-10', 'true');
+    sessionStorage.setItem('splashSeen:arca-2026-10-animada', 'true');
   }, initialUser);
   await page.route('**/api/v1/**', route => {
     const url = new URL(route.request().url());
