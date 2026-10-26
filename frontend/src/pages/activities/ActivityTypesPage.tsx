@@ -503,8 +503,8 @@ const ActivityTypesPage = () => {
                             </span>
                             <span className="flex items-center gap-1">
                               <Users className="w-3.5 h-3.5" />
-                              {totalPeople} persona
-                              {totalPeople !== 1 ? 's' : ''}
+                              {totalPeople} participación
+                              {totalPeople !== 1 ? 'es' : ''}
                             </span>
                           </div>
                           {a.description && (
@@ -541,35 +541,56 @@ const ActivityTypesPage = () => {
                     </CardHeader>
                     <CardContent className="pt-0">
                       <div className="border-t border-neutral-200/60 pt-3">
-                        <p className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
-                          Formato del Programa
-                        </p>
-                        <div className="space-y-1.5">
-                          {a.roleConfig.map((rc: any, i: number) => (
-                            <div
-                              key={i}
-                              className="flex items-center justify-between text-sm py-1 px-2 rounded-md hover:bg-white/60 transition-colors"
-                            >
-                              <span className="text-neutral-700">
-                                <span className="font-medium text-neutral-400 mr-1.5">
-                                  {rc.sectionOrder}.
-                                </span>
-                                {rc.sectionName}
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <Badge
-                                  variant="secondary"
-                                  className="text-xs font-normal"
-                                >
-                                  {rc.role?.name || 'Rol no disponible'}
-                                </Badge>
-                                <span className="text-xs text-neutral-400">
-                                  {rc.peopleNeeded}p
-                                </span>
-                              </div>
-                            </div>
-                          ))}
+                        <div className="activity-format-heading">
+                          <span>Orden del encuentro</span>
+                          <span>{a.roleConfig.length} {a.roleConfig.length === 1 ? 'sección' : 'secciones'}</span>
                         </div>
+                        <ol
+                          className="activity-program-outline"
+                          aria-label={'Orden de ' + a.name}
+                        >
+                          {[...a.roleConfig]
+                            .sort(
+                              (left: any, right: any) =>
+                                left.sectionOrder - right.sectionOrder
+                            )
+                            .map((rc: any, i: number) => (
+                              <li key={i} className="activity-program-step">
+                                <span className="activity-step-number">
+                                  {String(i + 1).padStart(2, '0')}
+                                </span>
+                                <div className="activity-step-copy">
+                                  <strong>{rc.sectionName}</strong>
+                                  {rc.role?.name &&
+                                    rc.role.name.trim().toLowerCase() !==
+                                      rc.sectionName.trim().toLowerCase() && (
+                                      <span>Rol: {rc.role.name}</span>
+                                    )}
+                                  {!rc.role?.name && (
+                                    <span>Rol no disponible</span>
+                                  )}
+                                </div>
+                                <div className="activity-step-meta">
+                                  <span>
+                                    {rc.peopleNeeded || 1}{' '}
+                                    {(rc.peopleNeeded || 1) === 1
+                                      ? 'persona'
+                                      : 'personas'}
+                                  </span>
+                                  <small>
+                                    {rc.isRequired ? 'Requerida' : 'Opcional'}
+                                  </small>
+                                </div>
+                              </li>
+                            ))}
+                        </ol>
+                        {a.roleConfig.length === 0 && (
+                          <p className="activity-outline-empty">
+                            {a.generationType === 'cleaning_groups'
+                              ? 'Las participaciones se organizan por grupos de limpieza.'
+                              : 'Configura las secciones para preparar este encuentro.'}
+                          </p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
