@@ -118,11 +118,11 @@ export const generateLetter = async (req: AuthRequest, res: Response, next: Next
 // Descargar carta como PDF
 export const downloadLetterPdf = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { content, title, recipientName, churchData } = req.body;
+    const { content, title, recipientName, churchData, eventData } = req.body;
     if (!content) throw new BadRequestError('El contenido es requerido');
 
     if (typeof content !== 'string') throw new BadRequestError('El contenido debe ser texto');
-    const html = renderLetterDocument({content, title, churchData});
+    const html = renderLetterDocument({content, title, churchData, eventData});
 
     const browser = await puppeteer.launch({
       headless: 'new',

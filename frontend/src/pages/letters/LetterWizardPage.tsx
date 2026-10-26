@@ -340,6 +340,7 @@ const LetterWizardPage = () => {
           direccion: formData.direccion_iglesia,
           telefono: formData.telefono_iglesia,
           pastor: formData.nombre_pastor,
+          fecha: formData.fecha_carta,
           tituloPastor: formData.titulo_pastor
         },
         eventData: {
@@ -1081,6 +1082,12 @@ const LetterWizardPage = () => {
         phone={formData.telefono_iglesia}
         pastor={formData.nombre_pastor}
         pastorTitle={formData.titulo_pastor}
+        date={formData.fecha_carta}
+        emphasis={[
+          formData.fecha_actividad,
+          formData.tema_evento,
+          formData.hora_actividad
+        ]}
         title={LETTER_TYPES.find((t) => t.id === selectedType)?.name}
       />
 
@@ -1176,12 +1183,17 @@ const LetterWizardPage = () => {
 
         {/* History Section */}
         <Card className="letters-history-panel">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-neutral-800 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-neutral-500" />
-                Historial de Cartas
-              </h3>
+          <CardContent className="letters-history-content">
+            <div className="letters-history-heading">
+              <div>
+                <span className="letters-history-eyebrow">
+                  ARCHIVO DE LA IGLESIA
+                </span>
+                <h3>
+                  <FileText size={20} /> Historial de cartas
+                </h3>
+                <p>Consulta y reutiliza la correspondencia de tu comunidad.</p>
+              </div>
               <Badge variant="secondary">{generated.length}</Badge>
             </div>
 
@@ -1254,6 +1266,7 @@ const LetterWizardPage = () => {
                         size="sm"
                         disabled={!canCreate}
                         title="Duplicar carta"
+                        aria-label="Duplicar carta"
                         className="text-primary-600 hover:text-primary-800 hover:bg-primary-50"
                         onClick={() => duplicateLetter(letter)}
                       >
@@ -1263,6 +1276,7 @@ const LetterWizardPage = () => {
                         variant="ghost"
                         size="sm"
                         title="Ver carta"
+                        aria-label="Ver carta"
                         onClick={() => viewHistoryLetter(letter)}
                       >
                         <Eye className="w-4 h-4" />
@@ -1272,6 +1286,7 @@ const LetterWizardPage = () => {
                           variant="ghost"
                           size="sm"
                           title="Eliminar"
+                          aria-label="Eliminar carta"
                           className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           onClick={() => deleteHistoryLetter(letter._id)}
                         >
@@ -1362,6 +1377,12 @@ const LetterWizardPage = () => {
               phone={previewVariables.telefono_iglesia}
               pastor={previewVariables.nombre_pastor}
               pastorTitle={previewVariables.titulo_pastor}
+              date={previewVariables.fecha_carta}
+              emphasis={[
+                previewVariables.fecha_actividad,
+                previewVariables.tema_evento,
+                previewVariables.hora_actividad
+              ]}
             />
           </div>
         </DialogContent>

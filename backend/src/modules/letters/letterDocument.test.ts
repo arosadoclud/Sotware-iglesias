@@ -17,3 +17,21 @@ describe('Branded letter document', () => {
     expect(html).not.toContain('white-space: nowrap');
   });
 });
+
+it('preserves formal recipients without decorative titles or footer', () => {
+  const html = renderLetterDocument({ content: 'Iglesia: Comunidad de prueba\nPastor/a/es: María\n\nQue la paz esté con ustedes.', title: 'Invitación', churchData: { nombre: 'Dios Fuerte' } });
+  expect(html).toContain('Iglesia: <strong>Comunidad de prueba</strong>');
+  expect(html).toContain('Pastor/a/es: <strong>María</strong>');
+  expect(html).not.toContain('<footer>');
+  expect(html).toContain('document-date');
+  expect(html).not.toContain('CORRESPONDENCIA DE LA IGLESIA');
+  expect(html).not.toContain('<h2>');
+  expect(html).toContain('Times New Roman');
+});
+it('escapes event emphasis as text and keeps the requested date and signature order', () => {
+  const html = renderLetterDocument({content:'Tema: <Encuentro> (fe + amor)',churchData:{nombre:'Dios Fuerte',fecha:'15 de agosto de 2026',pastor:'Mery',tituloPastor:'Pastora'},eventData:{tema:'<Encuentro> (fe + amor)'}});
+  expect(html).toContain('<strong>&lt;Encuentro&gt; (fe + amor)</strong>');
+  expect(html).toContain('15 de agosto de 2026');
+  expect(html.indexOf('<p>Pastora</p>')).toBeLessThan(html.indexOf('<strong>Mery</strong>'));
+  expect(html.match(/data:image\/png;base64,/g)).toHaveLength(2);
+});

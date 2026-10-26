@@ -180,6 +180,7 @@ export const lettersApi = {
       telefono?: string;
       pastor?: string;
       tituloPastor?: string;
+      fecha?: string;
     };
     eventData?: {
       fecha?: string;

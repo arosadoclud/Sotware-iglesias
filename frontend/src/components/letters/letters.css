@@ -229,4 +229,307 @@
 .letter-dialog p[class*='text-xs'][class*='text-purple'] {
   color: #7c8796;
 }
-.letters-workspace .letters-history-panel{overflow:hidden;background:linear-gradient(180deg,#fff,#fdfcf9)}.letters-empty-state{padding:36px 15px 26px;display:flex;align-items:center;text-align:center;flex-direction:column}.letters-empty-art{width:82px;height:82px;position:relative;display:grid;place-items:center;color:#a68a46;margin:2px 0 25px;isolation:isolate}.letters-empty-art>span:first-child{position:absolute;inset:0;background:#f3eddf;border:1px solid #e7dcc3;border-radius:22px;transform:rotate(-10deg);z-index:-1}.letters-empty-art>span:last-child{position:absolute;inset:6px;background:#fffaf0;border:1px solid #e5d9be;border-radius:18px;z-index:-1;transform:rotate(7deg)}.letters-empty-eyebrow{font-size:8px;letter-spacing:1.8px;color:#a28a55;font-weight:600}.letters-empty-state h4{font:600 23px/1.3 Georgia,serif;color:#1d2d50;margin:13px 0}.letters-empty-state>p{font-size:12px;line-height:1.9;color:#8992a0;max-width:310px}.letters-empty-state>button{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px;border-radius:11px;background:#1d2d50;color:white;padding:13px 18px;font-size:12px;font-weight:600}.letters-empty-state>button:hover{background:#314b72;color:white}.letters-empty-state>small{color:#a1a8b1;font-size:9px;margin-top:20px}.letters-history-panel h3{font-size:16px;color:#1d2d50}.letters-history-panel .letters-history-search{margin:22px 0 12px}
+.letters-workspace .letters-history-panel {
+  overflow: hidden;
+  background: linear-gradient(180deg, #fff, #fdfcf9);
+}
+.letters-empty-state {
+  padding: 36px 15px 26px;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  flex-direction: column;
+}
+.letters-empty-art {
+  width: 82px;
+  height: 82px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: #a68a46;
+  margin: 2px 0 25px;
+  isolation: isolate;
+}
+.letters-empty-art > span:first-child {
+  position: absolute;
+  inset: 0;
+  background: #f3eddf;
+  border: 1px solid #e7dcc3;
+  border-radius: 22px;
+  transform: rotate(-10deg);
+  z-index: -1;
+}
+.letters-empty-art > span:last-child {
+  position: absolute;
+  inset: 6px;
+  background: #fffaf0;
+  border: 1px solid #e5d9be;
+  border-radius: 18px;
+  z-index: -1;
+  transform: rotate(7deg);
+}
+.letters-empty-eyebrow {
+  font-size: 8px;
+  letter-spacing: 1.8px;
+  color: #a28a55;
+  font-weight: 600;
+}
+.letters-empty-state h4 {
+  font:
+    600 23px/1.3 Georgia,
+    serif;
+  color: #1d2d50;
+  margin: 13px 0;
+}
+.letters-empty-state > p {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #8992a0;
+  max-width: 310px;
+}
+.letters-empty-state > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+  border-radius: 11px;
+  background: #1d2d50;
+  color: white;
+  padding: 13px 18px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.letters-empty-state > button:hover {
+  background: #314b72;
+  color: white;
+}
+.letters-empty-state > small {
+  color: #a1a8b1;
+  font-size: 9px;
+  margin-top: 20px;
+}
+.letters-history-panel h3 {
+  font-size: 16px;
+  color: #1d2d50;
+}
+.letters-history-panel .letters-history-search {
+  margin: 22px 0 12px;
+}
+/* Formal correspondence: preserve the church's established letter model. */
+.letter-paper {
+  font-family: 'Times New Roman', Times, serif;
+  color: #111;
+  border-radius: 0;
+  padding: 42px 48px;
+}
+.letter-paper > header {
+  position: relative;
+  display: block;
+  min-height: 135px;
+  padding: 12px 0 0 104px;
+  margin-bottom: 34px;
+  border: 0;
+  text-align: center;
+}
+.letter-paper > header .brand-logo {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 90px;
+}
+.letter-paper > header h2 {
+  font:
+    bold 24px/1.25 'Times New Roman',
+    Times,
+    serif;
+  color: #111;
+  margin: 0 0 12px;
+}
+.letter-paper > header p {
+  font:
+    bold 16px/1.4 'Times New Roman',
+    Times,
+    serif;
+  color: #111;
+  margin: 6px 0;
+}
+.letter-paper-body {
+  font:
+    17px/1.75 'Times New Roman',
+    Times,
+    serif;
+  color: #111;
+}
+.letter-paper-body p {
+  text-align: justify;
+  margin: 0 0 8px;
+}
+.letter-paper-body .letter-recipient {
+  text-align: left;
+}
+.letter-recipient u {
+  text-underline-offset: 2px;
+}
+.letter-paragraph-gap {
+  height: 14px;
+}
+.letter-paper-signature {
+  margin: 48px 0 0;
+  font:
+    bold 16px/1.5 'Times New Roman',
+    Times,
+    serif;
+  color: #111;
+  gap: 3px;
+}
+.letter-paper-signature > span {
+  width: 250px;
+  max-width: 80%;
+  border-color: #111;
+  margin-bottom: 4px;
+}
+.letter-paper-signature p {
+  color: #111;
+}
+@media (max-width: 639px) {
+  .letter-paper {
+    padding: 24px 20px;
+  }
+  .letter-paper > header {
+    padding: 0;
+    min-height: 0;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  .letter-paper > header .brand-logo {
+    position: static;
+    width: 100px;
+    margin: 0 auto 18px;
+  }
+  .letter-paper > header h2 {
+    font-size: 22px;
+  }
+  .letter-paper > header p {
+    font-size: 15px;
+  }
+  .letter-paper-body {
+    font-size: 16px;
+  }
+}
+.letter-paper > header {
+  margin-bottom: 0;
+}
+.letter-paper > header h2 {
+  font-size: 19px;
+}
+.letter-document-date {
+  text-align: right;
+  font:
+    italic 15px/1.5 'Times New Roman',
+    Times,
+    serif;
+  color: #111;
+  margin: 18px 0 28px;
+}
+.letter-paper-signature p {
+  margin: 10px 0;
+  color: #b48c22;
+}
+.letter-paper-signature .brand-logo {
+  width: 86px;
+  margin: 20px auto 0;
+}
+.letters-history-panel .letters-history-content {
+  padding: 28px;
+}
+.letters-history-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 4px 0 18px;
+  border-bottom: 1px solid #edf0f4;
+}
+.letters-history-eyebrow {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #967431;
+  margin-bottom: 10px;
+}
+.letters-history-heading h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 650;
+  margin: 0;
+  color: #1d2d50;
+}
+.letters-history-heading h3 svg {
+  color: #a18038;
+  flex-shrink: 0;
+}
+.letters-history-heading p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #8390a2;
+  margin: 8px 0 0;
+}
+.letters-history-heading > span {
+  background: #f5f0e4;
+  color: #8b6b29;
+  border: 1px solid #eadfbe;
+  min-width: 30px;
+  justify-content: center;
+  margin-top: 4px;
+}
+.letters-history-panel .letters-history-search {
+  margin: 20px 0;
+}
+.letters-history-row {
+  padding: 18px;
+  border-radius: 16px;
+  border-color: #e5e9ef;
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
+}
+.letters-history-row:hover {
+  border-color: #d6c598;
+  box-shadow: 0 4px 16px #14263f06;
+}
+.letters-history-row button {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 11px;
+}
+.letters-history-row > div:first-child > div:first-child {
+  flex-shrink: 0;
+  background: #f4efdf;
+  color: #967431;
+}
+.letters-history-row > div:first-child > div:first-child svg {
+  color: inherit;
+}
+@media (max-width: 639px) {
+  .letters-history-panel .letters-history-content {
+    padding: 22px 18px;
+  }
+  .letters-history-heading h3 {
+    font-size: 18px;
+  }
+  .letters-history-row {
+    padding: 14px;
+    gap: 12px;
+  }
+  .letters-history-row > div:first-child {
+    align-items: flex-start;
+  }
+  .letters-history-row > div:last-child {
+    gap: 6px;
+  }
+}
