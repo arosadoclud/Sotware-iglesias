@@ -439,11 +439,11 @@ const CleaningProgramEditPage = () => {
               {/* Flyer Preview */}
               <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-[#2c4875] to-[#3d5a80] px-8 py-6 flex flex-col items-center justify-center text-center gap-4">
+                <div className="bg-[#fcfbf8] px-8 py-6 flex flex-col items-center justify-center text-center gap-4">
                   <img 
                     src="/arca-logo.png"
                     alt="Logo de la iglesia" 
-                    className="w-48 h-auto object-contain rounded-xl bg-white p-2"
+                    className="w-48 h-auto object-contain p-2"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                       const fallback = document.createElement('div');
@@ -452,7 +452,7 @@ const CleaningProgramEditPage = () => {
                       e.currentTarget.parentElement?.appendChild(fallback);
                     }}
                   />
-                  <h1 className="text-white text-2xl font-bold uppercase tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  <h1 className="text-[#14263f] text-2xl font-bold uppercase tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
                     {churchName || 'Nombre de la Iglesia'}
                   </h1>
                 </div>

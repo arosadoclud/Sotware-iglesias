@@ -123,15 +123,15 @@ const FlyerMiniPreview = ({ prog, churchInfo }: { prog: ProgramData; churchInfo?
     }}>
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #1B2D5B 0%, #2A4080 60%, #1B2D5B 100%)',
+        background: '#fcfbf8',
         padding: '1.8rem 1.5rem 1.2rem', position: 'relative', overflow: 'hidden',
       }}>
         <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, background: 'rgba(200,168,75,0.08)', borderRadius: '50%' }} />
         <div style={{ display: 'flex', flexDirection: 'column-reverse', alignItems: 'center', gap: '1rem', position: 'relative', zIndex: 1 }}>
           <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontFamily: F.display, fontSize: '1.1rem', fontWeight: 700, color: 'white', lineHeight: 1.1 }}>{churchName}</div>
+            <div style={{ fontFamily: F.display, fontSize: '1.1rem', fontWeight: 700, color: C.navy, lineHeight: 1.1 }}>{churchName}</div>
           </div>
-          <img src={logoSrc} alt="Arca Evangélica · Dios Fuerte" style={{ width: 164, height: 'auto', padding: 8, borderRadius: 8, objectFit: 'contain', background: 'white' }}
+          <img src={logoSrc} alt="Arca Evangélica · Dios Fuerte" style={{ width: 164, height: 'auto', padding: 8, borderRadius: 8, objectFit: 'contain', background: 'transparent' }}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
         </div>

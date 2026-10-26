@@ -64,7 +64,7 @@ export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer
         }
         /* Header */
         .header {
-          background: linear-gradient(to right, #2c4875, #3d5a80);
+          background: #fcfbf8;
           padding: 32px;
           display: flex;
           flex-direction: column;
@@ -78,7 +78,7 @@ export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer
           height: 108px;
           object-fit: contain;
           border-radius: 12px;
-          background: white;
+          background: transparent;
           padding: 8px;
         }
         .logo-fallback {
@@ -93,7 +93,7 @@ export async function generateCleaningPdf(data: CleaningPdfData): Promise<Buffer
           font-size: 48px;
         }
         .church-name {
-          color: white;
+          color: #14263f;
           font-size: 24px;
           font-weight: 700;
           text-transform: uppercase;

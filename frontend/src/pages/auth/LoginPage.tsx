@@ -164,12 +164,12 @@ const LoginPage = () => {
 
         /* Force dark on html/body so no white bleeds through */
         html, body, #root {
-          background: #0b1529 !important;
+          background: #f7f8fa !important;
         }
 
         .login-root {
           min-height: 100vh;
-          background: linear-gradient(170deg, #0e1b33 0%, #0b1529 40%, #091225 100%);
+          background: linear-gradient(170deg, #fcfbf7 0%, #f5f7fa 100%);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -457,10 +457,10 @@ const LoginPage = () => {
           height: auto;
           border-radius: 14px;
           object-fit: contain;
-          background: white;
-          border: 1px solid rgba(212, 184, 106, 0.3);
+          background: transparent;
+          border: 0;
           padding: 8px;
-          box-shadow: 0 0 20px rgba(201, 168, 76, 0.08);
+          box-shadow: none;
         }
 
         .church-name {
@@ -468,7 +468,7 @@ const LoginPage = () => {
           font-size: 13.5px;
           font-weight: 600;
           letter-spacing: 0.16em;
-          color: #dcc47a;
+          color: #14263f;
           text-transform: uppercase;
           line-height: 1.5;
           margin-bottom: 8px;
@@ -480,17 +480,17 @@ const LoginPage = () => {
           font-style: italic;
           font-weight: 400;
           font-size: 14.5px;
-          color: rgba(255,255,255,0.58);
+          color: #64748b;
           letter-spacing: 0.04em;
         }
 
         /* Glass card */
         .form-card {
-          background: rgba(15, 25, 60, 0.35);
+          background: #14263f;
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
           border: 1px solid rgba(212, 184, 106, 0.18);
-          border-radius: 4px;
+          border-radius: 20px;
           padding: 34px 30px;
           box-shadow:
             0 0 0 1px rgba(0,0,30,0.4),

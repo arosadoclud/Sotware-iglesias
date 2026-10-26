@@ -37,3 +37,13 @@ Los scripts reproducibles están en `frontend/scripts/check-responsive.cjs` y `f
 El ejecutor Vitest configurado en el proyecto presenta una incompatibilidad previa entre Vitest 4 y Vite 5 (`vite/module-runner`). Por eso la verificación del frontend de este cambio se hizo con las pruebas de navegador descritas; no se declara pasada la suite Vitest. La compilación backend original con declaraciones sigue teniendo la limitación local TS2742 de pnpm descrita en la revisión anterior.
 
 El transporte de eventos de este cambio está previsto para la instancia única actual. Si el backend pasa a varias réplicas, será necesario compartir las salas y eventos mediante un adaptador de Socket.IO, como Redis.
+
+## Ajuste posterior: transparencia y formulario
+
+El logo de uso tiene canal alfa transparente real, sin el texto superior ni recuadro de fondo. Los encabezados del programa y PDF usan una superficie clara para mantener legibles las letras negras, sin recolorear el símbolo.
+
+La pestaña de edición se organiza ahora en cuatro tarjetas: identidad del encuentro, fecha y horario, referencia bíblica y participantes. Se sustituyeron los emojis de los controles por iconos, se actualizaron estados de foco y botones y se agruparon las acciones adicionales en un panel desplegable.
+
+Se volvió a comprobar la adaptación en seis anchos y el guardado correcto/fallido. También se verificaron la transparencia del logo en navegador, el acceso a 390 y 1440 px y los tres PDF renderizados con el nuevo logo.
+
+La dirección de producción vinculada a este repositorio es `https://sotware-iglesias.vercel.app`. La dirección `https://software-iglesias-frontend.vercel.app` consultada durante la sesión servía otro bundle anterior. El commit `2145ff88` terminó correctamente su despliegue de Vercel y el backend de Render respondió al transporte de Socket.IO; las siguientes modificaciones requieren su propio despliegue.

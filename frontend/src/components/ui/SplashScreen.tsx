@@ -66,9 +66,9 @@ const SplashScreen = ({ onComplete, minimumDisplayTime = 2800 }: SplashScreenPro
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.6, ease: 'easeInOut' }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
+          className="brand-splash fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, #1B2D5B 0%, #2A4080 50%, #1B2D5B 100%)',
+            background: 'linear-gradient(135deg, #fcfbf7 0%, #edf1f7 100%)',
           }}
         >
           {/* Animated background particles */}
@@ -140,7 +140,7 @@ const SplashScreen = ({ onComplete, minimumDisplayTime = 2800 }: SplashScreenPro
               
               {/* Logo circle */}
               <motion.div
-                className="relative w-64 h-40 rounded-2xl bg-white border border-white/20 flex items-center justify-center shadow-2xl"
+                className="relative w-64 h-40 rounded-2xl bg-transparent flex items-center justify-center shadow-2xl"
                 animate={{ 
                   boxShadow: [
                     '0 0 30px rgba(200, 168, 75, 0.2)',

@@ -3,11 +3,13 @@
   --brand-gold: #bd922f;
   --brand-paper: #f7f8fa;
 }
-.brand-logo { display: block; object-fit: contain; height: auto; background: white; border-radius: 8px; }
+.brand-logo { display: block; object-fit: contain; height: auto; background: transparent; border-radius: 8px; }
 .brand-logo-sidebar { width: 148px; max-height: 72px; padding: 4px; }
 .brand-logo-mobile { width: 96px; max-height: 48px; padding: 3px; }
 .brand-logo-collapsed { width: 42px; max-height: 48px; }
 .brand-home { min-width: 0; display: flex; align-items: center; }
+.brand-splash [class*="text-white"] { color: #14263f !important; }
+.brand-splash h1, .brand-splash h2 { color: #14263f !important; }
 .brand-desktop-bar { height: 80px; justify-content: space-between; align-items: center; gap: 20px; background: white; border-bottom: 1px solid #e5e7eb; padding: 0 32px; }
 .brand-workspace-label { color: #8b6b29; letter-spacing: .2em; font-size: 10px; font-weight: 700; }
 .brand-desktop-bar p { color: #64748b; font-size: 12px; margin-top: 4px; }
@@ -39,6 +41,8 @@
 .auth-surface [class*="bg-gradient"][class*="from-blue-600"][class*="to-purple-600"] { background: #14263f; }
 .auth-surface > div[class*="from-blue-50"] { background: #f4f6f9; }
 .auth-surface .aurora-orb, .auth-surface .light-rays { opacity: .35; }
+.auth-surface .login-root .vignette { display: none; }
+.auth-surface .login-root .footer-text { color: #64748b; }
 @media (max-width: 639px) {
   .app-content .card { padding: 16px; }
   .app-content th { font-size: 10px; }

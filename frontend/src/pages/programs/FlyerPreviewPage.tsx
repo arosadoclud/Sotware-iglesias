@@ -5,7 +5,7 @@ import { programsApi, personsApi, churchesApi, BACKEND_URL } from '../../lib/api
 import { sharePdfViaWhatsApp } from '../../lib/shareWhatsApp'
 import { downloadBlob } from '../../lib/downloadHelper'
 import { toast } from 'sonner'
-import { Loader2, ArrowLeft, Download, Save, Share2 } from 'lucide-react'
+import { Loader2, ArrowLeft, Download, Save, Share2, Building2, CalendarDays, BookOpen, Users, Search, Check, Shuffle, Eraser, Settings2, ChevronDown, Eye, Pencil } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import { getVerseText } from '../../lib/bibleApi'
 import { useAuthStore } from '../../store/authStore'
@@ -974,10 +974,11 @@ const FlyerPreviewPage = () => {
               ...(activeTab === 'preview' ? styles.mobileTabActive : {})
             }}
           >
-            Vista previa
+            <Eye size={16} /> Vista previa
           </button>
           <button 
             className={`fe-tab ${activeTab === 'edit' ? 'active' : ''}`}
+            aria-label="Editar programa"
             aria-pressed={activeTab === 'edit'}
             onClick={() => setActiveTab('edit')}
             style={{
@@ -985,7 +986,7 @@ const FlyerPreviewPage = () => {
               ...(activeTab === 'edit' ? styles.mobileTabActive : {})
             }}
           >
-            Editar programa
+            <Pencil size={16} /> Editar
           </button>
         </div>
 
@@ -997,12 +998,10 @@ const FlyerPreviewPage = () => {
             className="fe-panel fe-edit-panel"
             style={styles.panel}
           >
-            <div style={styles.panelHeader}>
-              <h2 style={styles.panelHeaderTitle}>Datos del encuentro</h2>
-            </div>
+            <div className="fe-editor-intro"><span className="fe-section-icon"><Settings2 size={20} /></span><div><h2>Personaliza tu encuentro</h2><p>Organiza los detalles y los participantes de tu programa.</p></div></div>
 
             <fieldset disabled={!canEdit || saving || downloadingPdf || sharingWhatsApp} style={styles.panelBody} className="fe-panel-body">
-              {/* Iglesia */}
+              <section className="fe-config-section"><div className="fe-config-heading"><Building2 size={18} /><div><h3>Identidad del encuentro</h3><p>La información que aparecerá en el programa.</p></div></div>
               <FormGroup label="Nombre de la iglesia" id="churchName" value={form.churchName} onChange={handleInput} />
 
               <div style={styles.formRow} className="fe-form-row">
@@ -1012,12 +1011,14 @@ const FlyerPreviewPage = () => {
 
               <FormGroup label="Ubicación" id="location" value={form.location} onChange={handleInput} />
 
+              </section>
+              <section className="fe-config-section"><div className="fe-config-heading"><CalendarDays size={18} /><div><h3>Fecha y horario</h3><p>Define cuándo se reunirá tu congregación.</p></div></div>
               <div style={styles.formRow} className="fe-form-row">
                 <FormGroup label="Fecha" id="dateInput" type="date" value={form.dateInput} onChange={handleInput} />
                 <div style={{ display: 'flex', gap: '0.5rem', flex: 1 }}>
                   <FormGroup label="Hora" id="timeInput" type="text" value={form.timeInput} onChange={handleInput} placeholder="HH:MM" />
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#64748b' }}>Período</label>
+                    <label htmlFor="timePeriod" style={{ fontSize: '0.875rem', fontWeight: 500, color: '#64748b' }}>Período</label>
                     <select
                       id="timePeriod"
                       value={form.timePeriod}
@@ -1039,9 +1040,10 @@ const FlyerPreviewPage = () => {
                 </div>
               </div>
 
-              {/* Versículo con búsqueda */}
+              </section>
+              <section className="fe-config-section"><div className="fe-config-heading"><BookOpen size={18} /><div><h3>Palabra que inspira</h3><p>Añade una cita bíblica para acompañar el encuentro.</p></div></div>
               <div style={{ marginBottom: '1rem' }}>
-                <label htmlFor="verse" style={styles.formLabel}>Versículo (footer)</label>
+                <label htmlFor="verse" style={styles.formLabel}>Referencia bíblica</label>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <input
                     type="text"
@@ -1076,7 +1078,7 @@ const FlyerPreviewPage = () => {
                         Buscando...
                       </>
                     ) : (
-                      <>🔍 Buscar</>  
+                      <><Search size={16} /> Buscar</>
                     )}
                   </button>
                 </div>
@@ -1109,20 +1111,14 @@ const FlyerPreviewPage = () => {
                         width: '100%'
                       }}
                     >
-                      ✅ Insertar en flyer
+                      <Check size={16} /> Usar este versículo
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* Sección Asignaciones */}
-              <div style={styles.sectionTitle} className="fe-section-title">
-                <span>Asignaciones del programa</span>
-                <button className="fe-btn-randomize" onClick={randomizeAll} style={styles.randomizeBtn}>
-                  🎲 Asignar al azar
-                </button>
-              </div>
-
+              </section>
+              <section className="fe-config-section"><div className="fe-config-heading"><Users size={18} /><div><h3>Participantes</h3><p>{assignments.filter(a => a.personId).length} de {assignments.length} oportunidades asignadas.</p></div></div>
               {/* Rows */}
               <div>
                 {assignments.map((a, i) => (
@@ -1182,25 +1178,25 @@ const FlyerPreviewPage = () => {
                 ))}
               </div>
 
-              {/* Actions */}
-              <div style={styles.actions}>
+              </section>
+              <details className="fe-extra-tools"><summary><Settings2 size={16} /> Otras opciones <ChevronDown size={16} /></summary><div style={styles.actions}>
                 <button className="fe-btn-gold" onClick={exportPDFLocal} style={{
                   ...styles.btn, ...styles.btnGold,
                 }}>
-                  ⬇️ Descargar PDF (Vista Previa)
+                  <Download size={16} /> Exportar vista previa
                 </button>
                 <button className="fe-btn-gold" onClick={handleDownloadPdf} disabled={downloadingPdf || saving} style={{
                   ...styles.btn, ...styles.btnGold, opacity: (downloadingPdf || saving) ? 0.6 : 1,
                 }} title="Guardar cambios y descargar PDF">
-                  {downloadingPdf ? '⏳' : '💾⬇️'} Guardar y Descargar PDF
+                  {downloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} Guardar y descargar PDF
                 </button>
                 <button className="fe-btn-outline" onClick={randomizeAll} style={{ ...styles.btn, ...styles.btnOutline }}>
-                  🔀 Reasignar personas
+                  <Shuffle size={16} /> Redistribuir participantes
                 </button>
                 <button className="fe-btn-outline" onClick={clearAll} style={{ ...styles.btn, ...styles.btnOutline }}>
-                  🗑️ Limpiar todas las asignaciones
+                  <Eraser size={16} /> Quitar todas las asignaciones
                 </button>
-              </div>
+              </div></details>
             </fieldset>
           </div>
 
@@ -1420,8 +1416,6 @@ const SCOPED_CSS = `
 
   /* Mobile Tab Styles */
   .fe-mobile-tabs { display: none; }
-  .fe-mobile-vertical { display: none; }
-  .fe-desktop-only { display: block; }
   
   .fe-tab {
     background: transparent;
@@ -1461,7 +1455,40 @@ const SCOPED_CSS = `
   .fe-flyer-container { overflow-wrap: anywhere; }
   .fe-flyer-heading { flex-direction: column; }
   .fe-flyer-heading > div { padding-right: 0 !important; }
-  .fe-flyer-heading img { width: 208px !important; height: auto !important; padding: 10px; border-radius: 10px !important; background: white; object-fit: contain; }
+  .fe-flyer-heading img { width: 208px !important; height: auto !important; padding: 10px; border-radius: 10px !important; background: transparent; object-fit: contain; }
+
+  .fe-mobile-tabs { background: #edf0f5 !important; border: 1px solid #e3e7ee; gap: 4px; }
+  .fe-tab { display: flex; align-items: center; justify-content: center; gap: 8px; color: #64748b !important; font-size: 13px !important; border-radius: 10px !important; }
+  .fe-tab.active { background: white !important; color: #14263f !important; box-shadow: 0 2px 6px #14263f0c; }
+  .fe-tab:hover { background: #f8fafc !important; }
+  .fe-edit-panel { background: transparent !important; box-shadow: none !important; border-radius: 0 !important; }
+  .fe-editor-intro { display: flex; align-items: center; gap: 12px; padding: 8px 0 20px; }
+  .fe-editor-intro h2 { font-size: 19px; font-weight: 700; margin: 0; color: #14263f; letter-spacing: -.025em; }
+  .fe-editor-intro p { color: #718096; font-size: 12px; margin: 4px 0 0; line-height: 1.6; }
+  .fe-section-icon { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; background: #f3ead5; color: #8b6b29; }
+  .fe-edit-panel .fe-panel-body { padding: 0 !important; display: grid; gap: 16px; }
+  .fe-config-section { border: 1px solid #e2e7ee; border-radius: 18px; background: white; padding: 20px; box-shadow: 0 3px 12px #14263f03; min-width: 0; }
+  .fe-config-heading { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 20px; color: #a07c2d; }
+  .fe-config-heading svg { flex-shrink: 0; margin-top: 2px; }
+  .fe-config-heading h3 { font-size: 14px; font-weight: 700; color: #14263f; margin: 0; }
+  .fe-config-heading p { color: #7b8696; font-size: 12px; line-height: 1.6; margin: 4px 0 0; }
+  .fe-config-section input, .fe-config-section select { min-height: 46px; border: 1px solid #dfe4ec !important; border-radius: 11px !important; background: #fbfcfe !important; padding: 11px 12px !important; font-family: inherit; box-shadow: 0 1px 2px #14263f03; }
+  .fe-config-section input:focus, .fe-config-section select:focus { background: white !important; border-color: #bd922f !important; box-shadow: 0 0 0 3px #bd922f18 !important; }
+  .fe-config-section .fe-assignment-row:last-child { padding-bottom: 0 !important; }
+  .fe-config-section .fe-assignment-row:first-child { padding-top: 0 !important; }
+  .fe-config-section .fe-role-label { font-weight: 600; color: #334155 !important; }
+  .fe-config-section .fe-name-input.assigned { background: #f6f8fc !important; border-color: #dde5ef !important; }
+  .fe-config-section .fe-btn-clear { border: 1px solid #e4e7ec !important; background: #fff !important; border-radius: 11px !important; }
+  .fe-config-section button:not(.fe-btn-clear) { min-height: 44px; border-radius: 11px !important; background: #14263f !important; color: white !important; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+  .fe-extra-tools { border: 1px solid #e2e7ee; border-radius: 14px; background: white; padding: 16px; }
+  .fe-extra-tools summary { display: flex; gap: 8px; align-items: center; cursor: pointer; color: #64748b; font-size: 12px; font-weight: 600; min-height: 30px; list-style: none; }
+  .fe-extra-tools summary svg:last-child { margin-left: auto; }
+  .fe-extra-tools[open] summary svg:last-child { transform: rotate(180deg); }
+  .fe-extra-tools button { border-radius: 11px !important; font-size: 13px !important; box-shadow: none !important; }
+  .fe-btn-gold { background: #14263f !important; color: white !important; }
+  .fe-flyer-heading img { border: 0 !important; background: transparent !important; border-radius: 0 !important; }
+  .fe-tool-button:hover:not(:disabled) { background: #f5f7fa; border-color: #cbd5e1; }
+  .fe-save:hover:not(:disabled) { background: #233c5b; border-color: #233c5b; }
   @media (max-width: 1200px) {
     .fe-workspace { display: flex !important; flex-direction: column; gap: 20px !important; padding: 16px !important; }
     .fe-workspace > * { width: 100%; min-width: 0; }
@@ -1601,8 +1628,8 @@ const styles: Record<string, React.CSSProperties> = {
   // Form
   formRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' },
   formLabel: {
-    display: 'block', fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.08em',
-    textTransform: 'uppercase', color: C.gray500, marginBottom: 5,
+    display: 'block', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0',
+    color: C.gray700, marginBottom: 8,
   },
   formInput: {
     width: '100%', padding: '9px 12px', border: `1.5px solid ${C.gray300}`, borderRadius: 8,
@@ -1683,7 +1710,7 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: 'hidden', width: '100%', maxWidth: 540, margin: '0 auto', position: 'relative',
   },
   flyerHeader: {
-    background: 'linear-gradient(135deg, #1B2D5B 0%, #2A4080 60%, #1B2D5B 100%)',
+    background: '#fcfbf8',
     padding: '1.8rem 2rem 1.5rem', position: 'relative', overflow: 'hidden',
   },
   flyerHeaderCircle1: {
@@ -1699,17 +1726,17 @@ const styles: Record<string, React.CSSProperties> = {
   },
   logoImg: {
     width: 64, height: 64, borderRadius: 12, objectFit: 'contain',
-    border: '2px solid rgba(200,168,75,0.5)', background: 'rgba(255,255,255,0.12)', flexShrink: 0,
+    border: 'none', background: 'transparent', flexShrink: 0,
   },
   flyerChurchName: {
     fontFamily: F.display, fontSize: '1.35rem', fontWeight: 700,
-    color: 'white', lineHeight: 1.15, letterSpacing: '0.02em', textAlign: 'center',
+    color: C.navy, lineHeight: 1.15, letterSpacing: '0.02em', textAlign: 'center',
   },
   flyerChurchSub: {
     fontSize: '0.75rem', color: C.goldLight, marginTop: 2, letterSpacing: '0.05em',
   },
   flyerChurchLoc: {
-    fontSize: '0.68rem', color: 'rgba(255,255,255,0.5)', marginTop: 3,
+    fontSize: '0.68rem', color: C.gray500, marginTop: 3,
   },
   goldBand: {
     height: 4, background: `linear-gradient(90deg, ${C.gold} 0%, ${C.goldLight} 50%, ${C.gold} 100%)`,
