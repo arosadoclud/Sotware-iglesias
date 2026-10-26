@@ -5,7 +5,7 @@ import { programsApi, personsApi, churchesApi, BACKEND_URL } from '../../lib/api
 import { sharePdfViaWhatsApp } from '../../lib/shareWhatsApp'
 import { downloadBlob } from '../../lib/downloadHelper'
 import { toast } from 'sonner'
-import { Loader2, ArrowLeft, Download, Save, Share2, Building2, CalendarDays, BookOpen, Users, Search, Check, Shuffle, Eraser, Settings2, ChevronDown, Eye, Pencil } from 'lucide-react'
+import { Loader2, ArrowLeft, Download, Save, Share2, Building2, CalendarDays, BookOpen, Users, Search, Check, Shuffle, Eraser, Settings2, ChevronDown, Eye, Pencil, ImageDown } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import { getVerseText } from '../../lib/bibleApi'
 import { useAuthStore } from '../../store/authStore'
@@ -632,6 +632,22 @@ const FlyerPreviewPage = () => {
     } finally { setSaving(false) }
   }, [id, form, assignments, saving, downloadingPdf, sharingWhatsApp, validateRequired])
 
+  const handleDownloadImage = async () => {
+    if (!canDownload || !id || saving || downloadingPdf || sharingWhatsApp || (canEdit && !validateRequired())) return
+    setDownloadingPdf(true)
+    try {
+      if (canEdit) {
+        await programsApi.update(id, buildUpdatePayload(form, assignments))
+        setSavedSnapshot(JSON.stringify({ form, assignments }))
+      }
+      const response = await programsApi.downloadFlyer(id, 'png')
+      downloadBlob(new Blob([response.data], { type: 'image/png' }), 'programa-' + (form.dateInput || 'iglesia') + '.png')
+      toast.success('Imagen lista para compartir')
+    } catch {
+      toast.error('No se pudo descargar la imagen. Inténtalo nuevamente.')
+    } finally { setDownloadingPdf(false) }
+  }
+
   // ─── Download PDF (Descarga directa sin guardar cambios) ────────────────
 
   const handleDirectDownloadPdf = useCallback(async () => {
@@ -946,6 +962,7 @@ const FlyerPreviewPage = () => {
             <div><p className="fe-eyebrow">Programas de la iglesia</p><h1>Editor del programa</h1><p className="fe-save-status" role="status">{saving ? "Guardando…" : savedSnapshot && savedSnapshot !== JSON.stringify({ form, assignments }) ? "Cambios sin guardar" : "Todos los cambios guardados"}</p></div>
           </div>
           <div className="fe-toolbar-actions">
+            <button onClick={handleDownloadImage} disabled={!canDownload || saving || downloadingPdf || sharingWhatsApp} className="fe-tool-button" title="Descargar programa como imagen PNG"><ImageDown size={16} /> Imagen</button>
             <button onClick={canEdit ? handleDownloadPdf : handleDirectDownloadPdf} disabled={!canDownload || saving || downloadingPdf || sharingWhatsApp} className="fe-tool-button"><Download size={16} /> PDF</button>
             <button onClick={async () => {
               if (!canShare || !id || saving || downloadingPdf || sharingWhatsApp || (canEdit && !validateRequired())) return
@@ -1498,7 +1515,7 @@ const SCOPED_CSS = `
     .fe-tab { min-height: 44px; border-radius: 8px; }
     .fe-edit-panel { position: static !important; }
     .fe-toolbar { align-items: stretch; flex-direction: column; padding: 20px 16px; }
-    .fe-toolbar-actions { display: grid; grid-template-columns: .75fr 1fr 1fr; width: 100%; }
+    .fe-toolbar-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
     .fe-tool-button { padding: 10px 8px; font-size: 12px; min-width: 0; }
     .fe-form-row { grid-template-columns: minmax(0, 1fr) !important; }
     .fe-panel-body { padding: 20px 16px !important; }
@@ -1519,7 +1536,7 @@ const SCOPED_CSS = `
     .fe-tab { min-height: 44px; border-radius: 8px; }
     .fe-edit-panel { position: static !important; }
     .fe-toolbar { align-items: stretch; flex-direction: column; padding: 20px 16px; }
-    .fe-toolbar-actions { display: grid; grid-template-columns: .75fr 1fr 1fr; width: 100%; }
+    .fe-toolbar-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
     .fe-tool-button { padding: 10px 8px; font-size: 12px; min-width: 0; }
     .fe-form-row { grid-template-columns: minmax(0, 1fr) !important; }
     .fe-panel-body { padding: 20px 16px !important; }
@@ -1808,11 +1825,11 @@ const styles: Record<string, React.CSSProperties> = {
 
   // Footer
   flyerFooter: {
-    background: '#F7F4EC', borderTop: '1px solid #D6BD77', padding: '12px 2rem', display: 'flex',
+    background: '#CC982D', borderTop: '1px solid #D6BD77', padding: '12px 2rem', display: 'flex',
     alignItems: 'center', justifyContent: 'center', textAlign: 'center', marginTop: '0.8rem',
   },
   flyerFooterText: {
-    fontFamily: F.body, fontSize: '0.65rem', fontWeight: 600, color: '#52617B',
+    fontFamily: F.body, fontSize: '0.65rem', fontWeight: 600, color: '#1D2D50',
     lineHeight: 1.5, letterSpacing: '0.04em', overflowWrap: 'anywhere',
   },
 }

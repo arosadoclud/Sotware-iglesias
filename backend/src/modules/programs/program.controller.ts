@@ -94,7 +94,8 @@ export const downloadProgramFlyerPdf = async (req: AuthRequest, res: Response, n
       churchSub: program.churchSub || '',
     };
     // Generar PDF
-    const pdfBuffer = await generateFlyerPdf(flyerData);
+    const exportFormat = req.query.format === 'png' ? 'png' : 'pdf';
+    const pdfBuffer = await generateFlyerPdf(flyerData, { format: exportFormat, layout: req.query.layout === 'a4' ? 'a4' : 'compact' });
     
     // Generar nombre descriptivo
     const dateStr = program.programDate.toISOString().split('T')[0];
@@ -106,10 +107,10 @@ export const downloadProgramFlyerPdf = async (req: AuthRequest, res: Response, n
       .toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9-]/g, '');
-    const filename = `${churchSlug}-${activitySlug}-${dateStr}.pdf`;
+    const filename = `${churchSlug}-${activitySlug}-${dateStr}.${exportFormat}`;
     
     res.set({
-      'Content-Type': 'application/pdf',
+      'Content-Type': exportFormat === 'png' ? 'image/png' : 'application/pdf',
       'Content-Disposition': `attachment; filename="${filename}"`,
     });
     res.send(pdfBuffer);
