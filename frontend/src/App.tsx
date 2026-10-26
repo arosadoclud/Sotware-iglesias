@@ -223,15 +223,16 @@ function App() {
 
   useEffect(() => {
     // Check if user has already seen splash this session
-    const seen = sessionStorage.getItem('splashSeen')
-    if (seen) {
+    const seen = sessionStorage.getItem('splashSeen:arca-2026-10')
+    const preview = new URLSearchParams(window.location.search).get('bienvenida') === '1'
+    if (seen && !preview) {
       setShowSplash(false)
       setHasSeenSplash(true)
     }
   }, [])
 
   const handleSplashComplete = () => {
-    sessionStorage.setItem('splashSeen', 'true')
+    sessionStorage.setItem('splashSeen:arca-2026-10', 'true')
     setShowSplash(false)
     setHasSeenSplash(true)
   }
@@ -240,7 +241,7 @@ function App() {
     <>
       <AnimatePresence mode="wait">
         {showSplash && !hasSeenSplash && (
-          <SplashScreen onComplete={handleSplashComplete} minimumDisplayTime={1800} />
+          <SplashScreen onComplete={handleSplashComplete} minimumDisplayTime={3200} />
         )}
       </AnimatePresence>
       

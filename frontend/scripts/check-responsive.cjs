@@ -17,7 +17,7 @@ const stats = { coveragePercent: 100, totalAssigned: 1, totalNeeded: 1, personsU
     await context.addInitScript(() => {
       localStorage.setItem('auth-storage', JSON.stringify({ state: { user: { id: 'qa', fullName: 'Administrador de prueba', role: 'SUPER_ADMIN', permissions: [], churchId: 'qa' }, accessToken: 'local-qa-only', isAuthenticated: true }, version: 0 }));
       localStorage.setItem('onboarding-state', JSON.stringify({ hasCompletedTour: true, hasSeenModule: {}, exploredFeatures: [] }));
-      sessionStorage.setItem('splashSeen', 'true');
+      sessionStorage.setItem('splashSeen:arca-2026-10', 'true');
     });
     const page = await context.newPage();
     let failSave = false;
