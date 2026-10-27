@@ -1,3 +1,10 @@
+import {
+  PERMISSION_DEFAULTS,
+  PERMISSION_FIELDS,
+  COOPERATIVE_TEMPLATE,
+  POLICE_TEMPLATE,
+  POLICE_GENERAL_TEMPLATE
+} from './permissionTemplates'
 import { ChurchModuleHeader } from '../../components/layout/ChurchModuleHeader'
 import { LetterPaper } from '../../components/letters/LetterPaper'
 import { useState, useEffect, useMemo, useRef } from 'react'
@@ -59,11 +66,27 @@ const LETTER_TYPES = [
     description: 'Recomendar a un miembro para institución o propósito',
     icon: Award,
     color: 'bg-purple-500'
+  },
+  {
+    id: 'cooperative',
+    name: 'Permiso a Cooperativa',
+    description: 'Solicitar instalaciones para una actividad de la iglesia',
+    icon: Church,
+    color: 'bg-amber-500'
+  },
+  {
+    id: 'police',
+    name: 'Permiso al destacamento',
+    description: 'Solicitud local o a Dirección General por vía regional',
+    icon: FileText,
+    color: 'bg-slate-500'
   }
 ]
 
 // Plantillas por tipo (sin firma, el backend la genera automáticamente)
 const TEMPLATES = {
+  cooperative: COOPERATIVE_TEMPLATE,
+  police: POLICE_TEMPLATE,
   invitation: `Iglesia: {{iglesia_destinatario}}
 Pastor/a/es: {{pastor_destinatario}}
 
@@ -127,6 +150,7 @@ const LetterWizardPage = () => {
 
   // Form data
   const [formData, setFormData] = useState({
+    ...PERMISSION_DEFAULTS,
     // Mi iglesia
     nombre_iglesia: '',
     direccion_iglesia: '',
@@ -193,8 +217,10 @@ const LetterWizardPage = () => {
   // Get current template based on selected type
   const currentTemplate = useMemo(() => {
     if (!selectedType) return ''
+    if (selectedType === 'police' && formData.modalidad_policial === 'general')
+      return POLICE_GENERAL_TEMPLATE
     return TEMPLATES[selectedType as keyof typeof TEMPLATES] || ''
-  }, [selectedType])
+  }, [selectedType, formData.modalidad_policial])
 
   // Preview content with replaced variables
   const previewContentMemo = useMemo(() => {
@@ -207,6 +233,7 @@ const LetterWizardPage = () => {
     setStep(1)
     setSelectedType(null)
     setFormData({
+      ...PERMISSION_DEFAULTS,
       nombre_iglesia: '',
       direccion_iglesia: '',
       telefono_iglesia: '',
@@ -318,7 +345,13 @@ const LetterWizardPage = () => {
     let recipientName = 'carta'
     let letterType = 'Invitación'
 
-    if (selectedType === 'recommendation') {
+    if (selectedType === 'cooperative' || selectedType === 'police') {
+      recipientName = formData.entidad_permiso
+      letterType =
+        selectedType === 'cooperative'
+          ? 'Permiso a Cooperativa'
+          : 'Permiso al destacamento'
+    } else if (selectedType === 'recommendation') {
       recipientName = formData.nombre_persona
       letterType = 'Recomendación'
     } else if (selectedType === 'invitation') {
@@ -341,6 +374,10 @@ const LetterWizardPage = () => {
           telefono: formData.telefono_iglesia,
           pastor: formData.nombre_pastor,
           fecha: formData.fecha_carta,
+          tipoCarta: selectedType || '',
+          diacono: formData.nombre_diacono,
+          secretaria: formData.nombre_secretaria,
+          identificacion: formData.identificacion_firmante,
           tituloPastor: formData.titulo_pastor
         },
         eventData: {
@@ -370,7 +407,13 @@ const LetterWizardPage = () => {
     let recipientName = 'carta'
     let letterType = 'Invitación'
 
-    if (selectedType === 'recommendation') {
+    if (selectedType === 'cooperative' || selectedType === 'police') {
+      recipientName = formData.entidad_permiso
+      letterType =
+        selectedType === 'cooperative'
+          ? 'Permiso a Cooperativa'
+          : 'Permiso al destacamento'
+    } else if (selectedType === 'recommendation') {
       recipientName = formData.nombre_persona
       letterType = 'Recomendación'
     } else if (selectedType === 'invitation') {
@@ -387,7 +430,7 @@ const LetterWizardPage = () => {
       if (savedFingerprint.current !== fingerprint) {
         await lettersApi.generate({
           templateId: 'wizard-' + selectedType,
-          customFields: formData,
+          customFields: { ...formData, tipo_carta: selectedType || '' },
           content: previewContentMemo,
           recipientName,
           templateName: letterType
@@ -435,6 +478,16 @@ const LetterWizardPage = () => {
     // Determinar el tipo basado en templateId o templateName
     let type = 'invitation'
     if (
+      letter.templateId?.includes('cooperative') ||
+      letter.templateName?.includes('Cooperativa')
+    ) {
+      type = 'cooperative'
+    } else if (
+      letter.templateId?.includes('police') ||
+      letter.templateName?.includes('destacamento')
+    ) {
+      type = 'police'
+    } else if (
       letter.templateId?.includes('recommendation') ||
       letter.templateName?.includes('Recomendación')
     ) {
@@ -449,6 +502,7 @@ const LetterWizardPage = () => {
     // Precargar datos del formulario desde variablesUsed
     const vars = letter.variablesUsed || {}
     setFormData({
+      ...PERMISSION_DEFAULTS,
       nombre_iglesia: vars.nombre_iglesia || '',
       direccion_iglesia: vars.direccion_iglesia || '',
       telefono_iglesia: vars.telefono_iglesia || '',
@@ -472,7 +526,14 @@ const LetterWizardPage = () => {
       nombre_persona: vars.nombre_persona || '',
       titulo_persona: vars.titulo_persona || 'Hno.',
       años_conocido: vars.años_conocido || 'varios años',
-      proposito: vars.proposito || ''
+      proposito: vars.proposito || '',
+      ...Object.fromEntries(
+        Object.keys(PERMISSION_DEFAULTS).map((key) => [
+          key,
+          vars[key] ||
+            PERMISSION_DEFAULTS[key as keyof typeof PERMISSION_DEFAULTS]
+        ])
+      )
     })
 
     setSelectedType(type)
@@ -725,6 +786,62 @@ const LetterWizardPage = () => {
           </div>
         </div>
       </motion.div>
+
+      {(selectedType === 'cooperative' || selectedType === 'police') && (
+        <section className="letter-permission-fields">
+          <h4>Solicitud de permiso</h4>
+          <p>
+            Actualiza los destinatarios y los datos de la actividad antes de
+            emitir la carta.
+          </p>
+          {selectedType === 'police' && (
+            <div>
+              <Label htmlFor="letter-modalidad_policial">Dirigida a</Label>
+              <select
+                id="letter-modalidad_policial"
+                value={formData.modalidad_policial}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    modalidad_policial: e.target.value
+                  })
+                }
+              >
+                <option value="local">Comandante del destacamento</option>
+                <option value="general">
+                  Dirección General, por vía regional
+                </option>
+              </select>
+            </div>
+          )}
+          <div className="letter-permission-grid">
+            {PERMISSION_FIELDS.filter((field) => {
+              if ('cooperative' in field && selectedType !== 'cooperative')
+                return false
+              if ('police' in field && selectedType !== 'police') return false
+              if (
+                'general' in field &&
+                (selectedType !== 'police' ||
+                  formData.modalidad_policial !== 'general')
+              )
+                return false
+              return true
+            }).map((field) => (
+              <div key={field.key}>
+                <Label htmlFor={'letter-' + field.key}>{field.label}</Label>
+                <Input
+                  id={'letter-' + field.key}
+                  value={formData[field.key as keyof typeof formData]}
+                  placeholder={field.placeholder}
+                  onChange={(e) =>
+                    setFormData({ ...formData, [field.key]: e.target.value })
+                  }
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Destinatario Section - Para Invitaciones */}
       {(selectedType === 'invitation' || selectedType === 'individual') && (
@@ -1083,6 +1200,14 @@ const LetterWizardPage = () => {
         pastor={formData.nombre_pastor}
         pastorTitle={formData.titulo_pastor}
         date={formData.fecha_carta}
+        police={selectedType === 'police'}
+        deacon={formData.nombre_diacono}
+        secretary={formData.nombre_secretaria}
+        identification={
+          selectedType === 'police'
+            ? formData.identificacion_firmante
+            : undefined
+        }
         emphasis={[
           formData.fecha_actividad,
           formData.tema_evento,
@@ -1378,6 +1503,14 @@ const LetterWizardPage = () => {
               pastor={previewVariables.nombre_pastor}
               pastorTitle={previewVariables.titulo_pastor}
               date={previewVariables.fecha_carta}
+              police={previewVariables.tipo_carta === 'police'}
+              deacon={previewVariables.nombre_diacono}
+              secretary={previewVariables.nombre_secretaria}
+              identification={
+                previewVariables.tipo_carta === 'police'
+                  ? previewVariables.identificacion_firmante
+                  : undefined
+              }
               emphasis={[
                 previewVariables.fecha_actividad,
                 previewVariables.tema_evento,

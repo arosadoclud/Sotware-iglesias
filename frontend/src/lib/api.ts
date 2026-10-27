@@ -179,6 +179,10 @@ export const lettersApi = {
       direccion?: string;
       telefono?: string;
       pastor?: string;
+      tipoCarta?: string;
+      identificacion?: string;
+      diacono?: string;
+      secretaria?: string;
       tituloPastor?: string;
       fecha?: string;
     };

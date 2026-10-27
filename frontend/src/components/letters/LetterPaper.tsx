@@ -8,7 +8,11 @@ export function LetterPaper({
   pastor,
   pastorTitle,
   date,
-  emphasis = []
+  emphasis = [],
+  police = false,
+  deacon,
+  secretary,
+  identification
 }: {
   content: string
   churchName?: string
@@ -19,6 +23,10 @@ export function LetterPaper({
   title?: string
   date?: string
   emphasis?: string[]
+  police?: boolean
+  deacon?: string
+  secretary?: string
+  identification?: string
 }) {
   const lines = content
     .split(/\n_{5,}/)[0]
@@ -53,7 +61,9 @@ export function LetterPaper({
         )
       )
   return (
-    <article className="letter-paper">
+    <article
+      className={'letter-paper' + (police ? ' letter-paper-police' : '')}
+    >
       <header>
         <BrandLogo />
         <div>
@@ -93,7 +103,20 @@ export function LetterPaper({
           <span />
           <p>{pastorTitle || 'Pastor'}</p>
           <strong>{pastor}</strong>
+          {identification && <small>Cédula: {identification}</small>}
           <BrandLogo />
+        </div>
+      )}
+      {police && (
+        <div className="letter-support-signatures">
+          <div>
+            {deacon && <strong>{deacon}</strong>}
+            <span>Diácono</span>
+          </div>
+          <div>
+            {secretary && <strong>{secretary}</strong>}
+            <span>Secretaria</span>
+          </div>
         </div>
       )}
     </article>

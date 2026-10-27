@@ -35,3 +35,12 @@ it('escapes event emphasis as text and keeps the requested date and signature or
   expect(html.indexOf('<p>Pastora</p>')).toBeLessThan(html.indexOf('<strong>Mery</strong>'));
   expect(html.match(/data:image\/png;base64,/g)).toHaveLength(2);
 });
+it('renders optional support signatures only for police letters and escapes their data', () => {
+  const html = renderLetterDocument({content:'Solicitud de permiso.',churchData:{nombre:'Dios Fuerte',pastor:'Pastora de prueba',tipoCarta:'police',diacono:'Nombre <diácono>',secretaria:'Nombre & secretaria',identificacion:'ID de prueba'}});
+  expect(html).toContain('class="support-signatures"');
+  expect(html).toContain('Nombre &lt;diácono&gt;');
+  expect(html).toContain('Nombre &amp; secretaria');
+  expect(html).toContain('Cédula: ID de prueba');
+  const regular = renderLetterDocument({content:'Carta ordinaria.',churchData:{nombre:'Dios Fuerte'}});
+  expect(regular).not.toContain('<div class="support-signatures">');
+});

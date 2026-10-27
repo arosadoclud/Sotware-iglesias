@@ -533,3 +533,82 @@
     gap: 6px;
   }
 }
+.letter-permission-fields {
+  padding: 20px;
+  border: 1px solid #e5e8ef;
+  border-radius: 18px;
+  background: #fff;
+}
+.letter-permission-fields h4 {
+  font-size: 17px;
+  font-weight: 650;
+  color: #1d2d50;
+}
+.letter-permission-fields > p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #7d889a;
+  margin: 8px 0 20px;
+}
+.letter-permission-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 14px;
+  margin-top: 18px;
+}
+.letter-permission-grid > div,
+.letter-permission-fields > div {
+  min-width: 0;
+}
+.letter-permission-fields label {
+  display: block;
+  margin-bottom: 7px;
+}
+.letter-permission-fields select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #dce2e9;
+  background: #fff;
+}
+.letter-paper-police .letter-paper-body {
+  font-size: 15px;
+  line-height: 1.6;
+}
+.letter-paper-police > header {
+  min-height: 110px;
+}
+.letter-paper-police .letter-paragraph-gap {
+  height: 8px;
+}
+.letter-support-signatures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 36px;
+  text-align: center;
+  font:
+    14px/1.5 'Times New Roman',
+    serif;
+  break-inside: avoid;
+}
+.letter-support-signatures > div {
+  border-top: 1px solid #111;
+  padding-top: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.letter-support-signatures strong,
+.letter-support-signatures span {
+  display: block;
+}
+@media (max-width: 639px) {
+  .letter-permission-grid {
+    grid-template-columns: 1fr;
+  }
+  .letter-permission-fields {
+    padding: 16px;
+  }
+  .letter-support-signatures {
+    gap: 18px;
+  }
+}
