@@ -1,0 +1,341 @@
+.flyer-assistant {
+  padding-bottom: 30px;
+}
+.fa-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.fa-steps > span {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border: 1px solid #e3e7ee;
+  border-radius: 16px;
+  background: white;
+  font-size: 12px;
+  color: #64738b;
+}
+.fa-steps b {
+  background: #f5efdf;
+  color: #94702b;
+  padding: 7px;
+  border-radius: 9px;
+  font-size: 11px;
+}
+.fa-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+.fa-panel {
+  background: #fff;
+  border: 1px solid #e2e7ee;
+  border-radius: 24px;
+  padding: 28px;
+  min-width: 0;
+}
+.fa-section-heading > span {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.7px;
+  color: #977334;
+}
+.fa-section-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 650;
+  margin: 10px 0;
+  color: #1d2d50;
+  line-height: 1.4;
+}
+.fa-section-heading p {
+  font-size: 12px;
+  color: #7d899c;
+  line-height: 1.8;
+  margin: 0 0 22px;
+}
+.fa-fields {
+  display: grid;
+  gap: 18px;
+}
+.flyer-assistant label {
+  display: block;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #53627c;
+  line-height: 1.7;
+}
+.flyer-assistant input:not([type='file']),
+.flyer-assistant select,
+.flyer-assistant textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin-top: 7px;
+  padding: 12px 13px;
+  border: 1px solid #dce3ec;
+  border-radius: 12px;
+  color: #263957;
+  background: #fff;
+  font:
+    14px/1.6 Inter,
+    Arial,
+    sans-serif;
+  min-height: 46px;
+}
+.flyer-assistant textarea {
+  resize: vertical;
+}
+.flyer-assistant input:focus-visible,
+.flyer-assistant select:focus-visible,
+.flyer-assistant textarea:focus-visible,
+.flyer-assistant button:focus-visible,
+.flyer-assistant a:focus-visible {
+  outline: 3px solid #c6a251;
+  outline-offset: 3px;
+}
+.fa-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.fa-divider {
+  border-top: 1px solid #edf0f5;
+  padding-top: 24px;
+  margin-top: 26px;
+}
+.fa-speaker {
+  padding: 18px;
+  background: #fbfcfe;
+  border: 1px solid #e4e9f0;
+  border-radius: 17px;
+  margin: 0 0 16px;
+}
+.fa-speaker-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  font-size: 12px;
+}
+.fa-speaker-heading button {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e1e5ed;
+  border-radius: 10px;
+  color: #9e5056;
+  background: #fff;
+}
+.fa-upload {
+  border: 1px dashed #cbd3df;
+  background: #fcfcfa;
+  padding: 15px;
+  border-radius: 13px;
+  margin-top: 16px;
+}
+.fa-upload input {
+  display: block;
+  font-size: 12px;
+  margin-top: 10px;
+  max-width: 100%;
+  color: #69788d;
+}
+.fa-upload svg {
+  color: #9c7a36;
+  display: inline;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+.fa-photo {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-top: 14px;
+}
+.fa-photo img {
+  width: 64px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.fa-photo span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  color: #738098;
+}
+.fa-photo button {
+  display: block;
+  min-height: 40px;
+  color: #9b4a51;
+}
+.fa-notes {
+  margin-top: 22px;
+}
+.fa-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0 12px;
+}
+.fa-primary,
+.fa-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #dce3ec;
+  color: #344967;
+  background: #fff;
+  line-height: 1.5;
+}
+.fa-primary {
+  background: #1d2d50;
+  color: #fff;
+  border-color: #1d2d50;
+}
+.fa-primary:hover {
+  background: #314b72;
+  color: #fff;
+}
+.fa-outline:hover {
+  background: #f5f1e6;
+  color: #65512a;
+}
+.flyer-assistant button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.flyer-assistant small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #8b95a5;
+}
+.fa-prompt textarea {
+  font-size: 12px;
+  line-height: 1.8;
+  background: #f8f9fc;
+}
+.fa-attachments {
+  border-top: 1px solid #e8ecf2;
+  padding-top: 22px;
+  margin-top: 22px;
+}
+.fa-attachments h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.fa-attachments a {
+  color: #916b20;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  font-size: 12px;
+}
+.fa-attachments p,
+.fa-attachments li {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #7a879b;
+  overflow-wrap: anywhere;
+}
+.fa-attachments ul {
+  padding-left: 18px;
+  margin: 12px 0;
+  list-style: disc;
+}
+.fa-result {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+  align-items: start;
+}
+.fa-result > img {
+  width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+  background: #f4f5f8;
+  border: 1px solid #e3e7ee;
+  border-radius: 14px;
+}
+.fa-result button {
+  margin: 12px 10px 12px 0;
+}
+.fa-result p {
+  font-size: 12px;
+  color: #7c889b;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.fa-result a {
+  display: block;
+  text-decoration: underline;
+  color: #96712e;
+  font-size: 13px;
+  padding: 12px 0;
+}
+@media (max-width: 1000px) {
+  .fa-workspace {
+    grid-template-columns: 1fr;
+  }
+  .fa-steps > span {
+    padding: 14px;
+    font-size: 11px;
+    gap: 8px;
+  }
+}
+@media (max-width: 600px) {
+  .fa-steps {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .fa-steps > span {
+    padding: 10px 16px;
+  }
+  .fa-panel {
+    padding: 22px 18px;
+    border-radius: 20px;
+  }
+  .fa-two {
+    grid-template-columns: 1fr;
+  }
+  .flyer-assistant input:not([type='file']),
+  .flyer-assistant select,
+  .flyer-assistant textarea {
+    font-size: 16px;
+  }
+  .fa-speaker {
+    padding: 15px;
+  }
+  .fa-result {
+    grid-template-columns: 1fr;
+  }
+  .fa-actions {
+    flex-direction: column;
+  }
+  .fa-section-heading h2 {
+    font-size: 21px;
+  }
+  .fa-result > img {
+    max-height: 600px;
+  }
+}

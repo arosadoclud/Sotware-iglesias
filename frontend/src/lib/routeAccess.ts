@@ -5,6 +5,7 @@ const routePermissions: [string, string][] = [
   ['/programs', P.PROGRAMS_VIEW],
   ['/persons', P.PERSONS_VIEW],
   ['/activities', P.ACTIVITIES_VIEW],
+  ['/flyer-assistant', P.ACTIVITIES_VIEW],
   ['/events', P.ACTIVITIES_VIEW],
   ['/calendar', P.CALENDAR_VIEW],
   ['/estudios-biblicos/admin', P.BIBLE_STUDIES_CREATE],

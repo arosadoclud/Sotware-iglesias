@@ -1,3 +1,4 @@
+import FlyerAssistantPage from './pages/flyers/FlyerAssistantPage'
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
@@ -172,6 +173,7 @@ const AnimatedRoutes = () => {
           <Route path="/new-members" element={
             <PageTransition><NewMembersPage /></PageTransition>
           } />
+          <Route path="/flyer-assistant" element={<PageTransition><FlyerAssistantPage /></PageTransition>} />
           <Route path="/letters" element={
             <PageTransition><LetterWizardPage /></PageTransition>
           } />

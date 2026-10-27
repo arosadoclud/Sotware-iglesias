@@ -256,6 +256,7 @@ const DashboardLayoutImproved = () => {
       items: [
         { name: 'Programas',        href: '/programs',          icon: FileText,    show: hasPermission(P.PROGRAMS_VIEW),      className: 'sidebar-programs' },
         { name: 'Calendario',       href: '/calendar',          icon: CalendarDays,show: hasPermission(P.CALENDAR_VIEW),      className: 'sidebar-calendar' },
+        { name: 'Asistente de flyers', href: '/flyer-assistant', icon: Image, show: hasPermission(P.ACTIVITIES_VIEW), className: 'sidebar-flyer-assistant' },
         { name: 'Eventos',          href: '/events',            icon: Image,       show: true,                                className: 'sidebar-events' },
         { name: 'Estudios Bíblicos',href: '/estudios-biblicos', icon: BookOpen,    show: hasPermission(P.BIBLE_STUDIES_VIEW), className: 'sidebar-bible-studies' },
       ],
