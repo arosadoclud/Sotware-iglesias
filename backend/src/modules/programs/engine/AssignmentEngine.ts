@@ -113,7 +113,7 @@ export class AssignmentEngine {
       // Todos los miembros activos de la iglesia (una sola query)
       Person.find({
         churchId,
-        status: { $in: ['ACTIVE', 'LEADER'] },
+        status: { $in: ['ACTIVE', 'LEADER', 'ACTIVO', 'LIDER'] },
       }) as Promise<IPerson[]>,
 
       // Programas del período de lookback (una sola query)
@@ -142,7 +142,15 @@ export class AssignmentEngine {
     // Filtrar roleConfig inválidos (con role undefined)
     const validRoleConfigs = activity.roleConfig.filter(rc => rc.role && rc.role.id);
     
+    const hasMessageRestriction = Boolean(params.restrictedPersonsForMessage?.length);
+    const isMessageRole = (config: IActivityRoleConfig) =>
+      config.role.name.toLocaleLowerCase('es').includes('mensaje');
     const sortedRoleConfigs = [...validRoleConfigs].sort((a, b) => {
+      // Reservar primero a las personas elegidas para Mensaje; de otro modo
+      // otro puesto (por ejemplo Dirección) puede consumirlas antes.
+      if (hasMessageRestriction && isMessageRole(a) !== isMessageRole(b)) {
+        return isMessageRole(a) ? -1 : 1;
+      }
       if (a.isRequired !== b.isRequired) return a.isRequired ? -1 : 1;
       return a.sectionOrder - b.sectionOrder;
     });
@@ -158,9 +166,15 @@ export class AssignmentEngine {
       console.log(`   Orden: ${roleConfig.sectionOrder}, Personas necesarias: ${roleConfig.peopleNeeded}, Requerido: ${roleConfig.isRequired}`);
       
       // Encontrar personas que tienen este rol
-      const candidates = allPersons.filter(person => 
-        person.roles.some(role => 
-          role && role.roleId && role.roleId.toString() === roleId
+      const candidates = allPersons.filter(person =>
+        person.roles.some(role =>
+          role && (
+            role.roleId?.toString() === roleId ||
+            // El selector usa el nombre del rol. Admitir un ID anterior del
+            // mismo rol evita que muestre a alguien que el motor luego rechaza.
+            (hasMessageRestriction && isMessageRole(roleConfig) &&
+              role.roleName?.toLocaleLowerCase('es').includes('mensaje'))
+          )
         )
       );
       
