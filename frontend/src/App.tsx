@@ -31,6 +31,7 @@ import CalendarPage from './pages/CalendarPage'
 import LetterWizardPage from './pages/letters/LetterWizardPage'
 import { FinancesPage, FinanceReportsPage } from './pages/finances'
 import SettingsPage from './pages/SettingsPage'
+import ProfilePage from './pages/ProfilePage'
 import NewMembersPage from './pages/new-members/NewMembersPage'
 import EventsManagementPage from './pages/events/EventsManagementPage'
 import BibleStudiesPage from './pages/bible-studies/BibleStudiesPage'
@@ -191,6 +192,7 @@ const AnimatedRoutes = () => {
               </ProtectedModuleRoute>
             </ViewerGuard>
           } />
+          <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
           <Route path="/settings" element={
             <ViewerGuard>
               <ProtectedModuleRoute module="settings">

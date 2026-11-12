@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard,
   Users,
+  UserRound,
   Calendar,
   FileText,
   Settings,
@@ -455,10 +456,14 @@ const DashboardLayoutImproved = () => {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
+                <UserRound className="mr-2 h-4 w-4" />
+                Mi perfil
+              </DropdownMenuItem>
+              {hasPermission(P.SETTINGS_VIEW) && <DropdownMenuItem onClick={() => navigate('/settings')}>
                 <Settings className="mr-2 h-4 w-4" />
                 Configuración
-              </DropdownMenuItem>
+              </DropdownMenuItem>}
               <DropdownMenuItem onClick={restartTour}>
                 <HelpCircle className="mr-2 h-4 w-4" />
                 Ver tour de ayuda
@@ -548,6 +553,9 @@ const DashboardLayoutImproved = () => {
                     <p className="text-xs text-neutral-500">{user?.role}</p>
                   </div>
                 </div>
+                <Button variant="outline" className="mb-2 w-full justify-start" onClick={() => { navigate('/profile'); setMobileMenuOpen(false) }}>
+                  <UserRound className="w-4 h-4 mr-2" /> Mi perfil
+                </Button>
                 <Button
                   variant="outline"
                   className="w-full justify-start"
