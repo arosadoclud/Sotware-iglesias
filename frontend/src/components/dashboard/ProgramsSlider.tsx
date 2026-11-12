@@ -200,7 +200,7 @@ export default function ProgramsSlider() {
   if (programs.length === 0) {
     return (
       <Card className="relative overflow-hidden border-0 shadow-xl">
-        <div className="h-[420px] flex items-center justify-center bg-gradient-to-br from-neutral-50 via-white to-neutral-50">
+        <div className="min-h-[190px] flex items-center justify-center px-6 py-8 bg-gradient-to-br from-neutral-50 via-white to-neutral-50">
           <div className="flex flex-col items-center gap-4 text-neutral-400">
             <div className="relative">
               <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-neutral-100 flex items-center justify-center">

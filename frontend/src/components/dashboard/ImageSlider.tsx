@@ -174,7 +174,7 @@ export default function ImageSlider() {
   if (slides.length === 0 && !loading) {
     return (
       <Card className="relative overflow-hidden border-0 shadow-xl">
-        <div className="h-[420px] flex items-center justify-center bg-gradient-to-br from-neutral-50 via-white to-neutral-50">
+        <div className="min-h-[190px] flex items-center justify-center px-6 py-8 bg-gradient-to-br from-neutral-50 via-white to-neutral-50">
           <div className="flex flex-col items-center gap-4 text-neutral-400">
             <div className="relative">
               <div className="w-20 h-20 rounded-2xl bg-neutral-100 flex items-center justify-center">

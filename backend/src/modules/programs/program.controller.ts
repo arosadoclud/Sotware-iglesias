@@ -607,7 +607,7 @@ export const getProgramStats = async (req: AuthRequest, res: Response, next: Nex
   try {
     const cacheKey = CacheKeys.dashboardStats(req.churchId!);
     const cached = await cache.get(cacheKey);
-    if (cached) {
+    if (cached && Array.isArray((cached as { nextPrograms?: unknown }).nextPrograms)) {
       return res.json({ success: true, data: cached, cached: true });
     }
 
@@ -624,6 +624,8 @@ export const getProgramStats = async (req: AuthRequest, res: Response, next: Nex
       totalActivities,
       totalPrograms,
       upcomingPrograms,
+      nextPrograms,
+      publishedPrograms,
       recentPrograms,
       ministryAggregation,
       last6MonthsData,
@@ -631,7 +633,14 @@ export const getProgramStats = async (req: AuthRequest, res: Response, next: Nex
       Person.countDocuments({ churchId, status: 'ACTIVE' }),
       ActivityType.countDocuments({ churchId, isActive: true }),
       Program.countDocuments({ churchId }),
-      Program.countDocuments({ churchId, programDate: { $gte: now } }),
+      Program.countDocuments({ churchId, status: 'PUBLISHED', programDate: { $gte: now } }),
+      Program.find({ churchId, status: 'PUBLISHED', programDate: { $gte: now } })
+        .sort({ programDate: 1 })
+        .limit(3)
+        .select('activityType programDate programTime ampm status')
+        .populate('activityType', 'name')
+        .lean(),
+      Program.countDocuments({ churchId, status: 'PUBLISHED' }),
       
       // Programas recientes con solo los campos necesarios
       Program.find({ churchId })
@@ -736,7 +745,7 @@ export const getProgramStats = async (req: AuthRequest, res: Response, next: Nex
 
     // --- Tasa de participación del mes ---
     const monthPrograms = last6MonthsData.filter(
-      (p) => new Date(p.programDate) >= last30Days
+      (p) => new Date(p.programDate) >= last30Days && new Date(p.programDate) <= now
     );
     
     const participatingPersons = new Set<string>();
@@ -792,6 +801,8 @@ export const getProgramStats = async (req: AuthRequest, res: Response, next: Nex
       totalActivities,
       totalPrograms,
       upcomingPrograms,
+      nextPrograms,
+      publishedPrograms,
       activeMinistries,
       participationRate,
       programsThisMonth: monthPrograms.length,
