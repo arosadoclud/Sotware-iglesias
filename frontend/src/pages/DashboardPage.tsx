@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { ArrowRight, BookOpen, CalendarDays, FileText, RefreshCw, TrendingUp, Users, Sparkles, Clock3 } from 'lucide-react'
+import { ArrowRight, BookOpen, CalendarDays, FileText, RefreshCw, TrendingUp, Users, Clock3 } from 'lucide-react'
 import { programsApi } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { P } from '@/constants/permissions'
@@ -116,6 +116,7 @@ export default function DashboardPage() {
 
     {(stats.publishedPrograms ?? 0) > 0 && <ProgramScreenshotsGallery />}
 
-    <section className="dashboard-discover"><div className="dashboard-section-heading"><div><span className="dashboard-kicker">MÁS PARA EXPLORAR</span><h2>Novedades y recursos</h2><p>Eventos y estudios disponibles para tu comunidad.</p></div><Sparkles size={20} /></div><div className="dashboard-discover-grid"><ImageSlider /><BibleStudiesWidget /></div></section>
+    <section className="dashboard-discover" aria-label="Galería de eventos"><ImageSlider /></section>
+    <BibleStudiesWidget />
   </main>
 }

@@ -290,8 +290,8 @@ export default function ImageSlider() {
 
         {/* Header con controles */}
         <div className="relative px-4 sm:px-6 py-3 sm:py-5 border-b border-white/50 backdrop-blur-sm bg-white/40">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <motion.div
                 whileHover={{ rotate: 360, scale: 1.1 }}
                 transition={{ duration: 0.5 }}
@@ -318,15 +318,16 @@ export default function ImageSlider() {
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-              {/* Filtros - Solo desktop */}
-              <div className="hidden lg:flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              {/* Filtros visibles también cuando la galería ocupa menos ancho */}
+              <div className="flex flex-wrap items-center gap-2">
                 <Filter className="w-4 h-4 text-neutral-500" />
                 {(['all', 'event', 'flyer', 'announcement'] as const).map((type) => (
                   <motion.button
                     key={type}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    aria-pressed={selectedType === type}
                     onClick={() => {
                       setSelectedType(type)
                       setCurrent(0)
@@ -342,6 +343,7 @@ export default function ImageSlider() {
                 ))}
               </div>
 
+              <div className="flex items-center gap-1.5 sm:gap-3">
               {/* Play/Pause - Solo tablet+ */}
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -366,9 +368,9 @@ export default function ImageSlider() {
                 <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-600" />
               </motion.button>
 
-              {/* Navigation arrows - Solo desktop */}
+              {/* Navegación */}
               {slides.length > 1 && (
-                <div className="hidden md:flex items-center gap-2">
+                <div className="flex items-center gap-2">
                   <motion.button
                     whileHover={{ scale: 1.1, x: -2 }}
                     whileTap={{ scale: 0.9 }}
@@ -390,6 +392,7 @@ export default function ImageSlider() {
                   </motion.button>
                 </div>
               )}
+              </div>
             </div>
           </div>
         </div>
