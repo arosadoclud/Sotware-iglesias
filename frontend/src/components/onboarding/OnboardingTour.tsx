@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useMemo } from 'react'
 import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride'
 import { useAuthStore } from '../../store/authStore'
 import { ADMIN_TOUR, VIEWER_TOUR } from '../../constants/tourSteps'
@@ -6,7 +6,7 @@ import { useOnboarding } from '../../hooks/useOnboarding'
 
 export const OnboardingTour = () => {
   const { user, isAdmin } = useAuthStore()
-  const { showTour, setShowTour, completeTour } = useOnboarding()
+  const { showTour, completeTour } = useOnboarding()
 
   // Determinar qué tour mostrar según el rol
   const getTourSteps = (): Step[] => {
@@ -15,6 +15,10 @@ export const OnboardingTour = () => {
     // Usar la función isAdmin del store
     return isAdmin() ? ADMIN_TOUR : VIEWER_TOUR
   }
+
+  const steps = useMemo(() => getTourSteps().filter((step) =>
+    typeof step.target !== 'string' || step.target === 'body' || !!document.querySelector(step.target)
+  ), [user, showTour])
 
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status } = data
@@ -31,9 +35,9 @@ export const OnboardingTour = () => {
 
   return (
     <Joyride
-      steps={getTourSteps()}
+      steps={steps}
       continuous
-      showProgress={false}
+      showProgress
       showSkipButton
       run={showTour}
       callback={handleJoyrideCallback}

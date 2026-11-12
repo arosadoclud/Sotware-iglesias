@@ -1,3 +1,4 @@
+import { BACKEND_URL } from '../../lib/api'
 import { useState, useEffect, useRef } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -32,7 +33,7 @@ import { toast } from 'react-hot-toast'
 import { P } from '../../constants/permissions'
 import { OnboardingTour } from '../onboarding'
 import { useOnboarding } from '../../hooks/useOnboarding'
-import { Avatar, AvatarFallback } from '../ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Button } from '../ui/button'
 import {
   DropdownMenu,
@@ -358,7 +359,7 @@ const DashboardLayoutImproved = () => {
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </Button>
         <div className="min-w-0 flex-1 flex items-center gap-3"><BrandLogo className="brand-logo-mobile" /><div><p className="text-sm font-bold text-slate-900">Dios Fuerte</p><p className="text-[10px] tracking-wider uppercase text-slate-500">Arca Evangélica</p></div></div>
-        <Avatar className="h-9 w-9"><AvatarFallback className="bg-blue-50 text-blue-700 text-xs">{user?.fullName?.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+        <Avatar className="h-9 w-9"><AvatarImage src={user?.avatarUrl ? `${BACKEND_URL}${user.avatarUrl}` : undefined} alt="Foto de perfil" /><AvatarFallback className="bg-blue-50 text-blue-700 text-xs">{user?.fullName?.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
       </header>
 
       {/* Sidebar - Desktop */}
@@ -430,7 +431,7 @@ const DashboardLayoutImproved = () => {
                 className="w-full flex items-center gap-3 p-2 hover:bg-white rounded-lg transition-all user-menu"
               >
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-primary-600 text-white font-bold">
+                  <AvatarImage src={user?.avatarUrl ? `${BACKEND_URL}${user.avatarUrl}` : undefined} alt="Foto de perfil" /><AvatarFallback className="bg-primary-600 text-white font-bold">
                     {user?.fullName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
@@ -538,7 +539,7 @@ const DashboardLayoutImproved = () => {
               <div className="flex-shrink-0 p-4 border-t border-neutral-200 bg-neutral-50">
                 <div className="flex items-center gap-3 mb-3">
                   <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary-600 text-white font-bold">
+                    <AvatarImage src={user?.avatarUrl ? `${BACKEND_URL}${user.avatarUrl}` : undefined} alt="Foto de perfil" /><AvatarFallback className="bg-primary-600 text-white font-bold">
                       {user?.fullName?.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
@@ -563,7 +564,7 @@ const DashboardLayoutImproved = () => {
 
       {/* Main Content */}
       <main className={`min-w-0 min-h-screen transition-all duration-300 ${collapsed ? 'lg:pl-[80px]' : 'lg:pl-[280px]'}`}>
-        <header className="brand-desktop-bar hidden lg:flex"><div><span className="brand-workspace-label">ARCA EVANGÉLICA</span><p>Dios Fuerte · Gestión de la iglesia</p></div><div className="brand-account"><span>{user?.fullName}</span><Avatar className="h-9 w-9"><AvatarFallback>{user?.fullName?.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar></div></header>
+        <header className="brand-desktop-bar hidden lg:flex"><div><span className="brand-workspace-label">ARCA EVANGÉLICA</span><p>Dios Fuerte · Gestión de la iglesia</p></div><div className="brand-account"><span>{user?.fullName}</span><Avatar className="h-9 w-9"><AvatarImage src={user?.avatarUrl ? `${BACKEND_URL}${user.avatarUrl}` : undefined} alt="Foto de perfil" /><AvatarFallback>{user?.fullName?.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar></div></header>
         <div className="app-content mx-auto max-w-[1800px] px-4 sm:px-6 lg:px-8 py-5 sm:py-6 lg:py-8">
           <Outlet />
         </div>

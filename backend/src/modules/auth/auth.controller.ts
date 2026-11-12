@@ -508,6 +508,7 @@ export const login = async (req: Request, res: Response) => {
         user: {
           id: user._id,
           fullName: user.fullName,
+        avatarUrl: user.avatarUrl,
           email: user.email,
           role: user.role,
           churchId: user.churchId,
@@ -542,6 +543,7 @@ export const getMe = async (req: AuthRequest, res: Response, next: NextFunction)
       data: {
         id: user._id,
         fullName: user.fullName,
+        avatarUrl: user.avatarUrl,
         email: user.email,
         role: user.role,
         churchId: user.churchId,
@@ -586,6 +588,7 @@ export const updateProfile = async (req: AuthRequest, res: Response, next: NextF
       data: {
         id: user._id,
         fullName: user.fullName,
+        avatarUrl: user.avatarUrl,
         email: user.email,
         role: user.role,
         churchId: user.churchId,
@@ -1178,6 +1181,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
         user: {
           id: user._id,
           fullName: user.fullName,
+        avatarUrl: user.avatarUrl,
           email: user.email,
           role: user.role,
           churchId: user.churchId,

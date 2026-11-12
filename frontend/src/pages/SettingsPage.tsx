@@ -3,7 +3,7 @@ import { BrandLogo } from '../components/layout/BrandLogo'
 import './settings.css'
 import { useState, useEffect, useId } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { churchesApi, rolesApi, authApi } from '../lib/api'
+import { churchesApi, rolesApi, authApi, BACKEND_URL } from '../lib/api'
 import { useAuthStore } from '../store/authStore'
 import {
   useProtectedModulesStore,
@@ -511,6 +511,7 @@ const SettingsPage = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [savingProfile, setSavingProfile] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
 
   // CallMeBot state
@@ -1324,6 +1325,27 @@ const SettingsPage = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
+                      <div className="flex items-center gap-4">
+                        <div className="h-14 w-14 overflow-hidden rounded-full bg-blue-100 flex items-center justify-center font-semibold text-blue-700">
+                          {user?.avatarUrl ? <img src={`${BACKEND_URL}${user.avatarUrl}`} alt="Foto de perfil" className="h-full w-full object-cover" /> : user?.fullName?.charAt(0)}
+                        </div>
+                        <label className="cursor-pointer text-sm text-blue-700">
+                          {uploadingAvatar ? 'Subiendo foto…' : 'Subir foto de perfil'}
+                          <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={uploadingAvatar}
+                            onChange={async (event) => {
+                              const file = event.target.files?.[0]
+                              if (!file) return
+                              if (file.size > 2 * 1024 * 1024) { toast.error('La foto debe pesar menos de 2 MB'); return }
+                              setUploadingAvatar(true)
+                              try {
+                                const result = await authApi.uploadAvatar(file)
+                                useAuthStore.getState().updateUser({ avatarUrl: result.data.data.avatarUrl })
+                                toast.success('Foto de perfil actualizada')
+                              } catch { toast.error('No se pudo subir la foto') }
+                              finally { setUploadingAvatar(false); event.target.value = '' }
+                            }} />
+                        </label>
+                      </div>
                       <AnimatedInput
                         label="Nombre Completo"
                         icon={User}

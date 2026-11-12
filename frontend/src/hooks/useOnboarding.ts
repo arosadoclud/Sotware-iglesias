@@ -11,9 +11,10 @@ const STORAGE_KEY = 'onboarding-state'
 
 export const useOnboarding = () => {
   const { user } = useAuthStore()
+  const storageKey = `${STORAGE_KEY}:${user?.id || 'guest'}`
   
   const [state, setState] = useState<OnboardingState>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const stored = localStorage.getItem(storageKey)
     if (stored) {
       try {
         return JSON.parse(stored)
@@ -34,9 +35,24 @@ export const useOnboarding = () => {
 
   const [showTour, setShowTour] = useState(false)
 
+  useEffect(() => {
+    const restart = () => setShowTour(true)
+    window.addEventListener('restart-onboarding-tour', restart)
+    return () => window.removeEventListener('restart-onboarding-tour', restart)
+  }, [])
+
+  useEffect(() => {
+    const stored = localStorage.getItem(storageKey)
+    try {
+      setState(stored ? JSON.parse(stored) : { hasCompletedTour: false, hasSeenModule: {}, exploredFeatures: [] })
+    } catch {
+      setState({ hasCompletedTour: false, hasSeenModule: {}, exploredFeatures: [] })
+    }
+  }, [storageKey])
+
   // Persistir cambios en localStorage
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    localStorage.setItem(storageKey, JSON.stringify(state))
   }, [state])
 
   // Mostrar tour automáticamente si es la primera vez
@@ -80,7 +96,7 @@ export const useOnboarding = () => {
   }
 
   const restartTour = () => {
-    setShowTour(true)
+    window.dispatchEvent(new Event('restart-onboarding-tour'))
   }
 
   const resetOnboarding = () => {
@@ -89,7 +105,7 @@ export const useOnboarding = () => {
       hasSeenModule: {},
       exploredFeatures: []
     })
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(storageKey)
   }
 
   return {

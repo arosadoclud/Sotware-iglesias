@@ -8,6 +8,7 @@ interface User {
   id: string
   email: string
   fullName: string
+  avatarUrl?: string
   role: UserRole
   churchId: string
   isSuperUser?: boolean

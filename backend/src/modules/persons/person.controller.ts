@@ -1,6 +1,8 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../../middleware/auth.middleware';
 import Person from '../../models/Person.model';
+import User from '../../models/User.model';
+import mongoose from 'mongoose';
 
 export const getPersons = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -18,7 +20,7 @@ export const getPersons = async (req: AuthRequest, res: Response, next: NextFunc
     const skip = (page - 1) * limit;
 
     // Proyección de campos
-    const projection = 'firstName lastName fullName phone ministry status roles createdAt';
+    const projection = 'firstName lastName fullName phone email ministry status priority roles userId createdAt';
 
     const [persons, total] = await Promise.all([
       Person.find(filter)
@@ -55,7 +57,7 @@ export const getPersons = async (req: AuthRequest, res: Response, next: NextFunc
 
 export const getPerson = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const person = await Person.findOne({ _id: req.params.id, churchId: req.churchId });
+    const person = await Person.findOne({ _id: req.params.id, churchId: req.churchId }).populate('userId', 'fullName email role isActive');
     if (!person) return res.status(404).json({ success: false, message: 'Persona no encontrada' });
     res.json({ success: true, data: person });
   } catch (error) { next(error); }
@@ -68,7 +70,8 @@ export const createPerson = async (req: AuthRequest, res: Response, next: NextFu
     console.log('  Roles en body:', req.body.roles);
     console.log('  RoleIds en body:', req.body.roleIds);
     
-    const person = await Person.create({ ...req.body, churchId: req.churchId });
+    const { userId: _ignoredUserId, churchId: _ignoredChurchId, ...personData } = req.body;
+    const person = await Person.create({ ...personData, churchId: req.churchId });
     
     console.log('  ✅ Person creada:');
     console.log('  Nombre:', person.fullName);
@@ -90,9 +93,10 @@ export const updatePerson = async (req: AuthRequest, res: Response, next: NextFu
     console.log('  Roles en body:', req.body.roles);
     console.log('  RoleIds en body:', req.body.roleIds);
     
+    const { userId: _ignoredUserId, churchId: _ignoredChurchId, ...personData } = req.body;
     const person = await Person.findOneAndUpdate(
       { _id: req.params.id, churchId: req.churchId },
-      req.body,
+      personData,
       { new: true, runValidators: true }
     );
     
@@ -123,5 +127,37 @@ export const getMinistries = async (req: AuthRequest, res: Response, next: NextF
   try {
     const ministries = await Person.distinct('ministry', { churchId: req.churchId, ministry: { $nin: [null, ''] } });
     res.json({ success: true, data: ministries.filter(Boolean).sort() });
+  } catch (error) { next(error); }
+};
+
+export const getAvailableUsers = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const [users, linked] = await Promise.all([
+      User.find({ churchId: req.churchId }).select('fullName email role isActive').sort({ fullName: 1 }).lean(),
+      Person.find({ churchId: req.churchId, userId: { $exists: true, $ne: null } }).select('userId').lean()
+    ]);
+    const taken = new Set(linked.map(person => String(person.userId)));
+    res.json({ success: true, data: users.filter(user => !taken.has(String(user._id))) });
+  } catch (error) { next(error); }
+};
+
+export const linkPersonUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { userId } = req.body;
+    if (userId !== null && (typeof userId !== 'string' || !mongoose.isValidObjectId(userId))) {
+      return res.status(400).json({ success: false, message: 'Usuario inválido' });
+    }
+    const person = await Person.findOne({ _id: req.params.id, churchId: req.churchId });
+    if (!person) return res.status(404).json({ success: false, message: 'Persona no encontrada' });
+    if (userId) {
+      const user = await User.findOne({ _id: userId, churchId: req.churchId });
+      if (!user) return res.status(404).json({ success: false, message: 'Usuario no encontrado en esta iglesia' });
+      const existing = await Person.findOne({ churchId: req.churchId, userId, _id: { $ne: person._id } });
+      if (existing) return res.status(409).json({ success: false, message: 'Este usuario ya está vinculado a otra persona' });
+    }
+    person.userId = userId ? new mongoose.Types.ObjectId(userId) : undefined;
+    await person.save();
+    await person.populate('userId', 'fullName email role isActive');
+    res.json({ success: true, data: person });
   } catch (error) { next(error); }
 };

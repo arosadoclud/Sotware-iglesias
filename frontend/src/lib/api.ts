@@ -36,6 +36,7 @@ export const authApi = {
   refresh: () => api.post('/auth/refresh'),
   me: () => api.get('/auth/me'),
   updateProfile: (data: { fullName: string }) => api.put('/auth/profile', data),
+  uploadAvatar: (file: File) => { const form = new FormData(); form.append('avatar', file); return api.post('/auth/avatar', form, { headers: { 'Content-Type': 'multipart/form-data' } }) },
   changePassword: (data: { currentPassword: string; newPassword: string }) => api.put('/auth/change-password', data),
   forgotPassword: (email: string) => api.post('/auth/forgot-password', { email }),
   verifyResetToken: (token: string) => api.get(`/auth/reset-password/${token}`),
@@ -79,6 +80,8 @@ export const rolesApi = {
 export const personsApi = {
   getAll: (params?: any) => api.get('/persons', { params }),
   get: (id: string) => api.get(`/persons/${id}`),
+  getAvailableUsers: () => api.get('/persons/available-users'),
+  linkUser: (id: string, userId: string | null) => api.put(`/persons/${id}/user`, { userId }),
   create: (data: any) => api.post('/persons', data),
   update: (id: string, data: any) => api.put(`/persons/${id}`, data),
   delete: (id: string) => api.delete(`/persons/${id}`),

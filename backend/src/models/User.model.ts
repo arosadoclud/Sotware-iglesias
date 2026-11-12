@@ -20,6 +20,7 @@ export interface IUser extends Document {
   email: string;
   passwordHash: string;
   fullName: string;
+  avatarUrl?: string;
   role: UserRole;
   permissions: string[];           // Permisos personalizados
   useCustomPermissions: boolean;   // Si true, usa permissions; si false, usa los del rol
@@ -84,6 +85,7 @@ const UserSchema = new Schema<IUser>(
       trim: true,
       maxlength: [255, 'El nombre no puede exceder 255 caracteres'],
     },
+    avatarUrl: { type: String, default: '' },
     role: {
       type: String,
       enum: Object.values(UserRole),

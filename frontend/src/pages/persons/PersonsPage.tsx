@@ -94,6 +94,7 @@ interface Person {
   ministry?: string
   status: string
   priority: number
+  userId?: string
   roles: Array<{ roleId: string; roleName: string }>
 }
 
@@ -120,6 +121,39 @@ const PersonsPage = () => {
   const [statuses, setStatuses] = useState<PersonStatus[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [detail, setDetail] = useState<any>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [availableUsers, setAvailableUsers] = useState<Array<{ _id: string; fullName: string; email: string }>>([])
+  const [linking, setLinking] = useState(false)
+
+  const openDetail = async (person: Person) => {
+    setDetail(person)
+    setDetailLoading(true)
+    try {
+      const [response, users] = await Promise.all([
+        personsApi.get(person._id),
+        canEdit ? personsApi.getAvailableUsers() : Promise.resolve(null)
+      ])
+      setDetail(response.data.data)
+      setAvailableUsers(users?.data?.data || [])
+    } catch {
+      toast.error('No se pudieron cargar los datos de la persona')
+      setDetail(null)
+    } finally { setDetailLoading(false) }
+  }
+
+  const linkUser = async (userId: string | null) => {
+    if (!detail) return
+    setLinking(true)
+    try {
+      const response = await personsApi.linkUser(detail._id, userId)
+      setDetail(response.data.data)
+      toast.success(userId ? 'Usuario vinculado' : 'Usuario desvinculado')
+      load(page, pageSize)
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'No se pudo vincular el usuario')
+    } finally { setLinking(false) }
+  }
   const [showStatusModal, setShowStatusModal] = useState(false)
   const [showMinistryModal, setShowMinistryModal] = useState(false)
   const [editingPerson, setEditingPerson] = useState<Person | null>(null)
@@ -172,9 +206,9 @@ const PersonsPage = () => {
               </AvatarFallback>
             </Avatar>
             <div>
-              <span className="font-medium text-neutral-900 hover:text-primary-600 transition-colors cursor-pointer">
+              <button type="button" onClick={() => openDetail(person)} className="font-medium text-neutral-900 hover:text-primary-600 transition-colors text-left">
                 {person.fullName}
-              </span>
+              </button>
               {person.email && (
                 <p className="text-xs text-neutral-500 font-normal">
                   {person.email}
@@ -550,9 +584,9 @@ const PersonsPage = () => {
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-neutral-900 person-name">
+                          <button type="button" onClick={() => openDetail(person)} className="font-semibold text-neutral-900 person-name text-left">
                             {person.fullName}
-                          </p>
+                          </button>
                           {person.email && (
                             <p className="text-xs text-neutral-500 truncate">
                               {person.email}
@@ -687,6 +721,33 @@ const PersonsPage = () => {
         </motion.div>
       )}
 
+      <Dialog open={!!detail} onOpenChange={(open) => { if (!open) setDetail(null) }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>{detail?.fullName}</DialogTitle></DialogHeader>
+          {detailLoading ? <p>Cargando datos…</p> : detail && (
+            <div className="space-y-3 text-sm">
+              <p><strong>Correo:</strong> {detail.email || 'Sin correo registrado'}</p>
+              <p><strong>Teléfono:</strong> {detail.phone || 'Sin teléfono registrado'}</p>
+              <p><strong>Ministerio:</strong> {detail.ministry || 'Sin ministerio'}</p>
+              <p><strong>Estado:</strong> {getStatusConfig(detail.status).label}</p>
+              <p><strong>Roles:</strong> {detail.roles?.map((role: any) => role.roleName).join(', ') || 'Sin roles'}</p>
+              <p><strong>Usuario conectado:</strong> {detail.userId?.fullName ? `${detail.userId.fullName} (${detail.userId.email})` : 'Ninguno'}</p>
+              {canEdit && (
+                <div className="space-y-2 border-t pt-3">
+                  <Label htmlFor="linked-user">Conectar usuario existente</Label>
+                  <select id="linked-user" className="w-full rounded-md border p-2" disabled={linking}
+                    value={detail.userId?._id || ''}
+                    onChange={(event) => linkUser(event.target.value || null)}>
+                    <option value="">Sin usuario</option>
+                    {detail.userId?._id && <option value={detail.userId._id}>{detail.userId.fullName} ({detail.userId.email})</option>}
+                    {availableUsers.map((user) => <option key={user._id} value={user._id}>{user.fullName} ({user.email})</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       {/* Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="persons-dialog max-w-2xl max-h-[90vh] overflow-y-auto">
